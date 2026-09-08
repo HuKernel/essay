@@ -336,7 +336,7 @@ export function BlockRefPicker({ notes, activeNoteId, onPick, onClose }: BlockRe
                   className="blockref-item"
                   onClick={() => setSelected(note)}
                 >
-                  <strong>{note.icon ? `${note.icon} ` : ""}{note.title || "未命名记录"}</strong>
+                  <strong>{note.title || "未命名记录"}</strong>
                   <span>{note.excerpt || "空记录"}</span>
                 </button>
               ))}

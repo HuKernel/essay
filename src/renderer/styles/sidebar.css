@@ -735,14 +735,6 @@
   color: var(--accent-color);
 }
 
-/* ---------- 笔记 emoji 图标 ---------- */
-
-.note-emoji {
-  flex: 0 0 auto;
-  font-size: 13px;
-  line-height: 1;
-}
-
 /* ---------- 拖拽归类的放置高亮 ---------- */
 
 .folder-filter button.is-drop-target,
@@ -846,4 +838,44 @@
   height: 4px;
   border-radius: 999px;
   background: var(--accent-color);
+}
+
+/* ---------- 日历模式：整块滚动，避免挤压其它区块 ---------- */
+
+.sidebar-body.is-calendar > * {
+  flex-shrink: 0;
+}
+
+.sidebar-body.is-calendar .calendar-wrap {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.sidebar-body.is-calendar .calendar-wrap .note-list.is-embedded {
+  flex: none;
+  overflow: visible;
+  padding: 4px 6px 8px;
+}
+
+.calendar-wrap .calendar-nav,
+.calendar-wrap .calendar-grid {
+  flex-shrink: 0;
+}
+
+.calendar-cell {
+  min-height: 28px;
+}
+
+.calendar-pad {
+  min-height: 28px;
+}
+
+.sidebar-body.is-calendar .calendar-wrap .note-list.is-embedded {
+  flex: 1 1 auto;
+  min-height: 90px;
+  overflow-y: auto;
 }

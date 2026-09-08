@@ -148,7 +148,7 @@ export function Sidebar(props: SidebarProps) {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  const [calendarDay, setCalendarDay] = useState<string | null>(null);
+  const [calendarDay, setCalendarDay] = useState<string | null>(() => dayKeyOf(new Date()));
 
   function dropProps(key: string, apply: (noteId: string) => void) {
     return {
@@ -283,7 +283,7 @@ export function Sidebar(props: SidebarProps) {
         </div>
       </div>
 
-      <div className="sidebar-body">
+      <div className={viewMode === "calendar" ? "sidebar-body is-calendar" : "sidebar-body"}>
         {leftPaneMode === "document" ? (
           <>
             <div className="sidebar-summary-card">
@@ -463,7 +463,7 @@ export function Sidebar(props: SidebarProps) {
             ) : null}
 
             {viewMode === "calendar" ? (
-              <>
+              <div className="calendar-wrap">
                 <div className="calendar-nav">
                   <button
                     type="button"
@@ -494,6 +494,45 @@ export function Sidebar(props: SidebarProps) {
                     今天
                   </button>
                 </div>
+                {calendarDay ? (
+                  <>
+                    <div className="sidebar-list-header">
+                      <span>{calendarDay} 的记录</span>
+                      <strong>{dayNotes.length}</strong>
+                    </div>
+                    <nav className="note-list is-embedded" aria-label="当日记录">
+                      {dayNotes.length === 0 ? (
+                        <p className="note-list-empty" role="status">
+                          这一天没有记录
+                        </p>
+                      ) : (
+                        dayNotes.map((note) => (
+                          <div
+                            key={note.id}
+                            className={note.id === activeId ? "note-item is-active" : "note-item"}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => onSelectNote(note.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                onSelectNote(note.id);
+                              }
+                            }}
+                          >
+                            <div className="note-item-header">
+                              <span className="note-title">
+                                <span className="note-title-text">{note.title || "未命名记录"}</span>
+                              </span>
+                            </div>
+                            <span className="note-excerpt">{note.excerpt || "空记录"}</span>
+                            <span className="note-time">{formatTime(note.updatedAt)}</span>
+                          </div>
+                        ))
+                      )}
+                    </nav>
+                  </>
+                ) : null}
                 <div className="calendar-grid">
                   {WEEKDAY_LABELS.map((label) => (
                     <span key={label} className="calendar-weekday">
@@ -523,47 +562,7 @@ export function Sidebar(props: SidebarProps) {
                     )
                   )}
                 </div>
-                {calendarDay ? (
-                  <>
-                    <div className="sidebar-list-header">
-                      <span>{calendarDay} 的记录</span>
-                      <strong>{dayNotes.length}</strong>
-                    </div>
-                    <nav className="note-list" aria-label="当日记录">
-                      {dayNotes.length === 0 ? (
-                        <p className="note-list-empty" role="status">
-                          这一天没有记录
-                        </p>
-                      ) : (
-                        dayNotes.map((note) => (
-                          <div
-                            key={note.id}
-                            className={note.id === activeId ? "note-item is-active" : "note-item"}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => onSelectNote(note.id)}
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter" || event.key === " ") {
-                                event.preventDefault();
-                                onSelectNote(note.id);
-                              }
-                            }}
-                          >
-                            <div className="note-item-header">
-                              <span className="note-title">
-                                {note.icon ? <span className="note-emoji">{note.icon}</span> : null}
-                                <span className="note-title-text">{note.title || "未命名记录"}</span>
-                              </span>
-                            </div>
-                            <span className="note-excerpt">{note.excerpt || "空记录"}</span>
-                            <span className="note-time">{formatTime(note.updatedAt)}</span>
-                          </div>
-                        ))
-                      )}
-                    </nav>
-                  </>
-                ) : null}
-              </>
+              </div>
             ) : (
               <>
                 <div className="sidebar-list-header">
@@ -633,10 +632,6 @@ export function Sidebar(props: SidebarProps) {
                       event.dataTransfer.setData("text/suiji-note", note.id);
                       event.dataTransfer.effectAllowed = "move";
                     }}
-                    onMouseDown={(event) => {
-                      if (!(event.target instanceof HTMLElement) || event.target.closest("button")) return;
-                      event.preventDefault();
-                    }}
                     onClick={() => onSelectNote(note.id)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" || event.key === " ") {
@@ -647,7 +642,6 @@ export function Sidebar(props: SidebarProps) {
                   >
                     <div className="note-item-header">
                       <span className="note-title">
-                        {note.icon ? <span className="note-emoji">{note.icon}</span> : null}
                         {note.pinnedAt ? <Pin size={13} className="note-pin-mark" /> : null}
                         <span className="note-title-text">
                           <HighlightedText text={note.title} keyword={searchKeyword} />

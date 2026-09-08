@@ -305,39 +305,8 @@
 
 /* ---------- 封面横幅 / 面包屑 / 标题图标 ---------- */
 
-.note-cover-banner {
-  margin: 0 0 10px;
-  border-radius: 16px;
-  overflow: hidden;
-}
 
-.note-cover-banner img {
-  display: block;
-  width: 100%;
-  max-height: 200px;
-  object-fit: cover;
-}
-
-.title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.note-icon-badge {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--surface-press);
-  font-size: 16px;
-  cursor: pointer;
-}
+/* ---------- 面包屑（子页面路径） ---------- */
 
 .note-breadcrumb {
   display: flex;
@@ -367,31 +336,4 @@
 .note-breadcrumb strong {
   color: var(--text-color);
   font-weight: 600;
-}
-
-.emoji-input {
-  max-width: 120px;
-  min-height: 32px;
-  border: 1px solid var(--line-soft);
-  border-radius: 10px;
-  background: var(--surface-raised);
-  color: var(--text-color);
-  padding: 0 10px;
-  outline: 0;
-}
-
-.cover-action {
-  min-height: 32px;
-  border: 1px solid var(--line-soft);
-  border-radius: 10px;
-  background: var(--surface-raised);
-  color: var(--muted-text);
-  font-size: 12px;
-  padding: 0 12px;
-  cursor: pointer;
-}
-
-.cover-action:hover {
-  color: var(--accent-color);
-  border-color: var(--accent-soft-strong);
 }

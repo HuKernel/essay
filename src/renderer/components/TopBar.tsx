@@ -1,4 +1,3 @@
-import { useRef } from "react";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import type { SaveState } from "../constants";
 
@@ -9,11 +8,6 @@ type TopBarProps = {
   onToggleSidebar: () => void;
   title: string;
   onTitleChange: (value: string) => void;
-  icon: string | null;
-  cover: string | null;
-  onIconChange: (value: string) => void;
-  onCoverFile: (file: File | undefined) => void;
-  onCoverRemove: () => void;
   folderPreview: string;
   metaTagsPreview: string[];
   hasMetaInfo: boolean;
@@ -43,11 +37,6 @@ export function TopBar(props: TopBarProps) {
     onToggleSidebar,
     title,
     onTitleChange,
-    icon,
-    cover,
-    onIconChange,
-    onCoverFile,
-    onCoverRemove,
     folderPreview,
     metaTagsPreview,
     hasMetaInfo,
@@ -61,7 +50,6 @@ export function TopBar(props: TopBarProps) {
     editorCharCount,
     readingMinutes
   } = props;
-  const coverInputRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <header className="topbar">
@@ -89,26 +77,13 @@ export function TopBar(props: TopBarProps) {
           <div className="workspace-crumb">
             {folderPreview || "未分类"} / {title.trim() || "未命名记录"}
           </div>
-          <div className="title-row">
-            {icon ? (
-              <button
-                type="button"
-                className="note-icon-badge"
-                title="点击清除图标"
-                onClick={() => onIconChange("")}
-                disabled={readOnly}
-              >
-                {icon}
-              </button>
-            ) : null}
-            <input
-              className="title-input"
-              value={title}
-              onChange={(event) => onTitleChange(event.target.value)}
-              placeholder="未命名记录"
-              disabled={readOnly}
-            />
-          </div>
+          <input
+            className="title-input"
+            value={title}
+            onChange={(event) => onTitleChange(event.target.value)}
+            placeholder="未命名记录"
+            disabled={readOnly}
+          />
           <div className="meta-summary-row">
             <button
               type="button"
@@ -140,32 +115,6 @@ export function TopBar(props: TopBarProps) {
                 value={folderDraft}
                 onChange={(event) => onFolderChange(event.target.value)}
                 placeholder="文件夹"
-              />
-              <input
-                className="emoji-input"
-                value={icon ?? ""}
-                onChange={(event) => onIconChange(event.target.value)}
-                placeholder="图标 emoji"
-                maxLength={8}
-                title="笔记图标（粘贴一个 emoji）"
-              />
-              <button type="button" className="cover-action" onClick={() => coverInputRef.current?.click()}>
-                {cover ? "更换封面图" : "设置封面图"}
-              </button>
-              {cover ? (
-                <button type="button" className="cover-action" onClick={onCoverRemove}>
-                  移除封面
-                </button>
-              ) : null}
-              <input
-                ref={coverInputRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={(event) => {
-                  onCoverFile(event.target.files?.[0]);
-                  event.target.value = "";
-                }}
               />
             </div>
           ) : null}

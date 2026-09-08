@@ -1171,28 +1171,6 @@ export default function App() {
     toastTimerRef.current = window.setTimeout(() => setToast(null), 5000);
   }
 
-  async function handleUpdateNoteMeta(patch: { icon?: string | null; cover?: string | null }) {
-    if (!activeNote) return;
-    await saveActive({ skipClean: true });
-    const base = notesRef.current.find((item) => item.id === activeNote.id) ?? activeNote;
-    const updated = await window.suiji.saveNote({ ...base, ...patch });
-    setNotes((current) => sortNotes([updated, ...current.filter((item) => item.id !== updated.id)]));
-  }
-
-  function handleIconChange(value: string) {
-    void handleUpdateNoteMeta({ icon: value.trim() ? value.trim() : null });
-  }
-
-  async function handleCoverFile(file: File | undefined) {
-    if (!file) return;
-    const src = await saveImageFileToAsset(file);
-    await handleUpdateNoteMeta({ cover: src });
-  }
-
-  function handleCoverRemove() {
-    void handleUpdateNoteMeta({ cover: null });
-  }
-
   async function handleAssignFolder(noteId: string, folder: string) {
     const note = notesRef.current.find((item) => item.id === noteId);
     if (!note) return;
@@ -1208,6 +1186,16 @@ export default function App() {
   }
 
   async function handleCreateSubpage() {
+    if (!editor) return;
+    try {
+      await createSubpageInner();
+    } catch (error) {
+      console.error("[subpage] 创建失败:", error);
+      showToast(`子页面创建失败: ${String(error)}`);
+    }
+  }
+
+  async function createSubpageInner() {
     if (!editor) return;
     const created = await window.suiji.createNote();
     const child = await window.suiji.saveNote({
@@ -1963,9 +1951,9 @@ export default function App() {
     }
   ];
   slashCommandsRef.current = [
-    ...blockMenuCommands,
     { id: "subpage", label: "子页面", hint: "新建子笔记并链接到这里", run: () => void handleCreateSubpage() },
-    { id: "blockref", label: "引用笔记块", hint: "插入其它笔记的块引用卡片", run: openBlockRefPicker }
+    { id: "blockref", label: "引用笔记块", hint: "插入其它笔记的块引用卡片", run: openBlockRefPicker },
+    ...blockMenuCommands
   ];
 
   function applyBlockMenuCommand(command: BlockMenuCommand) {
@@ -2073,12 +2061,7 @@ export default function App() {
         onAssignTag={(noteId, tag) => void handleAssignTag(noteId, tag)}
       />
 
-      <section className="workspace">
-        {activeNote?.cover ? (
-          <div className="note-cover-banner">
-            <img src={activeNote.cover} alt="" draggable={false} />
-          </div>
-        ) : null}
+      <section className={activeNote?.parentId ? "workspace has-breadcrumb" : "workspace"}>
         {activeNote?.parentId ? (
           <nav className="note-breadcrumb" aria-label="页面路径">
             <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
@@ -2097,11 +2080,6 @@ export default function App() {
             setTitle(value);
             markDirty();
           }}
-          icon={activeNote?.icon ?? null}
-          cover={activeNote?.cover ?? null}
-          onIconChange={handleIconChange}
-          onCoverFile={(file) => void handleCoverFile(file)}
-          onCoverRemove={handleCoverRemove}
           folderPreview={folderPreview}
           metaTagsPreview={metaTagsPreview}
           hasMetaInfo={hasMetaInfo}

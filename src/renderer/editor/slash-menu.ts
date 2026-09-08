@@ -101,7 +101,7 @@ export const SlashMenuExtension = Extension.create<{ getCommands: () => SlashCom
                   command.label.toLowerCase().includes(query) ||
                   command.hint.toLowerCase().includes(query)
               )
-              .slice(0, 9);
+              .slice(0, 16);
             if (items.length === 0) return CLOSED;
             const index = prev.open && prev.from === trigger.from ? Math.min(prev.index, items.length - 1) : 0;
             return { open: true, from: trigger.from, items, index };

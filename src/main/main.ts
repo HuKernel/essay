@@ -517,6 +517,7 @@ function sanitizeNotePayload(raw: unknown): NoteRecord {
     archivedAt: typeof note.archivedAt === "string" ? note.archivedAt : null,
     trashedAt: typeof note.trashedAt === "string" ? note.trashedAt : null,
     pinnedAt: typeof note.pinnedAt === "string" ? note.pinnedAt : null,
+    parentId: typeof note.parentId === "string" ? note.parentId : null,
     content: note.content && typeof note.content === "object" ? note.content : emptyDoc,
     html: coerceString(note.html),
     plainText: coerceString(note.plainText),
@@ -615,8 +616,6 @@ function normalizeNote(raw: Partial<NoteRecord>): NoteRecord {
     archivedAt: typeof raw.archivedAt === "string" ? raw.archivedAt : null,
     trashedAt: typeof raw.trashedAt === "string" ? raw.trashedAt : null,
     pinnedAt: typeof raw.pinnedAt === "string" ? raw.pinnedAt : null,
-    icon: typeof raw.icon === "string" && raw.icon.trim() ? raw.icon.trim().slice(0, 8) : null,
-    cover: typeof raw.cover === "string" && raw.cover.trim() ? raw.cover : null,
     parentId: typeof raw.parentId === "string" && raw.parentId ? raw.parentId : null,
     // 旧折叠块的标题存在节点属性里，统一升级为文档内的标题/内容节点
     content: upgradeCollapsibleContent(raw.content ?? emptyDoc),
@@ -682,27 +681,27 @@ function noteFromDbRow(row: NoteDbRow): NoteRecord {
   });
 }
 
-type NoteMetaRow = { id: string; icon: string | null; cover: string | null; parent_id: string | null };
+type NoteMetaRow = { id: string; parent_id: string | null };
 
 function loadAllNoteMeta(): Map<string, NoteMetaRow> {
-  const rows = dbRows<NoteMetaRow>("SELECT id, icon, cover, parent_id FROM note_meta");
+  const rows = dbRows<NoteMetaRow>("SELECT id, parent_id FROM note_meta");
   return new Map(rows.map((row) => [row.id, row]));
 }
 
 function loadNoteMeta(id: string): NoteMetaRow | undefined {
-  return dbRows<NoteMetaRow>("SELECT id, icon, cover, parent_id FROM note_meta WHERE id = ?", [id])[0];
+  return dbRows<NoteMetaRow>("SELECT id, parent_id FROM note_meta WHERE id = ?", [id])[0];
 }
 
 function applyNoteMeta(note: NoteRecord, meta?: NoteMetaRow): NoteRecord {
   if (!meta) return note;
-  return { ...note, icon: meta.icon, cover: meta.cover, parentId: meta.parent_id };
+  return { ...note, parentId: meta.parent_id };
 }
 
 function upsertNoteMeta(note: NoteRecord) {
   dbExec(
-    `INSERT INTO note_meta (id, icon, cover, parent_id) VALUES (?, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET icon = excluded.icon, cover = excluded.cover, parent_id = excluded.parent_id`,
-    [note.id, note.icon ?? null, note.cover ?? null, note.parentId ?? null]
+    `INSERT INTO note_meta (id, parent_id) VALUES (?, ?)
+     ON CONFLICT(id) DO UPDATE SET parent_id = excluded.parent_id`,
+    [note.id, note.parentId ?? null]
   );
 }
 
@@ -805,8 +804,6 @@ function ensureNotesSchema() {
     );
     CREATE TABLE IF NOT EXISTS note_meta (
       id TEXT PRIMARY KEY,
-      icon TEXT,
-      cover TEXT,
       parent_id TEXT
     );
   `);
@@ -1945,6 +1942,10 @@ function createWindow() {
   });
 
   setupWebContentsGuards(mainWindow);
+  // 渲染进程 console 转发到调试日志（dev 下 DEBUG_LOG_PATH 默认开启）
+  mainWindow.webContents.on("console-message", (_event, _level, message) => {
+    writeDebugLog(`renderer: ${message}`);
+  });
 
   mainWindow.on("close", (event) => {
     if (!isQuitting) {

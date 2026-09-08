@@ -172,3 +172,8 @@
   min-height: 0;
   padding: 20px 34px 0;
 }
+
+/* 有面包屑（子页面）时：顶栏自然高度，编辑区占剩余空间 */
+.workspace.has-breadcrumb {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}

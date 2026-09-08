@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.29 - 2026-09-08
+
+- Fixed slash menu truncation: all commands now show (cap raised to 16) and the new 子页面 / 引用笔记块 commands sit at the top.
+- Fixed note drag & drop being dead: removed the mousedown preventDefault that suppressed native dragging.
+- Removed the emoji icon / cover image feature per feedback (parent-id plumbing for sub-pages stays).
+- Calendar view: defaults to selecting today, the selected day's notes list renders above the month grid, and the sidebar scrolls as a block instead of squashing the tag/folder chips.
+- Fixed sub-page creation losing its title/parent: sanitizeNotePayload now passes parentId through; renderer console is mirrored into the debug log in dev.
+
 ## 0.9.28 - 2026-09-08
 
 - Craft-style improvements batch:
