@@ -1,4 +1,4 @@
-param([string]$Path)
+﻿param([string]$Path)
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
@@ -10,7 +10,7 @@ public class Cap {
 }
 "@
 Add-Type -AssemblyName System.Drawing
-$p = Get-Process electron -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
+$p = Get-Process 随记,electron -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
 if (-not $p) { Write-Output "NOWINDOW"; exit 1 }
 [Cap]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
 Start-Sleep -Milliseconds 600

@@ -404,3 +404,10 @@
 .meta-summary {
   flex: 0 0 auto;
 }
+
+.topbar {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  height: 44px;
+  min-height: 44px;
+}

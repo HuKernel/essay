@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.37 - 2026-09-08
+
+- Fixed the compact-viewport layout after the top-bar merge: the sidebar drawer now starts below the 44px top bar instead of covering its left segment.
+
 ## 0.9.36 - 2026-09-08
 
 - Merged the standalone brand strip into the top bar: the app menu (with all export/settings actions) now sits next to the title row, removing the separate 40px strip and giving the editor more height. The top bar doubles as the window drag area; buttons and inputs remain clickable.

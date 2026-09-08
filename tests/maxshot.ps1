@@ -7,7 +7,7 @@ public class MX {
 }
 "@
 Add-Type -AssemblyName System.Windows.Forms,System.Drawing
-$p = Get-Process electron -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
+$p = Get-Process 随记,electron -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
 if ($p) { [MX]::ShowWindow($p.MainWindowHandle, 3) | Out-Null; Start-Sleep -Seconds 1 }
 $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
 $bmp = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height

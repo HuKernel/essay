@@ -6,7 +6,7 @@
   --topbar-h: 48px;
   display: grid;
   grid-template-columns: 304px minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 0;
   width: 100vw;
   height: 100vh;
@@ -151,7 +151,7 @@
   display: grid;
   height: 100%;
   overflow: hidden;
-  grid-template-rows: var(--topbar-h) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   background: var(--app-bg);
 }
 

@@ -1,4 +1,4 @@
-param([string]$Path)
+﻿param([string]$Path)
 Add-Type @"
 using System;
 using System.Text;
@@ -15,7 +15,7 @@ public class WinEnum {
 }
 "@
 Add-Type -AssemblyName System.Drawing
-$targets = Get-Process electron -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id
+$targets = Get-Process 随记,electron -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Id
 $found = New-Object System.Collections.ArrayList
 $cb = [WinEnum+EnumWindowsProc]{
   param($hWnd, $lp)
