@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.43 - 2026-09-08
+
+- Top bar title input keeps a fixed comfortable width (360px / 36vw, shrinkable on narrow windows) instead of stretching across the bar; the remaining space stays as the window drag area.
+
 ## 0.9.42 - 2026-09-08
 
 - Fixed the compact (≤980px) layout scramble: the sidebar/workspace grid placements are scoped to the desktop top-bar (topbar ~ sibling selectors), and the workspace returns to column 1 in the single-column compact grid, so the editor is no longer squeezed into an implicit column.
