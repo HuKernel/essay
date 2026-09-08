@@ -220,6 +220,7 @@ export function TopBar(props: TopBarProps) {
           placeholder="未命名记录"
           disabled={readOnly}
         />
+        <div className="topbar-drag-spacer" aria-hidden="true" />
         <button
           type="button"
           className={metaEditorOpen ? "meta-summary is-open" : "meta-summary"}

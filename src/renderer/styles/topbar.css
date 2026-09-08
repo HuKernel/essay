@@ -407,11 +407,17 @@
 }
 
 .topbar .title-input {
-  flex: 1 1 auto;
-  width: auto;
+  flex: 0 1 auto;
+  width: min(420px, 40vw);
   min-width: 0;
   font-weight: 600;
   text-align: left;
+}
+
+.topbar-drag-spacer {
+  flex: 1 1 auto;
+  min-width: 32px;
+  align-self: stretch;
 }
 
 .topbar-statuses {

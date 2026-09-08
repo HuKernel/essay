@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.40 - 2026-09-08
+
+- Restored window dragging: the flexible title input had covered the whole top bar drag area; the title now keeps a fixed width and an elastic blank drag strip sits between the title and the right-side meta/status group.
+
 ## 0.9.39 - 2026-09-08
 
 - Top bar title nudged 24px to the right so it no longer hugs the left button group (visual balance per feedback).
