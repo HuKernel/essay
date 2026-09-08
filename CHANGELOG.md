@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.26 - 2026-09-08
+
+- Replaced the product icon everywhere (exe/installer/ICO, tray, file associations, in-editor title bar) with the new brand mark; trimmed the white border from the supplied artwork and applied transparent rounded corners. Icon generation now builds from `build/icon-source.png` instead of the legacy SVG.
+
 ## 0.9.25 - 2026-09-08
 
 - Pasted Markdown source containing fenced code blocks is now parsed into real editor blocks via the shared `markdownToDoc` parser instead of being flattened into plain paragraphs, fixing scrambled code blocks and captions when pasting rich text from sources like FlowUs.
