@@ -1010,3 +1010,22 @@
   color: var(--subtle-text);
   font-size: 11px;
 }
+
+/* ---------- 块引用跳转定位高亮 ---------- */
+
+.block-target-flash {
+  animation: block-target-flash 1.8s var(--ease-smooth);
+}
+
+@keyframes block-target-flash {
+  0%,
+  55% {
+    background-color: var(--accent-soft);
+    box-shadow: -10px 0 0 0 var(--accent-soft);
+  }
+
+  100% {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}

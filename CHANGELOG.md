@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.31 - 2026-09-08
+
+- Clicking a block-reference card now jumps to the referenced block inside the source note: the editor scrolls to the matching paragraph (matched via the stored text snapshot), selects it, and flashes a highlight. Falls back to the top of the note when the source text no longer matches.
+
 ## 0.9.30 - 2026-09-08
 
 - Fixed the block-reference picker always showing "no matching content": block extraction read a property that does not exist on serialized TipTap JSON; it now collects text from text/hardBreak nodes inside paragraphs, headings and lists.

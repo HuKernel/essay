@@ -3,9 +3,9 @@ import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
 import { FileText, Quote } from "lucide-react";
 
-/** 打开指定笔记：通过全局事件通知 App 层（解耦 NodeView 与编辑器闭包） */
-export function requestOpenNote(noteId: string) {
-  window.dispatchEvent(new CustomEvent("suiji:open-note", { detail: noteId }));
+/** 打开指定笔记：通过全局事件通知 App 层（解耦 NodeView 与编辑器闭包）；blockText 用于定位到具体块 */
+export function requestOpenNote(noteId: string, blockText?: string) {
+  window.dispatchEvent(new CustomEvent("suiji:open-note", { detail: { noteId, blockText } }));
 }
 
 function PageLinkView({ node }: NodeViewProps) {
@@ -58,8 +58,8 @@ function BlockRefView({ node }: NodeViewProps) {
         type="button"
         className="block-ref-card"
         data-block-ref={refNoteId}
-        onClick={() => requestOpenNote(refNoteId)}
-        title={`跳转到「${node.attrs.refTitle || "来源笔记"}」`}
+        onClick={() => requestOpenNote(refNoteId, String(node.attrs.text || ""))}
+        title={`跳转到「${node.attrs.refTitle || "来源笔记"}」的引用块`}
       >
         <Quote size={14} />
         <span className="block-ref-text">{String(node.attrs.text || "")}</span>

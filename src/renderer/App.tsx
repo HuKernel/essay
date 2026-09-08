@@ -162,6 +162,7 @@ export default function App() {
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
   const toastTimerRef = useRef<number | null>(null);
   const selectNoteRef = useRef<(id: string) => void>(() => {});
+  const pendingBlockScrollRef = useRef<{ text: string } | null>(null);
 
   const activeNote = useMemo(() => notes.find((note) => note.id === activeId) ?? null, [activeId, notes]);
 
@@ -169,6 +170,31 @@ export default function App() {
     revisionRef.current += 1;
     setSaveState("dirty");
   }, []);
+
+  /** 在当前文档中按文字快照定位引用块：选中、滚动到可视区并闪烁高亮 */
+  function scrollToBlockInEditor(text: string): boolean {
+    if (!editor || !text.trim()) return false;
+    const target = text.trim();
+    let found = -1;
+    editor.state.doc.descendants((node, pos) => {
+      if (found >= 0) return false;
+      if ((node.type.name === "paragraph" || node.type.name === "heading") && node.isTextblock) {
+        const blockText = node.textContent.trim();
+        if (blockText && (blockText.includes(target) || target.includes(blockText))) found = pos;
+      }
+      return true;
+    });
+    if (found < 0) return false;
+    editor.view.dispatch(
+      editor.state.tr.setSelection(TextSelection.near(editor.state.doc.resolve(found + 1))).scrollIntoView()
+    );
+    const dom = editor.view.nodeDOM(found);
+    if (dom instanceof HTMLElement) {
+      dom.classList.add("block-target-flash");
+      window.setTimeout(() => dom.classList.remove("block-target-flash"), 1800);
+    }
+    return true;
+  }
 
   const editor = useEditor({
     extensions: [
@@ -602,7 +628,13 @@ export default function App() {
     setOutlineItems(extractOutline(editor));
     setTableToolbarVisible(editor.isActive("table") && !activeNote.trashedAt);
     refreshEditorUi(editor);
-    window.setTimeout(() => editor.commands.focus("end"), 0);
+    const pendingBlock = pendingBlockScrollRef.current;
+    pendingBlockScrollRef.current = null;
+    if (pendingBlock && scrollToBlockInEditor(pendingBlock.text)) {
+      // 块引用跳转：定位到目标块，不强制 focus 到文末
+    } else {
+      window.setTimeout(() => editor.commands.focus("end"), 0);
+    }
     revisionRef.current = 0;
     setSaveState("saved");
   }, [activeNote?.id, editor]);
@@ -681,8 +713,16 @@ export default function App() {
   selectNoteRef.current = (id: string) => void handleSelectNote(id);
   useEffect(() => {
     function onOpenNote(event: Event) {
-      const id = (event as CustomEvent<string>).detail;
-      if (id) selectNoteRef.current(id);
+      const detail = (event as CustomEvent<{ noteId: string; blockText?: string }>).detail;
+      if (!detail?.noteId) return;
+      if (detail.blockText) pendingBlockScrollRef.current = { text: detail.blockText };
+      if (detail.noteId === activeIdRef.current) {
+        // 目标就是当前笔记：直接定位块，不重新加载
+        if (pendingBlockScrollRef.current) scrollToBlockInEditor(pendingBlockScrollRef.current.text);
+        pendingBlockScrollRef.current = null;
+        return;
+      }
+      selectNoteRef.current(detail.noteId);
     }
     window.addEventListener("suiji:open-note", onOpenNote);
     return () => window.removeEventListener("suiji:open-note", onOpenNote);
