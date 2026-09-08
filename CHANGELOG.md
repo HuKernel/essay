@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.44 - 2026-09-08
+
+- Nudged the top bar title 56px away from the left button group so it no longer overlaps the sidebar toggle on narrow windows; everything else unchanged.
+
 ## 0.9.43 - 2026-09-08
 
 - Top bar title input keeps a fixed comfortable width (360px / 36vw, shrinkable on narrow windows) instead of stretching across the bar; the remaining space stays as the window drag area.

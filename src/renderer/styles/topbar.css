@@ -432,3 +432,7 @@
   flex: 0 1 auto;
   width: min(360px, 36vw);
 }
+
+.topbar .title-input {
+  margin-left: 56px;
+}
