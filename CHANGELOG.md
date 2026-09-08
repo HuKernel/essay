@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.25 - 2026-09-08
+
+- Pasted Markdown source containing fenced code blocks is now parsed into real editor blocks via the shared `markdownToDoc` parser instead of being flattened into plain paragraphs, fixing scrambled code blocks and captions when pasting rich text from sources like FlowUs.
+- Allowed remote `https:` images in the renderer CSP so pasted/imported external images render instead of showing broken icons.
+- Fixed image-only clipboard HTML (`<p><img></p>` wrappers) leaving an empty line above the pasted image and pushing it to the next line.
+- Replaced the drawn title bar logo with the real app icon.
+- Registered `.md`/`.markdown`/`.txt` file associations: files open via Explorer right-click "Open with" or double-click and are imported as new notes, with single-instance argv forwarding.
+- Compacted the sidebar view switch into a 3-column grid and tightened section spacing so the note list gets more vertical space.
+- Added debug logging to the file-open import path behind `SUIJI_DEBUG_LOG`.
+
 ## 0.9.24 - 2026-06-26
 
 - Replaced the hand-rolled Markdown import parser with a `markdown-it`-based flow so imported `.md` files now preserve common Markdown/GFM structure including blockquotes, task lists, nested lists, fenced code blocks, horizontal rules, images, tables, and common inline marks.
