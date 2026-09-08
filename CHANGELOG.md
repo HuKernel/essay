@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.30 - 2026-09-08
+
+- Fixed the block-reference picker always showing "no matching content": block extraction read a property that does not exist on serialized TipTap JSON; it now collects text from text/hardBreak nodes inside paragraphs, headings and lists.
+
 ## 0.9.29 - 2026-09-08
 
 - Fixed slash menu truncation: all commands now show (cap raised to 16) and the new 子页面 / 引用笔记块 commands sit at the top.

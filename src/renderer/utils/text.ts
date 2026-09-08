@@ -323,3 +323,25 @@ export function toggleTaskAtIndex(content: JSONContent, index: number): JSONCont
   };
   return walk(content);
 }
+
+/** 提取笔记中可引用的文字块（段落/标题/列表项等文本内容），供块引用选择器使用 */
+export function extractNoteBlocks(note: NoteRecord): string[] {
+  const out: string[] = [];
+  const blockText = (node: JSONContent): string =>
+    (node.content ?? [])
+      .map((child) => {
+        if (child.type === "text") return child.text ?? "";
+        if (child.type === "hardBreak") return " ";
+        return blockText(child);
+      })
+      .join("");
+  const walk = (node: JSONContent) => {
+    if (node.type === "paragraph" || node.type === "heading") {
+      const text = blockText(node).trim();
+      if (text) out.push(text.slice(0, 160));
+    }
+    (node.content ?? []).forEach(walk);
+  };
+  walk(note.content ?? {});
+  return out;
+}

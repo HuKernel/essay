@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ArchiveRestore, Lock, Trash2 } from "lucide-react";
 import type { BackupEntry, NoteRecord } from "../../shared/types";
 import type { ConfirmDialogState, LinkDialogState } from "../constants";
-import { formatTime } from "../utils/text";
+import { extractNoteBlocks, formatTime } from "../utils/text";
 
 /* ---------- 链接编辑 ---------- */
 
@@ -264,18 +264,6 @@ export function PrivacyLock({
 
 /* ---------- 块引用选择器 ---------- */
 
-function extractNoteBlocks(note: NoteRecord): string[] {
-  const out: string[] = [];
-  const walk = (node: { type?: string; textContent?: string; content?: unknown[] }) => {
-    if ((node.type === "paragraph" || node.type === "heading") && node.textContent?.trim()) {
-      out.push(node.textContent.trim().slice(0, 160));
-    }
-    (node.content ?? []).forEach((child) => walk(child as typeof node));
-  };
-  walk(note.content ?? {});
-  return out;
-}
-
 type BlockRefPickerProps = {
   notes: NoteRecord[];
   activeNoteId: string;
@@ -341,7 +329,7 @@ export function BlockRefPicker({ notes, activeNoteId, onPick, onClose }: BlockRe
                 </button>
               ))}
           {(selected ? extractNoteBlocks(selected) : candidates).length === 0 ? (
-            <p className="blockref-empty">没有匹配的内容</p>
+            <p className="blockref-empty">这篇笔记没有可引用的文字块</p>
           ) : null}
         </div>
         <div className="modal-actions">

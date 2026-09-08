@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
+import {extractNoteBlocks,
   buildPlainTextBlocks,
   describeRestoreFailures,
   formatHotkeyEvent,
@@ -222,5 +222,39 @@ describe("formatHotkeyEvent", () => {
   it("纯修饰键或无修饰键返回空", () => {
     expect(formatHotkeyEvent(mockEvent("Control", { ctrlKey: true }))).toBe("");
     expect(formatHotkeyEvent(mockEvent("a"))).toBe("");
+  });
+});
+
+describe("extractNoteBlocks", () => {
+  it("提取段落/标题文本，兼容列表与硬换行", () => {
+    const note = {
+      content: {
+        type: "doc",
+        content: [
+          { type: "paragraph", content: [{ type: "text", text: "第一段" }] },
+          {
+            type: "bulletList",
+            content: [
+              {
+                type: "listItem",
+                content: [
+                  {
+                    type: "paragraph",
+                    content: [
+                      { type: "text", text: "列表项" },
+                      { type: "hardBreak" },
+                      { type: "text", text: "第二行" }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          { type: "codeBlock", content: [{ type: "text", text: "const x = 1" }] },
+          { type: "paragraph", content: [{ type: "text", text: "   " }] }
+        ]
+      }
+    } as unknown as Parameters<typeof extractNoteBlocks>[0];
+    expect(extractNoteBlocks(note)).toEqual(["第一段", "列表项 第二行"]);
   });
 });
