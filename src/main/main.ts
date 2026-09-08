@@ -2077,10 +2077,11 @@ function registerIpc() {
     for (const file of files) {
       try {
         ids.push((await importMarkdownFile(file)).id);
-      } catch {
-        // 路径无效或文件不可读时跳过
+      } catch (error) {
+        writeDebugLog(`consume-open-files failed: ${String(error)} file=${file}`);
       }
     }
+    writeDebugLog(`consume-open-files: asked=${files.length} imported=${ids.length}`);
     return ids;
   });
   ipcMain.handle("notes:save", (_event, note: NoteRecord) => saveNote(note));
