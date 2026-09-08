@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.27 - 2026-09-08
+
+- Made the Windows window-controls overlay background transparent so the system caption buttons (— □ ×) float directly on the page; they now dim together with the modal backdrop instead of showing a bright detached patch when a confirm dialog opens.
+
 ## 0.9.26 - 2026-09-08
 
 - Replaced the product icon everywhere (exe/installer/ICO, tray, file associations, in-editor title bar) with the new brand mark; trimmed the white border from the supplied artwork and applied transparent rounded corners. Icon generation now builds from `build/icon-source.png` instead of the legacy SVG.

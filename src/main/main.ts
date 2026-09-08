@@ -1870,9 +1870,11 @@ function setupWebContentsGuards(window: BrowserWindow) {
 let currentTheme: "light" | "dark" = "light";
 
 function titleBarOverlayOptions(theme: "light" | "dark") {
+  // 底色透明：系统绘制的窗口控制按钮直接浮在网页内容上，
+  // 弹窗遮罩变暗时按钮区随之变暗，不再出现突兀的亮色块
   return theme === "dark"
-    ? { color: "#1c1917", symbolColor: "#e7e5e4", height: 40 }
-    : { color: "#f7f3ec", symbolColor: "#1c1917", height: 40 };
+    ? { color: "#00000000", symbolColor: "#e7e5e4", height: 40 }
+    : { color: "#00000000", symbolColor: "#1c1917", height: 40 };
 }
 
 function applyTitleBarOverlay(theme: "light" | "dark") {
