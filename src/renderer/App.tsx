@@ -42,6 +42,7 @@ import {
 import {
   buildPlainTextBlocks,
   collectOpenTasks,
+  collectPlainImageSrcsFromHtml,
   describeRestoreFailures,
   extractOutline,
   formatHotkeyEvent,
@@ -254,6 +255,17 @@ export default function App() {
           const doc = markdownToDoc(text);
           const mdNodes = (doc.content ?? []).map((block) => view.state.schema.nodeFromJSON(block));
           view.dispatch(view.state.tr.replaceSelection(new Slice(Fragment.from(mdNodes), 0, 0)).scrollIntoView());
+          return true;
+        }
+        // 网页复制的纯图片剪贴板常带 <p>/<br> 空壳包裹，默认解析会在光标前残留空行把图挤到下一行
+        const plainImageSrcs = collectPlainImageSrcsFromHtml(html);
+        if (plainImageSrcs.length) {
+          event.preventDefault();
+          for (const src of plainImageSrcs) {
+            view.dispatch(
+              view.state.tr.replaceSelectionWith(view.state.schema.nodes.image.create({ src })).scrollIntoView()
+            );
+          }
           return true;
         }
         const segments = splitPastedMath(text);

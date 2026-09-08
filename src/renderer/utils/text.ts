@@ -74,6 +74,16 @@ export function buildPlainTextBlocks(text: string): JSONContent[] {
   return blocks;
 }
 
+/** 从"纯图片"剪贴板 HTML 中提取 src；只要含任何文本内容（图文混排）就返回空，交给默认解析 */
+export function collectPlainImageSrcsFromHtml(html: string): string[] {
+  if (!html || !/<img[\s>]/i.test(html)) return [];
+  const parsed = new DOMParser().parseFromString(html, "text/html");
+  if (parsed.body.textContent?.trim()) return [];
+  return Array.from(parsed.body.querySelectorAll("img"))
+    .map((img) => img.getAttribute("src") ?? "")
+    .filter(Boolean);
+}
+
 export function splitPastedMath(text: string): JSONContent[] | null {
   if (!text.includes("$")) {
     const latex = text.trim();
