@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.33 - 2026-09-08
+
+- Hardened the block-reference jump: failures in the locate-and-scroll path are now caught and logged instead of propagating through a React effect (which could blank the whole app); the editor focus-to-end fallback always runs.
+
 ## 0.9.32 - 2026-09-08
 
 - Block-reference jump now aligns the referenced block near the top of the editor viewport (previously ProseMirror's minimal scroll left it stuck at the very bottom edge).

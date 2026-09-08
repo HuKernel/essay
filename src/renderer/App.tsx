@@ -633,11 +633,14 @@ export default function App() {
     refreshEditorUi(editor);
     const pendingBlock = pendingBlockScrollRef.current;
     pendingBlockScrollRef.current = null;
-    if (pendingBlock && scrollToBlockInEditor(pendingBlock.text)) {
-      // 块引用跳转：定位到目标块，不强制 focus 到文末
-    } else {
-      window.setTimeout(() => editor.commands.focus("end"), 0);
+    if (pendingBlock) {
+      try {
+        scrollToBlockInEditor(pendingBlock.text);
+      } catch (error) {
+        console.error("[blockref] 定位失败:", error);
+      }
     }
+    window.setTimeout(() => editor.commands.focus("end"), 0);
     revisionRef.current = 0;
     setSaveState("saved");
   }, [activeNote?.id, editor]);
