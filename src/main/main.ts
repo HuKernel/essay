@@ -1492,6 +1492,20 @@ async function createNoteFromContent(title: string, plainText: string, content: 
   return note;
 }
 
+// 右键"用随记打开"：命令行传入的 markdown 文件路径
+function markdownPathsFromArgv(argv: string[]) {
+  return argv.filter((arg) => /\.(md|markdown)$/i.test(arg));
+}
+
+let pendingOpenFiles = markdownPathsFromArgv(process.argv);
+
+async function importMarkdownFile(filePath: string): Promise<NoteRecord> {
+  const raw = await fs.readFile(filePath, "utf8");
+  const heading = raw.match(/^\s*#\s+(.+)$/m)?.[1]?.trim();
+  const fallbackTitle = path.basename(filePath, path.extname(filePath));
+  return createNoteFromContent(heading || fallbackTitle, raw, markdownToDoc(raw));
+}
+
 async function importMarkdownNotes(): Promise<NoteRecord[]> {
   const result = mainWindow
     ? await dialog.showOpenDialog(mainWindow, {
@@ -1514,10 +1528,7 @@ async function importMarkdownNotes(): Promise<NoteRecord[]> {
   if (result.canceled || result.filePaths.length === 0) return [];
   const imported: NoteRecord[] = [];
   for (const filePath of result.filePaths) {
-    const raw = await fs.readFile(filePath, "utf8");
-    const heading = raw.match(/^\s*#\s+(.+)$/m)?.[1]?.trim();
-    const fallbackTitle = path.basename(filePath, path.extname(filePath));
-    imported.push(await createNoteFromContent(heading || fallbackTitle, raw, markdownToDoc(raw)));
+    imported.push(await importMarkdownFile(filePath));
   }
   return sortNotes(imported);
 }
@@ -2059,6 +2070,19 @@ function registerIpc() {
   ipcMain.handle("notes:list", listNotes);
   ipcMain.handle("notes:search", (_event, query: string) => searchNoteIds(query));
   ipcMain.handle("notes:create", createNote);
+  ipcMain.handle("app:consume-open-files", async () => {
+    const files = pendingOpenFiles;
+    pendingOpenFiles = [];
+    const ids: string[] = [];
+    for (const file of files) {
+      try {
+        ids.push((await importMarkdownFile(file)).id);
+      } catch {
+        // 路径无效或文件不可读时跳过
+      }
+    }
+    return ids;
+  });
   ipcMain.handle("notes:save", (_event, note: NoteRecord) => saveNote(note));
   ipcMain.handle("notes:toggle-pin", (_event, id: string) => togglePinNote(id));
   ipcMain.handle("notes:toggle-favorite", (_event, id: string) => toggleFavoriteNote(id));
@@ -2274,8 +2298,21 @@ function registerIpc() {
 }
 
 if (gotTheLock) {
-  app.on("second-instance", () => {
+  app.on("second-instance", (_event, argv) => {
     showWindow();
+    const files = markdownPathsFromArgv(argv);
+    if (!files.length) return;
+    void (async () => {
+      let lastId = "";
+      for (const file of files) {
+        try {
+          lastId = (await importMarkdownFile(file)).id;
+        } catch {
+          // 路径无效或文件不可读时跳过
+        }
+      }
+      if (lastId) mainWindow?.webContents.send("notes:reload", lastId);
+    })();
   });
 
   app.whenReady().then(async () => {

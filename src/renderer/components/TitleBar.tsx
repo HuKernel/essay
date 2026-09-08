@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Menu as MenuIcon } from "lucide-react";
 import type { ExportFormat } from "../constants";
 import type { BatchExportFormat } from "../../shared/types";
+import appIconUrl from "../assets/app-icon.png";
 
 type TitleBarProps = {
   onCreateNote: () => void;
@@ -63,7 +64,7 @@ export function TitleBar(props: TitleBarProps) {
     <div className="titlebar" ref={rootRef}>
       <div className="titlebar-leading">
         <span className="titlebar-brand" aria-hidden="true">
-          <i className="titlebar-logo" />
+          <img className="titlebar-logo" src={appIconUrl} alt="" />
           随记
         </span>
         <button

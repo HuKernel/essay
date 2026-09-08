@@ -61,6 +61,20 @@
         "portable"
       ]
     },
+    "fileAssociations": [
+      {
+        "ext": "md",
+        "name": "随记 Markdown",
+        "description": "用随记打开 Markdown 文档",
+        "icon": "build/icon.ico"
+      },
+      {
+        "ext": "markdown",
+        "name": "随记 Markdown",
+        "description": "用随记打开 Markdown 文档",
+        "icon": "build/icon.ico"
+      }
+    ],
     "nsis": {
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",

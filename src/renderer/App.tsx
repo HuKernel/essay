@@ -659,6 +659,17 @@ export default function App() {
     return dispose;
   }, []);
 
+  // 右键"用随记打开"：消费启动命令行传入的 markdown 文件，导入并选中
+  useEffect(() => {
+    void (async () => {
+      const ids = await window.suiji.consumeOpenFiles();
+      if (!ids.length) return;
+      const loaded = await window.suiji.listNotes();
+      setNotes(loaded);
+      setActiveId(ids[ids.length - 1]);
+    })();
+  }, []);
+
   useEffect(() => {
     const dispose = window.suiji.onPrivacyLock(() => {
       setPrivacyLocked(true);
