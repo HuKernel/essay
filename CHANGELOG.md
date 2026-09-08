@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.39 - 2026-09-08
+
+- Top bar title nudged 24px to the right so it no longer hugs the left button group (visual balance per feedback).
+
 ## 0.9.38 - 2026-09-08
 
 - Merged top bar row polish: menu/title/meta/state share one 44px row.

@@ -417,3 +417,7 @@
 .topbar-statuses {
   flex: 0 0 auto;
 }
+
+.topbar .title-input {
+  margin-left: 24px;
+}
