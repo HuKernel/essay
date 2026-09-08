@@ -73,6 +73,12 @@
         "name": "随记 Markdown",
         "description": "用随记打开 Markdown 文档",
         "icon": "build/icon.ico"
+      },
+      {
+        "ext": "txt",
+        "name": "随记 文本文件",
+        "description": "用随记打开文本文件",
+        "icon": "build/icon.ico"
       }
     ],
     "nsis": {

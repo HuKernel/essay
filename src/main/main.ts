@@ -1492,12 +1492,12 @@ async function createNoteFromContent(title: string, plainText: string, content: 
   return note;
 }
 
-// 右键"用随记打开"：命令行传入的 markdown 文件路径
-function markdownPathsFromArgv(argv: string[]) {
-  return argv.filter((arg) => /\.(md|markdown)$/i.test(arg));
+// 右键"用随记打开"：命令行传入的 markdown/txt 文件路径
+function importablePathsFromArgv(argv: string[]) {
+  return argv.filter((arg) => /\.(md|markdown|txt)$/i.test(arg));
 }
 
-let pendingOpenFiles = markdownPathsFromArgv(process.argv);
+let pendingOpenFiles = importablePathsFromArgv(process.argv);
 
 async function importMarkdownFile(filePath: string): Promise<NoteRecord> {
   const raw = await fs.readFile(filePath, "utf8");
@@ -2301,7 +2301,7 @@ function registerIpc() {
 if (gotTheLock) {
   app.on("second-instance", (_event, argv) => {
     showWindow();
-    const files = markdownPathsFromArgv(argv);
+    const files = importablePathsFromArgv(argv);
     if (!files.length) return;
     void (async () => {
       let lastId = "";
