@@ -45,7 +45,9 @@ import {
   collectOpenTasks,
   collectPlainImageSrcsFromHtml,
   describeRestoreFailures,
+  extractNoteBlocks,
   extractOutline,
+  findScrollParent,
   formatHotkeyEvent,
   getContentPlainText,
   getCurrentFontPresetId,
@@ -189,10 +191,12 @@ export default function App() {
     const dom = editor.view.nodeDOM(found);
     if (dom instanceof HTMLElement) {
       // scrollIntoView 只做最少滚动（块会贴在视口底部），这里手动让目标块对齐到编辑区顶部附近
-      const scroller = (editor.view as unknown as { scrollDOM: HTMLElement }).scrollDOM;
-      const domRect = dom.getBoundingClientRect();
-      const scRect = scroller.getBoundingClientRect();
-      scroller.scrollTop += domRect.top - scRect.top - 24;
+      const scroller = findScrollParent(dom);
+      if (scroller) {
+        const domRect = dom.getBoundingClientRect();
+        const scRect = scroller.getBoundingClientRect();
+        scroller.scrollTop += domRect.top - scRect.top - 24;
+      }
       dom.classList.add("block-target-flash");
       window.setTimeout(() => dom.classList.remove("block-target-flash"), 1800);
     }

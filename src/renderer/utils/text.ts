@@ -345,3 +345,14 @@ export function extractNoteBlocks(note: NoteRecord): string[] {
   walk(note.content ?? {});
   return out;
 }
+
+/** 从节点向上找第一个可纵向滚动的祖先元素（编辑区滚动容器是 .editor-wrap） */
+export function findScrollParent(dom: HTMLElement): HTMLElement | null {
+  let el: HTMLElement | null = dom.parentElement;
+  while (el && el !== document.body) {
+    const overflowY = window.getComputedStyle(el).overflowY;
+    if (overflowY === "auto" || overflowY === "scroll") return el;
+    el = el.parentElement;
+  }
+  return null;
+}

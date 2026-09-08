@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.35 - 2026-09-08
+
+- Fixed block-reference jump not scrolling at all: ProseMirror does not expose "scrollDOM" on its view in this setup; the scroller is now found by walking up from the block to the nearest element with overflow auto/scroll (the .editor-wrap), then aligning the block near the top.
+
 ## 0.9.34 - 2026-09-08
 
 - Fixed block-reference jump landing at the end of the note: after successfully locating the referenced block the editor no longer re-focuses the document end, which was scrolling the viewport back to the bottom.
