@@ -22,6 +22,7 @@ import { common, createLowlight } from "lowlight";
 import { SafeAutolink } from "./safe-link";
 import { MathExtensions } from "./math-extension";
 import { removeNoteMetadata, type NoteMetadataKind } from "../shared/note-metadata";
+import { looksLikeMarkdown, markdownToDoc } from "../shared/markdown-doc";
 import type { AppSettings, BackupEntry, BatchExportFormat, NoteRecord } from "../shared/types";
 import {
   DEFAULT_APP_SETTINGS,
@@ -247,6 +248,14 @@ export default function App() {
         }
         const text = clipboardData.getData("text/plain") ?? "";
         const html = clipboardData.getData("text/html") ?? "";
+        // Markdown 源码粘贴（以 ``` 围栏判定）：走 markdown 解析，代码块等结构不再丢失
+        if (text && looksLikeMarkdown(text)) {
+          event.preventDefault();
+          const doc = markdownToDoc(text);
+          const mdNodes = (doc.content ?? []).map((block) => view.state.schema.nodeFromJSON(block));
+          view.dispatch(view.state.tr.replaceSelection(new Slice(Fragment.from(mdNodes), 0, 0)).scrollIntoView());
+          return true;
+        }
         const segments = splitPastedMath(text);
         if (segments) {
           event.preventDefault();

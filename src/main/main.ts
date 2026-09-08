@@ -41,13 +41,13 @@ import {
   buildExportText,
   defaultBackupName,
   defaultEncryptedBatchExportName,
-  markdownToDoc,
   parseBackupEntryName,
   parseBackupNotes,
   plainDoc,
   safeExportBaseName,
   safeExportName
 } from "./note-transfer.js";
+import { markdownToDoc } from "../shared/markdown-doc.js";
 import { upgradeCollapsibleContent } from "../shared/content-upgrade.js";
 import { parseEncryptedExportBundle } from "../shared/encrypted-export.js";
 import { ASSET_URL_PREFIX, collectAssetFileNames } from "../shared/note-assets.js";

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { markdownToDoc, parseBackupNotes, safeExportName } from "../src/main/note-transfer";
+import { parseBackupNotes, safeExportName } from "../src/main/note-transfer";
+import { markdownToDoc } from "../src/shared/markdown-doc";
 import { isStandaloneLatex } from "../src/shared/math-patterns";
 
 describe("note transfer helpers", () => {
