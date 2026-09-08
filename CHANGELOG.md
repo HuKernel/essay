@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.36 - 2026-09-08
+
+- Merged the standalone brand strip into the top bar: the app menu (with all export/settings actions) now sits next to the title row, removing the separate 40px strip and giving the editor more height. The top bar doubles as the window drag area; buttons and inputs remain clickable.
+
 ## 0.9.35 - 2026-09-08
 
 - Fixed block-reference jump not scrolling at all: ProseMirror does not expose "scrollDOM" on its view in this setup; the scroller is now found by walking up from the block to the nearest element with overflow auto/scroll (the .editor-wrap), then aligning the block near the top.

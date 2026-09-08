@@ -337,3 +337,70 @@
   color: var(--text-color);
   font-weight: 600;
 }
+
+/* 顶栏兼做窗口拖拽区：交互控件单独排除 */
+.topbar {
+  -webkit-app-region: drag;
+}
+
+.topbar button,
+.topbar input,
+.topbar .meta-input-row,
+.topbar .titlebar-leading {
+  -webkit-app-region: no-drag;
+}
+
+.topbar-logo {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  display: block;
+}
+
+/* ---------- 顶条合并（菜单 + 标题 + 状态单行） ---------- */
+
+.titlebar {
+  gap: 8px;
+}
+
+.titlebar button,
+.titlebar input {
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.titlebar-content .title-input {
+  width: min(320px, 34vw);
+}
+
+.topbar-statuses {
+  margin-left: auto;
+}
+
+.topbar {
+  padding-right: 140px;
+}
+
+.meta-summary {
+  white-space: nowrap;
+}
+
+.topbar .title-input {
+  width: min(360px, 40vw);
+}
+
+.topbar .title-input {
+  width: min(300px, 36vw);
+}
+
+.meta-summary {
+  flex: 0 0 auto;
+}

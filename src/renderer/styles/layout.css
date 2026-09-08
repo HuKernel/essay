@@ -6,7 +6,7 @@
   --topbar-h: 48px;
   display: grid;
   grid-template-columns: 304px minmax(0, 1fr);
-  grid-template-rows: 40px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 0;
   width: 100vw;
   height: 100vh;
@@ -109,12 +109,12 @@
   background: var(--panel-border);
 }
 
-.titlebar ~ .sidebar {
+.sidebar {
   grid-column: 1;
   grid-row: 2;
 }
 
-.titlebar ~ .workspace {
+.workspace {
   grid-column: 2;
   grid-row: 2;
 }
@@ -142,7 +142,7 @@
   border: 1px solid var(--panel-border);
   border-radius: 14px;
   /* 顶部下移一个顶栏高度，与右侧编辑区/格式面板顶对齐 */
-  margin: calc(var(--topbar-h) + 10px) 8px 10px 10px;
+  margin: 8px 8px 10px 10px;
   padding: 18px 14px 14px;
 }
 
@@ -173,7 +173,3 @@
   padding: 20px 34px 0;
 }
 
-/* 有面包屑（子页面）时：顶栏自然高度，编辑区占剩余空间 */
-.workspace.has-breadcrumb {
-  grid-template-rows: auto auto minmax(0, 1fr);
-}

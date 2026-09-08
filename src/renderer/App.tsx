@@ -70,7 +70,6 @@ import { findInteractiveEditorBlock } from "./editor/interactive-blocks";
 import { NoteLinkSuggestionExtension } from "./editor/note-link-suggestion";
 import { SlashMenuExtension } from "./editor/slash-menu";
 import { Sidebar } from "./components/Sidebar";
-import { TitleBar } from "./components/TitleBar";
 import { BacklinksPanel } from "./components/BacklinksPanel";
 import { TopBar } from "./components/TopBar";
 import { FindPanel } from "./components/FindPanel";
@@ -2047,17 +2046,6 @@ export default function App() {
 
   return (
     <main className={appClassName} style={appStyle}>
-      <TitleBar
-        onCreateNote={() => void handleCreate()}
-        onSave={() => void saveActive()}
-        onOpenHistory={() => void handleOpenHistory()}
-        onExportNote={(format) => void handleExport(format)}
-        onBatchExport={(format) => void handleBatchExport(format)}
-        onOpenSettings={openSettings}
-        onHideWindow={() => void window.suiji.hideWindow()}
-        onAbout={() => void window.suiji.about()}
-        onQuit={() => void window.suiji.quit()}
-      />
       <Sidebar
         sidebarCollapsed={sidebarCollapsed}
         onExpandSidebar={() => setSidebarCollapsed(false)}
@@ -2115,17 +2103,8 @@ export default function App() {
         onAssignTag={(noteId, tag) => void handleAssignTag(noteId, tag)}
       />
 
-      <section className={activeNote?.parentId ? "workspace has-breadcrumb" : "workspace"}>
-        {activeNote?.parentId ? (
-          <nav className="note-breadcrumb" aria-label="页面路径">
-            <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
-              {notes.find((note) => note.id === activeNote.parentId)?.title || "父页面"}
-            </button>
-            <span aria-hidden="true">/</span>
-            <strong>{title.trim() || activeNote.title || "未命名记录"}</strong>
-          </nav>
-        ) : null}
-        <TopBar
+        <section className="workspace">
+      <TopBar
           readOnly={editorDisabled}
           sidebarCollapsed={sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed((current) => !current)}
@@ -2134,6 +2113,15 @@ export default function App() {
             setTitle(value);
             markDirty();
           }}
+          onCreateNote={() => void handleCreate()}
+          onSave={() => void saveActive()}
+          onOpenHistory={() => void handleOpenHistory()}
+          onExportNote={(format) => void handleExport(format)}
+          onBatchExport={(format) => void handleBatchExport(format)}
+          onOpenSettings={openSettings}
+          onHideWindow={() => void window.suiji.hideWindow()}
+          onAbout={() => void window.suiji.about()}
+          onQuit={() => void window.suiji.quit()}
           folderPreview={folderPreview}
           metaTagsPreview={metaTagsPreview}
           hasMetaInfo={hasMetaInfo}
@@ -2153,9 +2141,17 @@ export default function App() {
           editorCharCount={editorStats.chars}
           readingMinutes={editorStats.readingMinutes}
         />
-
-        <div className="document-stage">
-          <div className="editor-column">
+          <div className="document-stage">
+            <div className="editor-column">
+              {activeNote?.parentId ? (
+                <nav className="note-breadcrumb" aria-label="页面路径">
+                  <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
+                    {notes.find((note) => note.id === activeNote.parentId)?.title || "父页面"}
+                  </button>
+                  <span aria-hidden="true">/</span>
+                  <strong>{title.trim() || activeNote.title || "未命名记录"}</strong>
+                </nav>
+              ) : null}
             {findOpen ? (
               <FindPanel
                 readOnly={editorDisabled}
