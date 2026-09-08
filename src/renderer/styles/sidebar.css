@@ -182,17 +182,17 @@
 
 .view-switch {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 2px;
 }
 
 .view-switch button {
   display: inline-flex;
   min-width: 0;
-  min-height: 32px;
+  min-height: 30px;
   align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
@@ -200,7 +200,7 @@
   font-size: 12px;
   font-weight: 500;
   line-height: 1;
-  padding: 0 12px;
+  padding: 0 4px;
   white-space: nowrap;
   transition:
     background-color var(--motion-base) var(--ease-smooth),
@@ -341,7 +341,7 @@
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   overflow: hidden;
 }
 
