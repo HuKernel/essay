@@ -633,14 +633,18 @@ export default function App() {
     refreshEditorUi(editor);
     const pendingBlock = pendingBlockScrollRef.current;
     pendingBlockScrollRef.current = null;
+    let located = false;
     if (pendingBlock) {
       try {
-        scrollToBlockInEditor(pendingBlock.text);
+        located = scrollToBlockInEditor(pendingBlock.text);
       } catch (error) {
         console.error("[blockref] 定位失败:", error);
       }
     }
-    window.setTimeout(() => editor.commands.focus("end"), 0);
+    // 定位成功时不能再 focus 到文末，否则会把视口又滚回底部
+    if (!located) {
+      window.setTimeout(() => editor.commands.focus("end"), 0);
+    }
     revisionRef.current = 0;
     setSaveState("saved");
   }, [activeNote?.id, editor]);

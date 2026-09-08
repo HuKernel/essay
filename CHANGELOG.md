@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.34 - 2026-09-08
+
+- Fixed block-reference jump landing at the end of the note: after successfully locating the referenced block the editor no longer re-focuses the document end, which was scrolling the viewport back to the bottom.
+
 ## 0.9.33 - 2026-09-08
 
 - Hardened the block-reference jump: failures in the locate-and-scroll path are now caught and logged instead of propagating through a React effect (which could blank the whole app); the editor focus-to-end fallback always runs.
