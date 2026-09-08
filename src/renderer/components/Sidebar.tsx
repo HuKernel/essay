@@ -1,6 +1,8 @@
+import { useState } from "react";
 import {
   Archive,
   ArchiveRestore,
+  Calendar,
   Clock,
   EyeOff,
   Folder,
@@ -22,6 +24,7 @@ import {
   X
 } from "lucide-react";
 import type { NoteRecord } from "../../shared/types";
+import type { DragEvent as ReactDragEvent } from "react";
 import type { LeftPaneMode, OutlineItem, ViewMode } from "../constants";
 import { HighlightedText, keepEditorFocus } from "./common";
 import { formatTime, type OpenTask } from "../utils/text";
@@ -69,6 +72,8 @@ type SidebarProps = {
   onDeleteNote: (id: string) => void;
   onRestoreNote: (id: string) => void;
   onPurgeNote: (id: string) => void;
+  onAssignFolder: (noteId: string, folder: string) => void;
+  onAssignTag: (noteId: string, tag: string) => void;
 };
 
 const VIEW_MODES: Array<[ViewMode, string, typeof List]> = [
@@ -77,8 +82,18 @@ const VIEW_MODES: Array<[ViewMode, string, typeof List]> = [
   ["favorites", "收藏", Star],
   ["archive", "归档", Archive],
   ["trash", "回收站", Trash2],
-  ["recent", "最近", Clock]
+  ["recent", "最近", Clock],
+  ["calendar", "日历", Calendar]
 ];
+
+const WEEKDAY_LABELS = ["日", "一", "二", "三", "四", "五", "六"];
+
+function dayKeyOf(value: string | Date) {
+  const date = typeof value === "string" ? new Date(value) : value;
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
 
 export function Sidebar(props: SidebarProps) {
   const {
@@ -123,8 +138,55 @@ export function Sidebar(props: SidebarProps) {
     onToggleArchive,
     onDeleteNote,
     onRestoreNote,
-    onPurgeNote
+    onPurgeNote,
+    onAssignFolder,
+    onAssignTag
   } = props;
+
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [calendarDay, setCalendarDay] = useState<string | null>(null);
+
+  function dropProps(key: string, apply: (noteId: string) => void) {
+    return {
+      onDragOver: (event: ReactDragEvent) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        setDropTarget(key);
+      },
+      onDragLeave: () => setDropTarget((current) => (current === key ? null : current)),
+      onDrop: (event: ReactDragEvent) => {
+        event.preventDefault();
+        setDropTarget(null);
+        const noteId = event.dataTransfer.getData("text/suiji-note");
+        if (noteId) apply(noteId);
+      }
+    };
+  }
+
+  const notesByDay = new Map<string, number>();
+  for (const note of filteredNotes) {
+    const key = dayKeyOf(note.updatedAt);
+    notesByDay.set(key, (notesByDay.get(key) ?? 0) + 1);
+  }
+  const monthPrefix = `${calendarMonth.getFullYear()}-${`${calendarMonth.getMonth() + 1}`.padStart(2, "0")}-`;
+  const calendarCells: Array<{ day: number; key: string; count: number } | null> = [
+    ...Array.from({ length: calendarMonth.getDay() }, () => null),
+    ...Array.from({ length: new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate() }, (_, index) => {
+      const day = index + 1;
+      const key = `${monthPrefix}${`${day}`.padStart(2, "0")}`;
+      return { day, key, count: notesByDay.get(key) ?? 0 };
+    })
+  ];
+  const todayKey = dayKeyOf(new Date());
+  const dayNotes = calendarDay
+    ? filteredNotes
+        .filter((note) => dayKeyOf(note.updatedAt) === calendarDay)
+        .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
+    : [];
 
   if (sidebarCollapsed) {
     return (
@@ -313,7 +375,17 @@ export function Sidebar(props: SidebarProps) {
 
             {allFolders.length > 0 ? (
               <div className="folder-filter" aria-label="文件夹筛选">
-                <button type="button" className={selectedFolder ? "" : "is-active"} onClick={() => onSelectFolder("")}>
+                <button
+                  type="button"
+                  className={[
+                    selectedFolder ? "" : "is-active",
+                    dropTarget === "folder:" ? "is-drop-target" : ""
+                  ]
+                    .filter(Boolean)
+                    .join(" ") || undefined}
+                  onClick={() => onSelectFolder("")}
+                  {...dropProps("folder:", (noteId) => onAssignFolder(noteId, ""))}
+                >
                   <Folder size={13} />
                   全部文件夹
                 </button>
@@ -321,8 +393,14 @@ export function Sidebar(props: SidebarProps) {
                   <div className="metadata-filter-item" key={folder}>
                     <button
                       type="button"
-                      className={selectedFolder === folder ? "is-active" : ""}
+                      className={[
+                        selectedFolder === folder ? "is-active" : "",
+                        dropTarget === `folder:${folder}` ? "is-drop-target" : ""
+                      ]
+                        .filter(Boolean)
+                        .join(" ") || undefined}
                       onClick={() => onSelectFolder(folder)}
+                      {...dropProps(`folder:${folder}`, (noteId) => onAssignFolder(noteId, folder))}
                     >
                       <Folder size={13} />
                       {folder}
@@ -350,8 +428,14 @@ export function Sidebar(props: SidebarProps) {
                   <div className="metadata-filter-item" key={tag}>
                     <button
                       type="button"
-                      className={selectedTag === tag ? "is-active" : ""}
+                      className={[
+                        selectedTag === tag ? "is-active" : "",
+                        dropTarget === `tag:${tag}` ? "is-drop-target" : ""
+                      ]
+                        .filter(Boolean)
+                        .join(" ") || undefined}
                       onClick={() => onSelectTag(tag)}
+                      {...dropProps(`tag:${tag}`, (noteId) => onAssignTag(noteId, tag))}
                     >
                       {tag}
                     </button>
@@ -378,12 +462,116 @@ export function Sidebar(props: SidebarProps) {
               </div>
             ) : null}
 
-            <div className="sidebar-list-header">
-              <span>{viewMode === "recent" ? "最近编辑" : viewMode === "tasks" ? "未完成的待办" : "记录列表"}</span>
-              <strong>{viewMode === "tasks" ? openTasks.length : filteredNotes.length}</strong>
-            </div>
+            {viewMode === "calendar" ? (
+              <>
+                <div className="calendar-nav">
+                  <button
+                    type="button"
+                    aria-label="上个月"
+                    onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}
+                  >
+                    ‹
+                  </button>
+                  <strong>
+                    {calendarMonth.getFullYear()}年{calendarMonth.getMonth() + 1}月
+                  </strong>
+                  <button
+                    type="button"
+                    aria-label="下个月"
+                    onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}
+                  >
+                    ›
+                  </button>
+                  <button
+                    type="button"
+                    className="calendar-today"
+                    onClick={() => {
+                      const now = new Date();
+                      setCalendarMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+                      setCalendarDay(todayKey);
+                    }}
+                  >
+                    今天
+                  </button>
+                </div>
+                <div className="calendar-grid">
+                  {WEEKDAY_LABELS.map((label) => (
+                    <span key={label} className="calendar-weekday">
+                      {label}
+                    </span>
+                  ))}
+                  {calendarCells.map((cell, index) =>
+                    cell ? (
+                      <button
+                        key={cell.key}
+                        type="button"
+                        title={cell.count ? `${cell.count} 条记录` : undefined}
+                        className={[
+                          "calendar-cell",
+                          cell.key === calendarDay ? "is-selected" : "",
+                          cell.key === todayKey ? "is-today" : ""
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        onClick={() => setCalendarDay(cell.key === calendarDay ? null : cell.key)}
+                      >
+                        <span>{cell.day}</span>
+                        {cell.count ? <span className="calendar-dot" /> : null}
+                      </button>
+                    ) : (
+                      <span key={`pad-${index}`} className="calendar-pad" />
+                    )
+                  )}
+                </div>
+                {calendarDay ? (
+                  <>
+                    <div className="sidebar-list-header">
+                      <span>{calendarDay} 的记录</span>
+                      <strong>{dayNotes.length}</strong>
+                    </div>
+                    <nav className="note-list" aria-label="当日记录">
+                      {dayNotes.length === 0 ? (
+                        <p className="note-list-empty" role="status">
+                          这一天没有记录
+                        </p>
+                      ) : (
+                        dayNotes.map((note) => (
+                          <div
+                            key={note.id}
+                            className={note.id === activeId ? "note-item is-active" : "note-item"}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => onSelectNote(note.id)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault();
+                                onSelectNote(note.id);
+                              }
+                            }}
+                          >
+                            <div className="note-item-header">
+                              <span className="note-title">
+                                {note.icon ? <span className="note-emoji">{note.icon}</span> : null}
+                                <span className="note-title-text">{note.title || "未命名记录"}</span>
+                              </span>
+                            </div>
+                            <span className="note-excerpt">{note.excerpt || "空记录"}</span>
+                            <span className="note-time">{formatTime(note.updatedAt)}</span>
+                          </div>
+                        ))
+                      )}
+                    </nav>
+                  </>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <div className="sidebar-list-header">
+                  <span>{viewMode === "recent" ? "最近编辑" : viewMode === "tasks" ? "未完成的待办" : "记录列表"}</span>
+                  <strong>{viewMode === "tasks" ? openTasks.length : filteredNotes.length}</strong>
+                </div>
 
-            {viewMode === "tasks" ? (
+                {viewMode === "tasks" ? (
               <nav className="note-list" aria-label="待办汇总">
                 {openTasks.length === 0 ? (
                   <p className="note-list-empty" role="status">
@@ -440,6 +628,11 @@ export function Sidebar(props: SidebarProps) {
                     className={note.id === activeId ? "note-item is-active" : "note-item"}
                     role="button"
                     tabIndex={0}
+                    draggable
+                    onDragStart={(event) => {
+                      event.dataTransfer.setData("text/suiji-note", note.id);
+                      event.dataTransfer.effectAllowed = "move";
+                    }}
                     onMouseDown={(event) => {
                       if (!(event.target instanceof HTMLElement) || event.target.closest("button")) return;
                       event.preventDefault();
@@ -454,6 +647,7 @@ export function Sidebar(props: SidebarProps) {
                   >
                     <div className="note-item-header">
                       <span className="note-title">
+                        {note.icon ? <span className="note-emoji">{note.icon}</span> : null}
                         {note.pinnedAt ? <Pin size={13} className="note-pin-mark" /> : null}
                         <span className="note-title-text">
                           <HighlightedText text={note.title} keyword={searchKeyword} />
@@ -560,6 +754,8 @@ export function Sidebar(props: SidebarProps) {
                 ))
               )}
             </nav>
+            )}
+              </>
             )}
           </>
         )}

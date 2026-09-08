@@ -863,3 +863,109 @@ input[type="range"] {
 .slash-menu-item.is-active strong {
   color: var(--accent-color);
 }
+
+/* ---------- Toast（删除撤销等轻提示） ---------- */
+
+.toast-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  z-index: 220;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  max-width: min(560px, calc(100vw - 48px));
+  padding: 10px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  box-shadow: 0 14px 30px rgba(31, 35, 43, 0.16);
+  color: var(--text-color);
+  font-size: 13px;
+  transform: translateX(-50%);
+}
+
+.toast-message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toast-undo {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-color);
+  font-size: 12px;
+  font-weight: 650;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.toast-undo:hover {
+  background: var(--accent-soft-strong);
+}
+
+/* ---------- 块引用选择器 ---------- */
+
+.blockref-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(520px, calc(100vw - 64px));
+}
+
+.blockref-search {
+  min-height: 36px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--surface-raised);
+  padding: 0 12px;
+  color: var(--text-color);
+  outline: 0;
+}
+
+.blockref-list {
+  display: flex;
+  max-height: 320px;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.blockref-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-color);
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.blockref-item:hover {
+  background: var(--surface-hover-soft);
+}
+
+.blockref-item strong {
+  font-size: 13px;
+}
+
+.blockref-item span {
+  overflow: hidden;
+  color: var(--muted-text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blockref-empty {
+  margin: 18px 8px;
+  color: var(--subtle-text);
+  font-size: 13px;
+  text-align: center;
+}

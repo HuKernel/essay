@@ -734,3 +734,116 @@
 .task-toggle:hover {
   color: var(--accent-color);
 }
+
+/* ---------- 笔记 emoji 图标 ---------- */
+
+.note-emoji {
+  flex: 0 0 auto;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* ---------- 拖拽归类的放置高亮 ---------- */
+
+.folder-filter button.is-drop-target,
+.tag-filter button.is-drop-target {
+  border-color: var(--accent-soft-strong);
+  background: var(--accent-soft);
+  color: var(--accent-color);
+}
+
+/* ---------- 日历视图 ---------- */
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  color: var(--text-color);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.calendar-nav strong {
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.calendar-nav button {
+  display: inline-flex;
+  min-width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.calendar-nav button:hover {
+  background: var(--surface-press);
+  color: var(--text-color);
+}
+
+.calendar-today {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.calendar-weekday {
+  color: var(--subtle-text);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.calendar-cell {
+  position: relative;
+  display: grid;
+  min-height: 32px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.calendar-cell:hover {
+  background: var(--surface-press);
+  color: var(--text-color);
+}
+
+.calendar-cell.is-today {
+  color: var(--accent-color);
+  font-weight: 700;
+}
+
+.calendar-cell.is-selected {
+  border-color: var(--accent-soft-strong);
+  background: var(--accent-soft);
+  color: var(--accent-color);
+}
+
+.calendar-pad {
+  min-height: 32px;
+}
+
+.calendar-dot {
+  position: absolute;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent-color);
+}

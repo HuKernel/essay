@@ -615,6 +615,9 @@ function normalizeNote(raw: Partial<NoteRecord>): NoteRecord {
     archivedAt: typeof raw.archivedAt === "string" ? raw.archivedAt : null,
     trashedAt: typeof raw.trashedAt === "string" ? raw.trashedAt : null,
     pinnedAt: typeof raw.pinnedAt === "string" ? raw.pinnedAt : null,
+    icon: typeof raw.icon === "string" && raw.icon.trim() ? raw.icon.trim().slice(0, 8) : null,
+    cover: typeof raw.cover === "string" && raw.cover.trim() ? raw.cover : null,
+    parentId: typeof raw.parentId === "string" && raw.parentId ? raw.parentId : null,
     // 旧折叠块的标题存在节点属性里，统一升级为文档内的标题/内容节点
     content: upgradeCollapsibleContent(raw.content ?? emptyDoc),
     html: typeof raw.html === "string" ? raw.html : "",
@@ -677,6 +680,30 @@ function noteFromDbRow(row: NoteDbRow): NoteRecord {
     createdAt: row.created_at,
     updatedAt: row.updated_at
   });
+}
+
+type NoteMetaRow = { id: string; icon: string | null; cover: string | null; parent_id: string | null };
+
+function loadAllNoteMeta(): Map<string, NoteMetaRow> {
+  const rows = dbRows<NoteMetaRow>("SELECT id, icon, cover, parent_id FROM note_meta");
+  return new Map(rows.map((row) => [row.id, row]));
+}
+
+function loadNoteMeta(id: string): NoteMetaRow | undefined {
+  return dbRows<NoteMetaRow>("SELECT id, icon, cover, parent_id FROM note_meta WHERE id = ?", [id])[0];
+}
+
+function applyNoteMeta(note: NoteRecord, meta?: NoteMetaRow): NoteRecord {
+  if (!meta) return note;
+  return { ...note, icon: meta.icon, cover: meta.cover, parentId: meta.parent_id };
+}
+
+function upsertNoteMeta(note: NoteRecord) {
+  dbExec(
+    `INSERT INTO note_meta (id, icon, cover, parent_id) VALUES (?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET icon = excluded.icon, cover = excluded.cover, parent_id = excluded.parent_id`,
+    [note.id, note.icon ?? null, note.cover ?? null, note.parentId ?? null]
+  );
 }
 
 async function loadSqliteRuntime() {
@@ -775,6 +802,12 @@ function ensureNotesSchema() {
       tags,
       folder,
       plain_text
+    );
+    CREATE TABLE IF NOT EXISTS note_meta (
+      id TEXT PRIMARY KEY,
+      icon TEXT,
+      cover TEXT,
+      parent_id TEXT
     );
   `);
 }
@@ -958,6 +991,7 @@ async function initializeNotesDatabase(settings?: StoredSettings) {
 async function writeNoteToDatabase(note: NoteRecord, persist = true) {
   await ensureNotesDatabaseReady();
   upsertNoteInDatabase(note);
+  upsertNoteMeta(note);
   notesDbDirty = true;
   await writeNoteShadowFile(note);
   if (persist) scheduleNotesDatabasePersist();
@@ -1135,12 +1169,13 @@ async function updateStoredSettings(payload: SettingsUpdatePayload): Promise<App
 
 async function listNotes(): Promise<NoteRecord[]> {
   await ensureNotesDatabaseReady();
+  const metaMap = loadAllNoteMeta();
   const notes = dbRows<NoteDbRow>(
     `SELECT
       id, title, excerpt, tags_json, folder, favorite_at, archived_at, trashed_at,
       pinned_at, content_json, html, plain_text, created_at, updated_at
     FROM notes`
-  ).map(noteFromDbRow);
+  ).map((row) => applyNoteMeta(noteFromDbRow(row), metaMap.get(row.id)));
   return sortNotes(notes);
 }
 
@@ -1395,6 +1430,7 @@ async function saveNote(rawNote: NoteRecord): Promise<NoteRecord> {
 
   await backupExistingNoteIfStale(normalized.id);
   updateNoteContentFields(normalized);
+  upsertNoteMeta(normalized);
   notesDbDirty = true;
   const latest = await finalizeNoteWrite(normalized.id);
   await persistNotesDatabase();
@@ -1414,6 +1450,7 @@ async function readNote(id: string): Promise<NoteRecord> {
     [id]
   )[0];
   if (!row) throw new Error("Note not found");
+  return applyNoteMeta(noteFromDbRow(row), loadNoteMeta(id));
   return noteFromDbRow(row);
 }
 

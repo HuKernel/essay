@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.9.28 - 2026-09-08
+
+- Craft-style improvements batch:
+  - Deleting a note no longer shows a confirm dialog; it moves to trash immediately with a toast offering Undo for 5 seconds (permanent delete from trash still confirms).
+  - Notes support an emoji icon and a cover image: set them in the "编辑属性" panel, shown on list items, the editor header (cover banner + title badge), and the HTML export template.
+  - Sidebar notes are draggable onto folder/tag chips to reassign them (drop on "全部文件夹" clears the folder).
+  - New "日历" view in the sidebar: month grid with record dots, today highlight, and a per-day note list.
+  - New "子页面" slash command creates a child note and inserts a clickable page-link card; a breadcrumb shows the parent path.
+  - New "引用笔记块" slash command inserts a block-reference card picked from any note; references count as backlinks.
+  - HTML export gained cover banner and emoji icon rendering.
+
 ## 0.9.27 - 2026-09-08
 
 - Made the Windows window-controls overlay background transparent so the system caption buttons (— □ ×) float directly on the page; they now dim together with the modal backdrop instead of showing a bright detached patch when a confirm dialog opens.

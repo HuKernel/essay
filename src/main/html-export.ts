@@ -288,6 +288,23 @@ export function buildHtmlExport(note: NoteRecord) {
       letter-spacing: 0;
     }
 
+    .doc-cover {
+      margin: 0 0 20px;
+    }
+
+    .doc-cover img {
+      display: block;
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+    }
+
+    .doc-icon {
+      margin-right: 10px;
+    }
+
     .meta {
       display: flex;
       flex-wrap: wrap;
@@ -513,8 +530,9 @@ export function buildHtmlExport(note: NoteRecord) {
 </head>
 <body>
   <article class="page">
+    ${note.cover ? `<div class="doc-cover"><img src="${escapeHtml(note.cover)}" alt=""></div>` : ""}
     <header>
-      <h1>${title}</h1>
+      <h1>${note.icon ? `<span class="doc-icon">${escapeHtml(note.icon)}</span>` : ""}${title}</h1>
       <div class="meta">
         ${createdAt ? `<span>创建：${escapeHtml(createdAt)}</span>` : ""}
         ${updatedAt ? `<span>更新：${escapeHtml(updatedAt)}</span>` : ""}

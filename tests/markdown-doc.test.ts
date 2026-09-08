@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { looksLikeMarkdown, markdownToDoc } from "../src/shared/markdown-doc";
+import { toMarkdown } from "../src/shared/markdown";
 
 describe("looksLikeMarkdown", () => {
   it("含围栏判定为 markdown", () => {
@@ -41,5 +42,20 @@ describe("markdown 粘贴解析（FlowUs 错乱回归）", () => {
     expect(codeText).toContain("\n");
     expect(codeText).not.toContain("```");
     expect(codeText).not.toContain("查看版本");
+  });
+});
+
+describe("toMarkdown 新块导出", () => {
+  it("pageLink/blockRef 导出为可跳转的 markdown 链接", () => {
+    const md = toMarkdown({
+      type: "doc",
+      content: [
+        { type: "pageLink", attrs: { noteId: "abc", title: "子页面" } },
+        { type: "blockRef", attrs: { refNoteId: "def", refTitle: "来源", text: "引用内容" } }
+      ]
+    });
+    expect(md).toContain("[子页面](suiji-note://abc)");
+    expect(md).toContain("引用内容");
+    expect(md).toContain("[来源](suiji-note://def)");
   });
 });

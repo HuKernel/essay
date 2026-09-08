@@ -18,6 +18,7 @@ import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 import Typography from "@tiptap/extension-typography";
 import { CodeBlockExtension } from "./editor/code-block";
+import { BlockRefBlock, PageLinkBlock } from "./editor/craft-blocks";
 import { common, createLowlight } from "lowlight";
 import { SafeAutolink } from "./safe-link";
 import { MathExtensions } from "./math-extension";
@@ -75,7 +76,7 @@ import { FormatPanel } from "./components/FormatPanel";
 import { EditorArea } from "./components/EditorArea";
 import { SettingsModal } from "./components/SettingsModal";
 import { CommandPalette, type CommandPaletteItem } from "./components/CommandPalette";
-import { ConfirmDialog, HistoryModal, LinkDialog, PrivacyLock, PromptDialog } from "./components/Modals";
+import { ConfirmDialog, HistoryModal, LinkDialog, PrivacyLock, PromptDialog, BlockRefPicker } from "./components/Modals";
 
 type ActiveEditor = NonNullable<ReturnType<typeof useEditor>>;
 
@@ -137,6 +138,8 @@ export default function App() {
   const [linkDraft, setLinkDraft] = useState("");
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
+  const [toast, setToast] = useState<{ message: string; action?: () => void } | null>(null);
+  const [blockRefPicker, setBlockRefPicker] = useState<{ pos: number } | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [tagRename, setTagRename] = useState<{ from: string; draft: string } | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -157,6 +160,8 @@ export default function App() {
   const revisionRef = useRef(0);
   const saveStateRef = useRef<SaveState>("idle");
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const toastTimerRef = useRef<number | null>(null);
+  const selectNoteRef = useRef<(id: string) => void>(() => {});
 
   const activeNote = useMemo(() => notes.find((note) => note.id === activeId) ?? null, [activeId, notes]);
 
@@ -194,6 +199,8 @@ export default function App() {
       TableRow,
       TableHeader,
       TableCell,
+      PageLinkBlock,
+      BlockRefBlock,
       TextAlign.configure({
         types: ["heading", "paragraph"]
       }),
@@ -670,6 +677,17 @@ export default function App() {
     })();
   }, []);
 
+  // 子页面卡片 / 块引用卡片点击打开对应笔记（NodeView 派发全局事件）
+  selectNoteRef.current = (id: string) => void handleSelectNote(id);
+  useEffect(() => {
+    function onOpenNote(event: Event) {
+      const id = (event as CustomEvent<string>).detail;
+      if (id) selectNoteRef.current(id);
+    }
+    window.addEventListener("suiji:open-note", onOpenNote);
+    return () => window.removeEventListener("suiji:open-note", onOpenNote);
+  }, []);
+
   useEffect(() => {
     const dispose = window.suiji.onPrivacyLock(() => {
       setPrivacyLocked(true);
@@ -1088,6 +1106,16 @@ export default function App() {
     if (!editor || !file) return;
     if (!file.type.startsWith("image/")) return;
     // 图片落盘到 attachments/，文档里只存 asset 引用，避免 base64 撑爆文档和数据库
+    const src = await saveImageFileToAsset(file);
+    if (typeof atPos === "number") {
+      editor.chain().focus().insertContentAt(atPos, { type: "image", attrs: { src, alt: file.name } }).run();
+    } else {
+      editor.chain().focus().setImage({ src, alt: file.name }).run();
+    }
+    markDirty();
+  }
+
+  async function saveImageFileToAsset(file: File) {
     const ext = (file.type.split("/")[1] || "png").replace("jpeg", "jpg");
     const buffer = await file.arrayBuffer();
     let binary = "";
@@ -1096,13 +1124,7 @@ export default function App() {
     for (let i = 0; i < bytes.length; i += chunk) {
       binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
     }
-    const src = await window.suiji.saveImageAsset({ base64: window.btoa(binary), ext });
-    if (typeof atPos === "number") {
-      editor.chain().focus().insertContentAt(atPos, { type: "image", attrs: { src, alt: file.name } }).run();
-    } else {
-      editor.chain().focus().setImage({ src, alt: file.name }).run();
-    }
-    markDirty();
+    return window.suiji.saveImageAsset({ base64: window.btoa(binary), ext });
   }
 
   function runTableCommand(command: () => boolean) {
@@ -1137,17 +1159,82 @@ export default function App() {
   async function handleDeleteNote(id: string) {
     const note = notes.find((item) => item.id === id);
     if (!note) return;
-    setConfirmDialog({
-      title: "移到回收站",
-      description: `「${note.title}」会从当前列表移到回收站，你之后仍然可以恢复。`,
-      confirmLabel: "移到回收站",
-      tone: "danger",
-      icon: "trash",
-      onConfirm: async () => {
-        await window.suiji.deleteNote(id);
-        await reloadNotes(viewMode === "trash" ? "trash" : "active");
-      }
+    await window.suiji.deleteNote(id);
+    await reloadNotes(viewMode === "trash" ? "trash" : "active");
+    // Craft 式无确认删除：有回收站兜底，用 Toast 提供撤销入口
+    showToast(`已将「${note.title || "未命名记录"}」移到回收站`, () => void handleRestoreNote(id));
+  }
+
+  function showToast(message: string, action?: () => void) {
+    setToast({ message, action });
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 5000);
+  }
+
+  async function handleUpdateNoteMeta(patch: { icon?: string | null; cover?: string | null }) {
+    if (!activeNote) return;
+    await saveActive({ skipClean: true });
+    const base = notesRef.current.find((item) => item.id === activeNote.id) ?? activeNote;
+    const updated = await window.suiji.saveNote({ ...base, ...patch });
+    setNotes((current) => sortNotes([updated, ...current.filter((item) => item.id !== updated.id)]));
+  }
+
+  function handleIconChange(value: string) {
+    void handleUpdateNoteMeta({ icon: value.trim() ? value.trim() : null });
+  }
+
+  async function handleCoverFile(file: File | undefined) {
+    if (!file) return;
+    const src = await saveImageFileToAsset(file);
+    await handleUpdateNoteMeta({ cover: src });
+  }
+
+  function handleCoverRemove() {
+    void handleUpdateNoteMeta({ cover: null });
+  }
+
+  async function handleAssignFolder(noteId: string, folder: string) {
+    const note = notesRef.current.find((item) => item.id === noteId);
+    if (!note) return;
+    const updated = await window.suiji.saveNote({ ...note, folder });
+    setNotes((current) => sortNotes([updated, ...current.filter((item) => item.id !== updated.id)]));
+  }
+
+  async function handleAssignTag(noteId: string, tag: string) {
+    const note = notesRef.current.find((item) => item.id === noteId);
+    if (!note || note.tags.includes(tag)) return;
+    const updated = await window.suiji.saveNote({ ...note, tags: [...note.tags, tag] });
+    setNotes((current) => sortNotes([updated, ...current.filter((item) => item.id !== updated.id)]));
+  }
+
+  async function handleCreateSubpage() {
+    if (!editor) return;
+    const created = await window.suiji.createNote();
+    const child = await window.suiji.saveNote({
+      ...created,
+      title: "未命名子页面",
+      parentId: activeId || null
     });
+    setNotes((current) => sortNotes([child, ...current.filter((item) => item.id !== child.id)]));
+    editor.chain().focus().insertContent({ type: "pageLink", attrs: { noteId: child.id, title: child.title } }).run();
+  }
+
+  function openBlockRefPicker() {
+    if (!editor) return;
+    setBlockRefPicker({ pos: editor.state.selection.from });
+  }
+
+  function insertBlockRef(target: { noteId: string; title: string; text: string }) {
+    if (!editor || !blockRefPicker) return;
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(blockRefPicker.pos, {
+        type: "blockRef",
+        attrs: { refNoteId: target.noteId, refTitle: target.title, text: target.text }
+      })
+      .run();
+    setBlockRefPicker(null);
   }
 
   async function handleTogglePin(id: string) {
@@ -1375,6 +1462,8 @@ export default function App() {
       let linked = false;
       const walk = (node: JSONContent) => {
         if ((node.marks ?? []).some((mark) => mark.type === "link" && mark.attrs?.href === target)) linked = true;
+        if (node.type === "blockRef" && node.attrs?.refNoteId === activeNote.id) linked = true;
+        if (node.type === "pageLink" && node.attrs?.noteId === activeNote.id) linked = true;
         (node.content ?? []).forEach(walk);
       };
       (note.content?.content ?? []).forEach(walk);
@@ -1873,7 +1962,11 @@ export default function App() {
       run: () => imageInputRef.current?.click()
     }
   ];
-  slashCommandsRef.current = blockMenuCommands;
+  slashCommandsRef.current = [
+    ...blockMenuCommands,
+    { id: "subpage", label: "子页面", hint: "新建子笔记并链接到这里", run: () => void handleCreateSubpage() },
+    { id: "blockref", label: "引用笔记块", hint: "插入其它笔记的块引用卡片", run: openBlockRefPicker }
+  ];
 
   function applyBlockMenuCommand(command: BlockMenuCommand) {
     setBlockMenuOpen(false);
@@ -1976,9 +2069,25 @@ export default function App() {
         onDeleteNote={(id) => void handleDeleteNote(id)}
         onRestoreNote={(id) => void handleRestoreNote(id)}
         onPurgeNote={(id) => void handlePurgeNote(id)}
+        onAssignFolder={(noteId, folder) => void handleAssignFolder(noteId, folder)}
+        onAssignTag={(noteId, tag) => void handleAssignTag(noteId, tag)}
       />
 
       <section className="workspace">
+        {activeNote?.cover ? (
+          <div className="note-cover-banner">
+            <img src={activeNote.cover} alt="" draggable={false} />
+          </div>
+        ) : null}
+        {activeNote?.parentId ? (
+          <nav className="note-breadcrumb" aria-label="页面路径">
+            <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
+              {notes.find((note) => note.id === activeNote.parentId)?.title || "父页面"}
+            </button>
+            <span aria-hidden="true">/</span>
+            <strong>{title.trim() || activeNote.title || "未命名记录"}</strong>
+          </nav>
+        ) : null}
         <TopBar
           readOnly={editorDisabled}
           sidebarCollapsed={sidebarCollapsed}
@@ -1988,6 +2097,11 @@ export default function App() {
             setTitle(value);
             markDirty();
           }}
+          icon={activeNote?.icon ?? null}
+          cover={activeNote?.cover ?? null}
+          onIconChange={handleIconChange}
+          onCoverFile={(file) => void handleCoverFile(file)}
+          onCoverRemove={handleCoverRemove}
           folderPreview={folderPreview}
           metaTagsPreview={metaTagsPreview}
           hasMetaInfo={hasMetaInfo}
@@ -2158,6 +2272,31 @@ export default function App() {
           onClose={closeConfirmDialog}
           onConfirm={() => void runConfirmDialog()}
         />
+      ) : null}
+      {blockRefPicker ? (
+        <BlockRefPicker
+          notes={notes}
+          activeNoteId={activeId}
+          onPick={insertBlockRef}
+          onClose={() => setBlockRefPicker(null)}
+        />
+      ) : null}
+      {toast ? (
+        <div className="toast-bar" role="status">
+          <span className="toast-message">{toast.message}</span>
+          {toast.action ? (
+            <button
+              type="button"
+              className="toast-undo"
+              onClick={() => {
+                toast.action?.();
+                setToast(null);
+              }}
+            >
+              撤销
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       {privacyLocked ? (

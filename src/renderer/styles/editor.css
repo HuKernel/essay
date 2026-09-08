@@ -950,3 +950,63 @@
   font-size: 11px;
   font-style: normal;
 }
+
+/* ---------- 子页面卡片 / 块引用卡片 ---------- */
+
+.page-link-wrap,
+.block-ref-wrap {
+  margin: 6px 0;
+}
+
+.page-link-card,
+.block-ref-card {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--text-color);
+  text-align: left;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-base) var(--ease-smooth),
+    background-color var(--motion-base) var(--ease-smooth);
+}
+
+.page-link-card:hover,
+.block-ref-card:hover {
+  border-color: var(--accent-soft-strong);
+  background: var(--accent-soft);
+}
+
+.page-link-title {
+  flex: 1 1 auto;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-link-hint {
+  flex: 0 0 auto;
+  color: var(--subtle-text);
+  font-size: 11px;
+}
+
+.block-ref-text {
+  flex: 1 1 auto;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.block-ref-source {
+  flex: 0 0 auto;
+  color: var(--subtle-text);
+  font-size: 11px;
+}

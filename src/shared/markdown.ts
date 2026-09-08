@@ -183,6 +183,10 @@ function renderBlock(node: JSONContent, depth = 0): string {
     }
     case "horizontalRule":
       return "---";
+    case "pageLink":
+      return `[${String(node.attrs?.title || "子页面")}](suiji-note://${node.attrs?.noteId ?? ""})`;
+    case "blockRef":
+      return `> ${String(node.attrs?.text || "")}\n> —— [${String(node.attrs?.refTitle || "未命名记录")}](suiji-note://${node.attrs?.refNoteId ?? ""})`;
     default:
       return children
         .map((child) => renderBlock(child, depth))

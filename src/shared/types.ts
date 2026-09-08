@@ -10,6 +10,9 @@ export type NoteSummary = {
   archivedAt: string | null;
   trashedAt: string | null;
   pinnedAt: string | null;
+  icon: string | null;
+  cover: string | null;
+  parentId: string | null;
   createdAt: string;
   updatedAt: string;
 };
