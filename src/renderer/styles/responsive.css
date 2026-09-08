@@ -60,6 +60,11 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* 紧凑单列下工作区回到第 1 列（基础规则的 col 2 只在宽屏生效） */
+  .topbar ~ .workspace {
+    grid-column: 1;
+  }
+
   .sidebar {
     position: fixed;
     top: 54px;

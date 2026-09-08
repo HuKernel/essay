@@ -109,12 +109,12 @@
   background: var(--panel-border);
 }
 
-.sidebar {
+.topbar ~ .sidebar {
   grid-column: 1;
   grid-row: 2;
 }
 
-.workspace {
+.topbar ~ .workspace {
   grid-column: 2;
   grid-row: 2;
 }

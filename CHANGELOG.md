@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.42 - 2026-09-08
+
+- Fixed the compact (≤980px) layout scramble: the sidebar/workspace grid placements are scoped to the desktop top-bar (topbar ~ sibling selectors), and the workspace returns to column 1 in the single-column compact grid, so the editor is no longer squeezed into an implicit column.
+
 ## 0.9.41 - 2026-09-08
 
 - Slash menu is now clamped to the viewport (measured before positioning), so it no longer gets cut off at the right/bottom window edge when the cursor is near the edge.
