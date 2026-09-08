@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.41 - 2026-09-08
+
+- Slash menu is now clamped to the viewport (measured before positioning), so it no longer gets cut off at the right/bottom window edge when the cursor is near the edge.
+- Top bar title input can shrink (min 120px, ellipsis) on narrow windows instead of pushing the meta/status controls out.
+
 ## 0.9.40 - 2026-09-08
 
 - Restored window dragging: the flexible title input had covered the whole top bar drag area; the title now keeps a fixed width and an elastic blank drag strip sits between the title and the right-side meta/status group.

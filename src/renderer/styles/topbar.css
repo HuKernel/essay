@@ -409,7 +409,7 @@
 .topbar .title-input {
   flex: 0 1 auto;
   width: min(420px, 40vw);
-  min-width: 0;
+  min-width: 120px;
   font-weight: 600;
   text-align: left;
 }

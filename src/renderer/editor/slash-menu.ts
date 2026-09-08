@@ -137,8 +137,16 @@ export const SlashMenuExtension = Extension.create<{ getCommands: () => SlashCom
             }
             const coords = editorView.coordsAtPos(editorView.state.selection.from);
             container.style.display = "";
-            container.style.left = `${coords.left}px`;
-            container.style.top = `${coords.bottom + 6}px`;
+            // 先按内容测量，再收敛到视口内（光标贴近右缘/底缘时菜单会被截断）
+            container.style.left = "0px";
+            container.style.top = "0px";
+            container.style.visibility = "hidden";
+            const menuRect = container.getBoundingClientRect();
+            let menuLeft = Math.max(8, Math.min(coords.left, window.innerWidth - menuRect.width - 8));
+            let menuTop = Math.max(8, Math.min(coords.bottom + 6, window.innerHeight - menuRect.height - 8));
+            container.style.left = `${menuLeft}px`;
+            container.style.top = `${menuTop}px`;
+            container.style.visibility = "";
             container.replaceChildren(
               ...state.items.map((item, itemIndex) => {
                 const button = document.createElement("button");
