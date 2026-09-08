@@ -212,57 +212,51 @@ export function TopBar(props: TopBarProps) {
             </span>
           </span>
         </button>
-        <div className="title-group">
-          <input
-            className="title-input"
-            value={title}
-            onChange={(event) => onTitleChange(event.target.value)}
-            placeholder="未命名记录"
-            disabled={readOnly}
-          />
-          <div className="meta-summary-row">
-            <button
-              type="button"
-              className={metaEditorOpen ? "meta-summary is-open" : "meta-summary"}
-              onClick={onToggleMetaEditor}
-              disabled={readOnly}
-            >
-              {folderPreview ? <span className="meta-chip meta-folder-chip">文件夹 · {folderPreview}</span> : null}
-              {metaTagsPreview.slice(0, 3).map((tag) => (
-                <span key={tag} className="meta-chip">
-                  {tag}
-                </span>
-              ))}
-              {metaTagsPreview.length > 3 ? <span className="meta-chip">+{metaTagsPreview.length - 3}</span> : null}
-              {!hasMetaInfo ? <span className="meta-summary-empty">属性</span> : null}
-              <span className="meta-summary-action">{metaEditorOpen ? "收起属性" : "编辑属性"}</span>
-            </button>
+        </div>
+        <input
+          className="title-input"
+          value={title}
+          onChange={(event) => onTitleChange(event.target.value)}
+          placeholder="未命名记录"
+          disabled={readOnly}
+        />
+        <button
+          type="button"
+          className={metaEditorOpen ? "meta-summary is-open" : "meta-summary"}
+          onClick={onToggleMetaEditor}
+          disabled={readOnly}
+        >
+          {folderPreview ? <span className="meta-chip meta-folder-chip">文件夹 · {folderPreview}</span> : null}
+          {metaTagsPreview.slice(0, 3).map((tag) => (
+            <span key={tag} className="meta-chip">
+              {tag}
+            </span>
+          ))}
+          {metaTagsPreview.length > 3 ? <span className="meta-chip">+{metaTagsPreview.length - 3}</span> : null}
+          {!hasMetaInfo ? <span className="meta-summary-empty">属性</span> : null}
+          <span className="meta-summary-action">{metaEditorOpen ? "收起" : "编辑"}</span>
+        </button>
+        {metaEditorOpen && !readOnly ? (
+          <div className="meta-input-row">
+            <input
+              className="tags-input"
+              value={tagsDraft}
+              onChange={(event) => onTagsChange(event.target.value)}
+              placeholder="标签，用逗号分隔"
+            />
+            <input
+              className="folder-input"
+              value={folderDraft}
+              onChange={(event) => onFolderChange(event.target.value)}
+              placeholder="文件夹"
+            />
           </div>
-          {metaEditorOpen && !readOnly ? (
-            <div className="meta-input-row">
-              <input
-                className="tags-input"
-                value={tagsDraft}
-                onChange={(event) => onTagsChange(event.target.value)}
-                placeholder="标签，用逗号分隔"
-              />
-              <input
-                className="folder-input"
-                value={folderDraft}
-                onChange={(event) => onFolderChange(event.target.value)}
-                placeholder="文件夹"
-              />
-            </div>
-          ) : null}
-        </div>
-      </div>
-      <div className="topbar-actions">
-        <div className="topbar-statuses">
-          <span className={`save-status ${saveState}`}>{STATUS_TEXT[saveState]}</span>
-          <span className="doc-stats">
-            {editorCharCount} 字 · 阅读 {readingMinutes} 分钟
-          </span>
-        </div>
+        ) : null}
+      <div className="topbar-statuses">
+        <span className={`save-status ${saveState}`}>{STATUS_TEXT[saveState]}</span>
+        <span className="doc-stats">
+          {editorCharCount} 字 · 阅读 {readingMinutes} 分钟
+        </span>
       </div>
     </header>
   );

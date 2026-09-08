@@ -377,10 +377,6 @@
   position: relative;
 }
 
-.titlebar-content .title-input {
-  width: min(320px, 34vw);
-}
-
 .topbar-statuses {
   margin-left: auto;
 }
@@ -393,21 +389,31 @@
   white-space: nowrap;
 }
 
-.topbar .title-input {
-  width: min(360px, 40vw);
-}
-
-.topbar .title-input {
-  width: min(300px, 36vw);
-}
-
 .meta-summary {
   flex: 0 0 auto;
 }
 
 .topbar {
+  position: relative;
   grid-column: 1 / -1;
   grid-row: 1;
   height: 44px;
   min-height: 44px;
+}
+
+.topbar {
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.topbar .title-input {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  font-weight: 600;
+  text-align: left;
+}
+
+.topbar-statuses {
+  flex: 0 0 auto;
 }

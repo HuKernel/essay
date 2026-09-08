@@ -2,6 +2,7 @@
 
 ## 0.9.38 - 2026-09-08
 
+- Merged top bar row polish: menu/title/meta/state share one 44px row.
 - Final layout fix for the merged top bar: the app grid is now an explicit two-row layout (44px top bar spanning full width; sidebar column 1 and editor column 2 in the second row), and the top bar carries its own grid placement. Fixes the sidebar drawer climbing to the very top and overlapping the bar.
 
 ## 0.9.37 - 2026-09-08
