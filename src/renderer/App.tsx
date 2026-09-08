@@ -185,11 +185,14 @@ export default function App() {
       return true;
     });
     if (found < 0) return false;
-    editor.view.dispatch(
-      editor.state.tr.setSelection(TextSelection.near(editor.state.doc.resolve(found + 1))).scrollIntoView()
-    );
+    editor.view.dispatch(editor.state.tr.setSelection(TextSelection.near(editor.state.doc.resolve(found + 1))));
     const dom = editor.view.nodeDOM(found);
     if (dom instanceof HTMLElement) {
+      // scrollIntoView 只做最少滚动（块会贴在视口底部），这里手动让目标块对齐到编辑区顶部附近
+      const scroller = (editor.view as unknown as { scrollDOM: HTMLElement }).scrollDOM;
+      const domRect = dom.getBoundingClientRect();
+      const scRect = scroller.getBoundingClientRect();
+      scroller.scrollTop += domRect.top - scRect.top - 24;
       dom.classList.add("block-target-flash");
       window.setTimeout(() => dom.classList.remove("block-target-flash"), 1800);
     }
