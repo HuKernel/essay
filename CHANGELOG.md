@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.45 - 2026-09-09
+
+- Opening the same file via right-click/double-click now reuses the previously imported note (tracked by file path in note_meta) instead of silently creating a duplicate — this looked like "edits were not saved" because each reopen produced a fresh unedited copy. The file-path column is backfilled via ALTER TABLE on existing databases.
+
 ## 0.9.44 - 2026-09-08
 
 - Nudged the top bar title 56px away from the left button group so it no longer overlaps the sidebar toggle on narrow windows; everything else unchanged.

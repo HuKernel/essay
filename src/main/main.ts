@@ -705,6 +705,15 @@ function upsertNoteMeta(note: NoteRecord) {
   );
 }
 
+/** 右键/双击打开同一文件时复用已导入的笔记，不再重复建条 */
+function setNoteFilePath(id: string, filePath: string) {
+  dbExec(
+    `INSERT INTO note_meta (id, parent_id, file_path) VALUES (?, NULL, ?)
+     ON CONFLICT(id) DO UPDATE SET file_path = excluded.file_path`,
+    [id, filePath]
+  );
+}
+
 async function loadSqliteRuntime() {
   if (!sqliteRuntimePromise) {
     sqliteRuntimePromise = (async () => {
@@ -804,9 +813,16 @@ function ensureNotesSchema() {
     );
     CREATE TABLE IF NOT EXISTS note_meta (
       id TEXT PRIMARY KEY,
-      parent_id TEXT
+      parent_id TEXT,
+      file_path TEXT
     );
   `);
+  // 旧库的 note_meta 没有 file_path 列，补上（已存在则忽略）
+  try {
+    dbExec("ALTER TABLE note_meta ADD COLUMN file_path TEXT");
+  } catch {
+    // column already exists
+  }
 }
 
 function upsertNoteInDatabase(note: NoteRecord) {
@@ -1534,10 +1550,21 @@ function importablePathsFromArgv(argv: string[]) {
 let pendingOpenFiles = importablePathsFromArgv(process.argv);
 
 async function importMarkdownFile(filePath: string): Promise<NoteRecord> {
-  const raw = await fs.readFile(filePath, "utf8");
+  const resolved = path.resolve(filePath);
+  const existingId = dbRows<{ id: string }>("SELECT id FROM note_meta WHERE file_path = ?", [resolved])[0]?.id;
+  if (existingId) {
+    try {
+      return await readNote(existingId);
+    } catch {
+      // 记录已被删除，走重新导入
+    }
+  }
+  const raw = await fs.readFile(resolved, "utf8");
   const heading = raw.match(/^\s*#\s+(.+)$/m)?.[1]?.trim();
-  const fallbackTitle = path.basename(filePath, path.extname(filePath));
-  return createNoteFromContent(heading || fallbackTitle, raw, markdownToDoc(raw));
+  const fallbackTitle = path.basename(resolved, path.extname(resolved));
+  const note = await createNoteFromContent(heading || fallbackTitle, raw, markdownToDoc(raw));
+  setNoteFilePath(note.id, resolved);
+  return note;
 }
 
 async function importMarkdownNotes(): Promise<NoteRecord[]> {
