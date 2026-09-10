@@ -59,3 +59,16 @@ describe("toMarkdown 新块导出", () => {
     expect(md).toContain("[来源](suiji-note://def)");
   });
 });
+
+describe("文件写回 round-trip（saveNote 同步写回原文件）", () => {
+  it("导入→序列化→写回内容不丢首个 heading、不重复标题、幂等", () => {
+    const md = "# 项目方案\n\n第一段正文\n\n- 要点一\n- 要点二\n";
+    const written = toMarkdown(markdownToDoc(md));
+    expect(written.startsWith("# 项目方案")).toBe(true);
+    expect(written.match(/^# 项目方案/gm)).toHaveLength(1);
+    expect(written).toContain("第一段正文");
+    expect(written).toContain("要点一");
+    // 换一种方式再打开（重新导入）得到同样内容
+    expect(toMarkdown(markdownToDoc(written))).toBe(written);
+  });
+});

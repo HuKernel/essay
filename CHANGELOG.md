@@ -1,3 +1,7 @@
+## 0.9.46 - 2026-09-10
+
+- Notes imported from a file now write their markdown back to the source file on every save (attachments inlined as data URLs). Previously edits lived only in the app database, so reopening the same file through another path re-imported the stale on-disk snapshot and looked like "edits were lost". Write-back failures (file moved/read-only) are logged and never block the note save.
+
 # Changelog
 
 ## 0.9.45 - 2026-09-09

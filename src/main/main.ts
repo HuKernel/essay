@@ -48,6 +48,7 @@ import {
   safeExportName
 } from "./note-transfer.js";
 import { markdownToDoc } from "../shared/markdown-doc.js";
+import { toMarkdown } from "../shared/markdown.js";
 import { upgradeCollapsibleContent } from "../shared/content-upgrade.js";
 import { parseEncryptedExportBundle } from "../shared/encrypted-export.js";
 import { ASSET_URL_PREFIX, collectAssetFileNames } from "../shared/note-assets.js";
@@ -712,6 +713,17 @@ function setNoteFilePath(id: string, filePath: string) {
      ON CONFLICT(id) DO UPDATE SET file_path = excluded.file_path`,
     [id, filePath]
   );
+}
+
+/** 从文件导入的笔记：保存时把 markdown 同步写回原文件，避免换个方式打开时回退到旧快照 */
+async function writeBackNoteFile(id: string, content: NoteRecord["content"]) {
+  const filePath = dbRows<{ file_path: string }>("SELECT file_path FROM note_meta WHERE id = ?", [id])[0]?.file_path;
+  if (!filePath) return;
+  try {
+    await atomicWriteFile(filePath, toMarkdown(await inlineAssetImages(content, attachmentsDir)));
+  } catch (error) {
+    writeDebugLog(`write-back failed: ${String(error)} file=${filePath}`);
+  }
 }
 
 async function loadSqliteRuntime() {
@@ -1447,6 +1459,7 @@ async function saveNote(rawNote: NoteRecord): Promise<NoteRecord> {
   notesDbDirty = true;
   const latest = await finalizeNoteWrite(normalized.id);
   await persistNotesDatabase();
+  await writeBackNoteFile(normalized.id, normalized.content);
   void pruneBackups();
   return latest;
 }
