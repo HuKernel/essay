@@ -1,3 +1,7 @@
+## 0.9.55 - 2026-09-23
+
+- Panel-internal toggle buttons removed: the sidebar header no longer has a "collapse sidebar" button and the Knowledge Assistant header no longer has a fold button — the top bar switches are the single control point for both panels at every width.
+
 ## 0.9.54 - 2026-09-23
 
 - Removed the expand button from the collapsed icon rail — the top bar sidebar toggle is now the single way to expand/collapse; the rail starts directly with the view icons.

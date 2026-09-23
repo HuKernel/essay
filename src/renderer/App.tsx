@@ -2104,7 +2104,6 @@ export default function App() {
       <Sidebar
         sidebarCollapsed={sidebarCollapsed}
         onExpandSidebar={() => setSidebarCollapsed(false)}
-        onCollapseSidebar={() => setSidebarCollapsed(true)}
         onOpenFind={() => openFindPanel(false)}
         onCreateNote={() => void handleCreate()}
         onHideWindow={() => void window.suiji.hideWindow()}
@@ -2225,7 +2224,6 @@ export default function App() {
           {activeNote ? (
             <InfoPanel
               open={infoPanelOpen}
-              onClose={() => setInfoPanelOpen(false)}
               readOnly={editorDisabled}
               createdAt={activeNote.createdAt}
               updatedAt={activeNote.updatedAt}

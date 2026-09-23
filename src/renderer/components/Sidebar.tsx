@@ -11,7 +11,6 @@ import {
   Hash,
   List,
   ListTodo,
-  PanelLeftClose,
   Pencil,
   Pin,
   PinOff,
@@ -33,7 +32,6 @@ import { formatTime, type OpenTask } from "../utils/text";
 type SidebarProps = {
   sidebarCollapsed: boolean;
   onExpandSidebar: () => void;
-  onCollapseSidebar: () => void;
   onOpenFind: () => void;
   onCreateNote: () => void;
   onHideWindow: () => void;
@@ -102,7 +100,6 @@ export function Sidebar(props: SidebarProps) {
   const {
     sidebarCollapsed,
     onExpandSidebar,
-    onCollapseSidebar,
     onOpenFind,
     onCreateNote,
     onHideWindow,
@@ -261,15 +258,6 @@ export function Sidebar(props: SidebarProps) {
           </button>
           <button className="icon-button" title="隐藏窗口" aria-label="隐藏窗口" onClick={onHideWindow} type="button">
             <EyeOff size={16} />
-          </button>
-          <button
-            className="icon-button"
-            title="收起侧边栏"
-            aria-label="收起侧边栏"
-            onClick={onCollapseSidebar}
-            type="button"
-          >
-            <PanelLeftClose size={16} />
           </button>
         </div>
       </div>

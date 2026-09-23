@@ -3,7 +3,6 @@ import {
   FileDown,
   Link2,
   ListTree,
-  PanelRightClose,
   Pencil,
   Sparkles,
   TextSearch
@@ -25,7 +24,6 @@ export type AiActionItem = {
 
 type InfoPanelProps = {
   open: boolean;
-  onClose: () => void;
   /** 回收站笔记：标签等编辑入口只读 */
   readOnly: boolean;
   createdAt: string;
@@ -67,21 +65,12 @@ const fullDate = new Intl.DateTimeFormat("zh-CN", {
 });
 
 export function InfoPanel(props: InfoPanelProps) {
-  const { open, onClose, readOnly } = props;
+  const { open, readOnly } = props;
 
   return (
     <aside className={open ? "info-panel is-open" : "info-panel"} aria-label="知识助手">
       <header className="info-panel-header">
         <strong>知识助手</strong>
-        <button
-          type="button"
-          className="icon-button"
-          title="折叠信息面板"
-          aria-label="折叠信息面板"
-          onClick={onClose}
-        >
-          <PanelRightClose size={16} />
-        </button>
       </header>
 
       <div className="info-panel-body">
