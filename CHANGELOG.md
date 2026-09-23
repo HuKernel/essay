@@ -1,3 +1,7 @@
+## 0.9.58 - 2026-09-23
+
+- Document header is now title-only: the meta line (updated/words/reading time) and tag chips under the title were removed — that information already lives in the Knowledge Assistant panel on the right, so the reading canvas stays clean.
+
 ## 0.9.57 - 2026-09-23
 
 - Tightened the gap between the App Header divider and the document title (was ~65px of stacked paddings, now ~22px) so the title sits closer to the breadcrumb bar like Notion/Linear; narrow-viewport paddings scaled down to match.

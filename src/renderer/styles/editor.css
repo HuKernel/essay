@@ -138,50 +138,6 @@
   opacity: 1;
 }
 
-.doc-meta-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  color: var(--muted-text);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-
-.doc-meta-line span[aria-hidden="true"] {
-  color: var(--line-strong);
-}
-
-.doc-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 12px;
-}
-
-.doc-tags button {
-  display: inline-flex;
-  min-height: 24px;
-  align-items: center;
-  border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  background: var(--surface-soft);
-  color: var(--muted-text);
-  font-size: 11.5px;
-  line-height: 1;
-  padding: 0 10px;
-  cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    color 140ms ease;
-}
-
-.doc-tags button:hover {
-  border-color: var(--accent-soft-strong);
-  color: var(--accent-strong);
-}
-
 /* 正文首个 H1 与文档标题重复时只在显示层隐藏（数据不动） */
 .editor-column.dedupe-first-h1 .editor-surface > h1:first-child {
   display: none;

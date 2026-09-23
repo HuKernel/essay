@@ -2201,24 +2201,6 @@ export default function App() {
                   disabled={editorDisabled}
                   aria-label="记录标题"
                 />
-                {activeNote ? (
-                  <div className="doc-meta-line">
-                    <span>更新于 {docDateFormat.format(new Date(activeNote.updatedAt))}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{editorStats.chars} 字</span>
-                    <span aria-hidden="true">·</span>
-                    <span>约 {editorStats.readingMinutes} 分钟</span>
-                  </div>
-                ) : null}
-                {metaTagsPreview.length > 0 ? (
-                  <div className="doc-tags">
-                    {metaTagsPreview.map((tag) => (
-                      <button key={tag} type="button" onClick={() => setSelectedTag(tag)} title="按此标签筛选">
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
               </div>
             {findOpen ? (
               <FindPanel
