@@ -1,3 +1,7 @@
+## 0.9.56 - 2026-09-23
+
+- Top layout rebuilt into three separated layers (Navigation / App Header / Document Header), moving the page from "web article reader" toward a desktop knowledge app: a new 48px App Header below the window bar carries the breadcrumb (workspace / folder / parent / title — folder and parent are clickable filters/jumps), the last-edited date, and a Share button that copies the document as Markdown for pasting anywhere. The Document Header now shows title + meta line + tag chips (click to filter) with proper top breathing room, and the body no longer hugs the top. Old in-canvas subpage breadcrumb merged into the App Header.
+
 ## 0.9.55 - 2026-09-23
 
 - Panel-internal toggle buttons removed: the sidebar header no longer has a "collapse sidebar" button and the Knowledge Assistant header no longer has a fold button — the top bar switches are the single control point for both panels at every width.

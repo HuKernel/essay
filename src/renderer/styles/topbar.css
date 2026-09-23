@@ -110,39 +110,6 @@
   color: var(--danger-color);
 }
 
-/* ---------- 面包屑（子页面路径，位于编辑区顶部） ---------- */
-
-.note-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 6px;
-  font-size: 12px;
-}
-
-.note-breadcrumb button {
-  border: 0;
-  background: transparent;
-  color: var(--muted-text);
-  font-size: 12px;
-  cursor: pointer;
-  padding: 0;
-}
-
-.note-breadcrumb button:hover {
-  color: var(--accent-strong);
-  text-decoration: underline;
-}
-
-.note-breadcrumb span {
-  color: var(--subtle-text);
-}
-
-.note-breadcrumb strong {
-  color: var(--text-color);
-  font-weight: 600;
-}
-
 /* 顶栏兼做窗口拖拽区：交互控件单独排除 */
 .topbar {
   -webkit-app-region: drag;

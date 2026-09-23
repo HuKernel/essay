@@ -71,6 +71,7 @@ import { NoteLinkSuggestionExtension } from "./editor/note-link-suggestion";
 import { SlashMenuExtension } from "./editor/slash-menu";
 import { Sidebar } from "./components/Sidebar";
 import { InfoPanel, type AiActionItem } from "./components/InfoPanel";
+import { Share2 } from "lucide-react";
 import { TopBar } from "./components/TopBar";
 import { FindPanel } from "./components/FindPanel";
 import { FormatPanel } from "./components/FormatPanel";
@@ -2028,7 +2029,7 @@ export default function App() {
     }
   }
 
-  async function copyForAI(kind: "full" | "context" | "outline") {
+  async function copyForAI(kind: "full" | "context" | "outline", successMessage = "已复制到剪贴板，可直接粘贴给 AI") {
     if (!activeNote) return;
     let text: string;
     if (kind === "outline") {
@@ -2046,7 +2047,7 @@ export default function App() {
     }
     try {
       await navigator.clipboard.writeText(text);
-      showToast("已复制到剪贴板，可直接粘贴给 AI");
+      showToast(successMessage);
     } catch {
       showToast("复制失败，请重试");
     }
@@ -2151,17 +2152,43 @@ export default function App() {
       />
 
         <section className="workspace">
-          <div className={infoPanelOpen && activeNote ? "document-stage" : "document-stage info-collapsed"}>
-            <div className={firstHeadingDupesTitle ? "editor-column dedupe-first-h1" : "editor-column"}>
+          <header className="app-header">
+            <nav className="app-breadcrumb" aria-label="文档位置">
+              <span className="app-breadcrumb-root">我的空间</span>
+              {folderPreview ? (
+                <>
+                  <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
+                  <button type="button" onClick={() => setSelectedFolder(folderPreview)} title="按此文件夹筛选">
+                    {folderPreview}
+                  </button>
+                </>
+              ) : null}
               {activeNote?.parentId ? (
-                <nav className="note-breadcrumb" aria-label="页面路径">
+                <>
+                  <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
                   <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
                     {notes.find((note) => note.id === activeNote.parentId)?.title || "父页面"}
                   </button>
-                  <span aria-hidden="true">/</span>
-                  <strong>{title.trim() || activeNote.title || "未命名记录"}</strong>
-                </nav>
+                </>
               ) : null}
+              <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
+              <strong>{title.trim() || activeNote?.title || "未命名记录"}</strong>
+            </nav>
+            {activeNote ? (
+              <span className="app-header-edited">最后编辑于 {docDateFormat.format(new Date(activeNote.updatedAt))}</span>
+            ) : null}
+            <button
+              type="button"
+              className="app-header-share"
+              title="复制本文 Markdown，可粘贴分享"
+              onClick={() => void copyForAI("full", "已复制 Markdown，粘贴即可分享")}
+            >
+              <Share2 size={14} />
+              分享
+            </button>
+          </header>
+          <div className={infoPanelOpen && activeNote ? "document-stage" : "document-stage info-collapsed"}>
+            <div className={firstHeadingDupesTitle ? "editor-column dedupe-first-h1" : "editor-column"}>
               <div className="doc-head">
                 <input
                   className="doc-title-input"
@@ -2181,6 +2208,15 @@ export default function App() {
                     <span>{editorStats.chars} 字</span>
                     <span aria-hidden="true">·</span>
                     <span>约 {editorStats.readingMinutes} 分钟</span>
+                  </div>
+                ) : null}
+                {metaTagsPreview.length > 0 ? (
+                  <div className="doc-tags">
+                    {metaTagsPreview.map((tag) => (
+                      <button key={tag} type="button" onClick={() => setSelectedTag(tag)} title="按此标签筛选">
+                        {tag}
+                      </button>
+                    ))}
                   </div>
                 ) : null}
               </div>

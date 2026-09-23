@@ -17,12 +17,101 @@
   cursor: text;
 }
 
-/* ---------- 文档头：大标题（衬线）+ 元信息行 ---------- */
+/* ---------- App Header：面包屑 / 最后编辑 / 分享（窗口顶栏下方第一条） ---------- */
+
+.app-header {
+  display: flex;
+  height: 48px;
+  min-height: 48px;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--line-soft);
+  padding: 0 24px 0 28px;
+}
+
+.app-breadcrumb {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted-text);
+  font-size: 12.5px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.app-breadcrumb-root {
+  color: var(--subtle-text);
+}
+
+.app-breadcrumb-sep {
+  color: var(--line-strong);
+}
+
+.app-breadcrumb button {
+  border: 0;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: 12.5px;
+  padding: 0;
+  cursor: pointer;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-breadcrumb button:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
+.app-breadcrumb strong {
+  color: var(--text-color);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-header-edited {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--subtle-text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.app-header-share {
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 28px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: 12px;
+  padding: 0 12px;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background-color 140ms ease;
+}
+
+.app-header-share:hover {
+  border-color: var(--accent-soft-strong);
+  background: var(--surface-hover-soft);
+  color: var(--text-color);
+}
+
+/* ---------- 文档头：大标题（衬线）+ 元信息行 + 标签 ---------- */
 
 .doc-head {
   width: min(100%, var(--editor-width, 900px));
   margin: 0 auto;
-  padding: 26px 0 0;
+  padding: 30px 0 0;
 }
 
 .doc-title-input {
@@ -64,6 +153,35 @@
   color: var(--line-strong);
 }
 
+.doc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.doc-tags button {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted-text);
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 0 10px;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.doc-tags button:hover {
+  border-color: var(--accent-soft-strong);
+  color: var(--accent-strong);
+}
+
 /* 正文首个 H1 与文档标题重复时只在显示层隐藏（数据不动） */
 .editor-column.dedupe-first-h1 .editor-surface > h1:first-child {
   display: none;
@@ -83,7 +201,7 @@
   line-height: var(--editor-line-height, 1.8);
   letter-spacing: 0.01em;
   outline: 0;
-  padding: 8px clamp(24px, 4vw, 64px) 160px;
+  padding: 24px clamp(24px, 4vw, 64px) 160px;
 }
 
 .editor-surface > *:first-child {
