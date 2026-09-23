@@ -1,3 +1,7 @@
+## 0.9.61 - 2026-09-23
+
+- Information architecture rebuilt: the sidebar is now navigation-only (search, new note, views, tags/folders) with no document list pinned at the bottom. The center routes between three states — Workspace Home (click 我的空间 or the home rail icon: recent documents, favorites, tag groups, view-all entry), Document List (click any view/tag/folder or type in search: card grid with full note actions; tasks and calendar render as list variants), and Document Reader (click any document card). The breadcrumb adapts per state (我的空间 / view name / document path) and the editor stays mounted, so returning to a document is instant. Sidebar header 我的空间 and the breadcrumb root are both clickable shortcuts back to Home.
+
 ## 0.9.60 - 2026-09-23
 
 - Wide-block reading layout: the editor container widens to reading-width + 180px (~1030px at the default 900px setting) while every text block stays capped at the reading width and centered — code blocks, tables, and images now break out to the wider measure, symmetric around the text column. Small windows keep near-full-width content; long text lines remain comfortable. Verified in-app: body ~900px, code/table ~1030px, both centered.

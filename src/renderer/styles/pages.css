@@ -1,0 +1,273 @@
+/* ============================================================
+   中心区页面：工作空间主页 / 文档列表（侧栏只负责导航）
+   ============================================================ */
+
+/* workspace 第二行容器：承载 home / list / reader 三态 */
+.workspace-main {
+  position: relative;
+  min-height: 0;
+}
+
+.workspace-main > .document-stage {
+  height: 100%;
+}
+
+.document-stage.is-hidden {
+  display: none;
+}
+
+/* ---------- 通用列表网格 ---------- */
+
+.doc-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.doc-list-empty {
+  grid-column: 1 / -1;
+  margin: 40px 0;
+  color: var(--subtle-text);
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.home-doc-row {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    transform 140ms ease;
+}
+
+.home-doc-row:hover {
+  border-color: var(--accent-soft-strong);
+  background: var(--surface-hover-soft);
+}
+
+.home-doc-row:active {
+  transform: scale(0.995);
+}
+
+.home-doc-row.is-active {
+  background: var(--surface-active);
+  border-color: transparent;
+}
+
+.home-doc-row strong {
+  color: var(--text-color);
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-doc-row span {
+  color: var(--muted-text);
+  font-size: 12px;
+  line-height: 1.5;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.home-doc-row em {
+  color: var(--subtle-text);
+  font-size: 11px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 工作空间主页 ---------- */
+
+.workspace-home {
+  width: min(100%, 1000px);
+  height: 100%;
+  margin: 0 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 34px 32px 60px;
+}
+
+.home-head h1 {
+  margin: 0 0 6px;
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.home-head p {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 13px;
+}
+
+.home-section {
+  margin-top: 30px;
+}
+
+.home-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.home-section-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: var(--text-color);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.home-section-head h2 svg {
+  color: var(--subtle-text);
+}
+
+.home-section-head button {
+  border: 0;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: 12.5px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.home-section-head button:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
+.home-tag-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.home-tag-group {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.home-tag-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--muted-text);
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.home-tag-title:hover {
+  color: var(--accent-strong);
+  background: var(--surface-hover-soft);
+}
+
+.home-tag-title em {
+  color: var(--subtle-text);
+  font-size: 11px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-empty-hero {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin-top: 60px;
+  color: var(--subtle-text);
+  text-align: center;
+}
+
+.home-empty-hero svg {
+  opacity: 0.6;
+}
+
+.home-empty-hero strong {
+  color: var(--text-color);
+  font-size: 16px;
+}
+
+.home-empty-hero p {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ---------- 文档列表页 ---------- */
+
+.doc-list-page {
+  width: min(100%, 1100px);
+  height: 100%;
+  margin: 0 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 26px 32px 60px;
+}
+
+.doc-list-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.doc-list-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.doc-list-head span {
+  color: var(--subtle-text);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-list-section-label {
+  margin: 18px 0 10px;
+  color: var(--subtle-text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+/* 列表页里的笔记卡片沿用 note-item，但作为网格卡片呈现 */
+.doc-list-grid .note-item {
+  margin: 0;
+}
+
+.calendar-wrap.is-page {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.calendar-wrap.is-page .calendar-grid {
+  max-width: 420px;
+}

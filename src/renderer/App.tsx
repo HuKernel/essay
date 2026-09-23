@@ -70,6 +70,8 @@ import { NoteLinkSuggestionExtension } from "./editor/note-link-suggestion";
 import { SlashMenuExtension } from "./editor/slash-menu";
 import { Sidebar } from "./components/Sidebar";
 import { InfoPanel } from "./components/InfoPanel";
+import { WorkspaceHome } from "./components/WorkspaceHome";
+import { DocumentListPage } from "./components/DocumentListPage";
 import { TopBar } from "./components/TopBar";
 import { FindPanel } from "./components/FindPanel";
 import { FormatPanel } from "./components/FormatPanel";
@@ -87,6 +89,16 @@ const docDateFormat = new Intl.DateTimeFormat("zh-CN", {
   month: "2-digit",
   day: "2-digit"
 });
+
+const CENTER_TITLES: Partial<Record<ViewMode, string>> = {
+  active: "全部记录",
+  favorites: "收藏",
+  recent: "最近编辑",
+  tasks: "待办",
+  archive: "归档",
+  trash: "回收站",
+  calendar: "日历"
+};
 
 // 各视图按各自的语义时间排序：回收站按删除时间、收藏按收藏时间、归档按归档时间、最近按编辑时间
 const VIEW_TIME_FIELD: Partial<Record<ViewMode, "trashedAt" | "favoriteAt" | "archivedAt" | "updatedAt">> = {
@@ -116,6 +128,8 @@ export default function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1280);
   const [formatPopoverOpen, setFormatPopoverOpen] = useState(false);
   const [infoPanelOpen, setInfoPanelOpen] = useState(() => window.innerWidth >= 1280);
+  // 中心区三态：工作空间主页 / 文档列表 / 阅读器（侧栏只负责导航）
+  const [centerView, setCenterView] = useState<"home" | "list" | "reader">("reader");
   const [privacyLocked, setPrivacyLocked] = useState(false);
   const [currentPrivacyPinDraft, setCurrentPrivacyPinDraft] = useState("");
   const [privacyPinDraft, setPrivacyPinDraft] = useState("");
@@ -1206,6 +1220,11 @@ export default function App() {
     focusEditorSoon();
   }
 
+  function openNoteInReader(id: string) {
+    void handleSelectNote(id);
+    setCenterView("reader");
+  }
+
   async function handleDeleteNote(id: string) {
     const note = notes.find((item) => item.id === id);
     if (!note) return;
@@ -2073,80 +2092,137 @@ export default function App() {
       <Sidebar
         sidebarCollapsed={sidebarCollapsed}
         onExpandSidebar={() => setSidebarCollapsed(false)}
+        onOpenHome={() => setCenterView("home")}
         onOpenFind={() => openFindPanel(false)}
-        onCreateNote={() => void handleCreate()}
+        onCreateNote={() => {
+          void handleCreate();
+          setCenterView("reader");
+        }}
         onHideWindow={() => void window.suiji.hideWindow()}
         onOpenSettings={openSettings}
         alwaysOnTop={settings?.alwaysOnTop ?? false}
         onToggleAlwaysOnTop={() => void toggleAlwaysOnTop()}
         query={query}
-        onQueryChange={setQuery}
+        onQueryChange={(value) => {
+          setQuery(value);
+          setCenterView("list");
+        }}
         viewMode={viewMode}
         onViewModeChange={(mode) => {
           void (async () => {
             // 先落盘当前未保存的修改，再切换，避免 650ms 防抖窗口内丢内容
             await saveActive({ skipClean: true });
             setViewMode(mode);
-            // 待办视图不跳转文档，保持当前编辑上下文
-            if (mode === "tasks") return;
-            const next = firstVisibleNote(notes, mode);
-            if (next) setActiveId(next.id);
+            setCenterView("list");
           })();
         }}
         allFolders={allFolders}
         selectedFolder={selectedFolder}
-        onSelectFolder={setSelectedFolder}
+        onSelectFolder={(folder) => {
+          setSelectedFolder(folder);
+          setCenterView("list");
+        }}
         onRemoveFolder={(folder) => handleRemoveMetadata("folder", folder)}
         allTags={allTags}
         selectedTag={selectedTag}
-        onSelectTag={setSelectedTag}
+        onSelectTag={(tag) => {
+          setSelectedTag(tag);
+          setCenterView("list");
+        }}
         onRemoveTag={(tag) => handleRemoveMetadata("tag", tag)}
         onRenameTag={(tag) => setTagRename({ from: tag, draft: tag })}
-        openTasks={openTasks}
-        onOpenTaskNote={handleOpenTaskNote}
-        onToggleTask={(task) => void handleToggleTask(task)}
-        filteredNotes={filteredNotes}
-        activeId={activeId}
-        searchKeyword={searchKeyword}
-        onSelectNote={(id) => void handleSelectNote(id)}
-        onTogglePin={(id) => void handleTogglePin(id)}
-        onToggleFavorite={(id) => void handleToggleFavorite(id)}
-        onToggleArchive={(id) => void handleToggleArchive(id)}
-        onDeleteNote={(id) => void handleDeleteNote(id)}
-        onRestoreNote={(id) => void handleRestoreNote(id)}
-        onPurgeNote={(id) => void handlePurgeNote(id)}
         onAssignFolder={(noteId, folder) => void handleAssignFolder(noteId, folder)}
         onAssignTag={(noteId, tag) => void handleAssignTag(noteId, tag)}
       />
 
         <section className="workspace">
           <header className="app-header">
-            <nav className="app-breadcrumb" aria-label="文档位置">
-              <span className="app-breadcrumb-root">我的空间</span>
-              {folderPreview ? (
+            <nav className="app-breadcrumb" aria-label="位置">
+              <button type="button" className="app-breadcrumb-root" onClick={() => setCenterView("home")}>
+                我的空间
+              </button>
+              {centerView === "list" ? (
                 <>
                   <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                  <button type="button" onClick={() => setSelectedFolder(folderPreview)} title="按此文件夹筛选">
-                    {folderPreview}
-                  </button>
+                  <strong>{CENTER_TITLES[viewMode] ?? "全部记录"}</strong>
                 </>
               ) : null}
-              {activeNote?.parentId ? (
+              {centerView === "reader" ? (
                 <>
+                  {folderPreview ? (
+                    <>
+                      <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
+                      <button type="button" onClick={() => setSelectedFolder(folderPreview)} title="按此文件夹筛选">
+                        {folderPreview}
+                      </button>
+                    </>
+                  ) : null}
+                  {activeNote?.parentId ? (
+                    <>
+                      <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
+                      <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
+                        {notes.find((note) => note.id === activeNote.parentId)?.title || "父页面"}
+                      </button>
+                    </>
+                  ) : null}
                   <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                  <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
-                    {notes.find((note) => note.id === activeNote.parentId)?.title || "父页面"}
-                  </button>
+                  <strong>{title.trim() || activeNote?.title || "未命名记录"}</strong>
                 </>
               ) : null}
-              <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-              <strong>{title.trim() || activeNote?.title || "未命名记录"}</strong>
             </nav>
-            {activeNote ? (
+            {activeNote && centerView === "reader" ? (
               <span className="app-header-edited">最后编辑于 {docDateFormat.format(new Date(activeNote.updatedAt))}</span>
             ) : null}
           </header>
-          <div className={infoPanelOpen && activeNote ? "document-stage" : "document-stage info-collapsed"}>
+          <div className="workspace-main">
+            {centerView === "home" ? (
+              <WorkspaceHome
+                notes={notes}
+                activeId={activeId}
+                allTags={allTags}
+                onOpenNote={openNoteInReader}
+                onOpenAll={() => {
+                  setViewMode("active");
+                  setCenterView("list");
+                }}
+                onOpenTag={(tag) => {
+                  setSelectedTag(tag);
+                  setViewMode("active");
+                  setCenterView("list");
+                }}
+              />
+            ) : null}
+            {centerView === "list" ? (
+              <DocumentListPage
+                viewMode={viewMode}
+                filteredNotes={filteredNotes}
+                activeId={activeId}
+                searchKeyword={searchKeyword}
+                hasFilter={Boolean(query || selectedFolder || selectedTag)}
+                openTasks={openTasks}
+                onOpenNote={openNoteInReader}
+                onOpenTaskNote={(id) => {
+                  handleOpenTaskNote(id);
+                  setCenterView("reader");
+                }}
+                onToggleTask={(task) => void handleToggleTask(task)}
+                onTogglePin={(id) => void handleTogglePin(id)}
+                onToggleFavorite={(id) => void handleToggleFavorite(id)}
+                onToggleArchive={(id) => void handleToggleArchive(id)}
+                onDeleteNote={(id) => void handleDeleteNote(id)}
+                onRestoreNote={(id) => void handleRestoreNote(id)}
+                onPurgeNote={(id) => void handlePurgeNote(id)}
+              />
+            ) : null}
+          <div
+            className={
+              centerView !== "reader"
+                ? "document-stage is-hidden"
+                : infoPanelOpen && activeNote
+                  ? "document-stage"
+                  : "document-stage info-collapsed"
+            }
+          >
             <div className={firstHeadingDupesTitle ? "editor-column dedupe-first-h1" : "editor-column"}>
               <div className="doc-head">
                 <input
@@ -2229,6 +2305,8 @@ export default function App() {
               onJumpToOutline={jumpToOutline}
             />
           ) : null}
+          </div>
+          </div>
 
           <FormatPanel
             editor={editor}
@@ -2250,7 +2328,6 @@ export default function App() {
             tableToolbarVisible={tableToolbarVisible}
             onRunTableCommand={runTableCommand}
           />
-        </div>
       </section>
 
       {paletteOpen ? <CommandPalette items={paletteItems} onClose={() => setPaletteOpen(false)} /> : null}
