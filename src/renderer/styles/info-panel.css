@@ -254,6 +254,7 @@
   background: transparent;
   color: var(--text-color);
   font-size: 13.5px;
+  font-weight: 500;
   line-height: 1.4;
   padding: 7px 8px;
   text-align: left;
@@ -270,15 +271,15 @@
   color: var(--text-color);
 }
 
-/* 层级降级：二级灰、三级更淡，一级保持深色可读 */
+/* 层级只用缩进区分，颜色保持可读：二级正文色，三级辅助色 */
 .info-outline-link.info-outline-level-2 {
-  color: var(--muted-text);
   padding-left: 20px;
 }
 
 .info-outline-link.info-outline-level-3 {
-  color: var(--subtle-text);
-  font-size: 12.5px;
+  color: var(--muted-text);
+  font-weight: 400;
+  font-size: 13px;
   padding-left: 30px;
 }
 

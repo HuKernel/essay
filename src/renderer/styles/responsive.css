@@ -2,7 +2,7 @@
    响应式：信息面板浮层（1280）、紧凑侧栏（980）、窄屏（760）、矮屏（820h）
    ============================================================ */
 
-@media (max-width: 1280px) {
+@media (max-width: 1279px) {
   .document-stage {
     grid-template-columns: minmax(0, 1fr);
   }

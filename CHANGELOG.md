@@ -1,3 +1,7 @@
+## 0.9.51 - 2026-09-23
+
+- TOC readability hardening: level-2 entries now use the full text color (indent-only hierarchy), level-3 uses the muted gray with a 13px floor, and the right-panel overlay breakpoint moved from `max-width: 1280px` to `1279px` so a window that is exactly 1280 CSS px stays docked instead of half-switching to overlay mode.
+
 ## 0.9.50 - 2026-09-23
 
 - Right panel table of contents is readable now: entries enlarged to 13.5px with the level-1 headings in full text color, sub-levels in progressively muted gray, and comfortable row height.
