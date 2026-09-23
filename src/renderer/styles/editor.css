@@ -77,7 +77,7 @@
 .doc-head {
   width: min(100%, var(--editor-width, 900px));
   margin: 0 auto;
-  padding: 14px 0 0;
+  padding: 8px 0 0;
 }
 
 .doc-title-input {

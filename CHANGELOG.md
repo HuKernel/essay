@@ -1,3 +1,7 @@
+## 0.9.70 - 2026-09-23
+
+- Document title now sits right under the top bar (removed the extra top padding of the editor column and doc head), and the info panel leads with 目录 (outline) instead of 概览 — the outline top now aligns roughly with the document title.
+
 ## 0.9.69 - 2026-09-23
 
 - Merged the two header rows into one: the breadcrumb moved up into the top bar (filling the empty area on the left), so the whole content area gains ~48px of height. The single top bar now reads [breadcrumb | drag area | 最后编辑 | 已保存 | Aa | info toggle].
