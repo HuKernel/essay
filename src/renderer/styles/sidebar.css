@@ -50,15 +50,63 @@
 .nav-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 2px 4px;
+  gap: 2px;
+  padding: 0 0 4px;
 }
 
-.nav-header-actions {
+/* 侧栏开关：默认菜单图标，悬浮变收起箭头（Notion 式） */
+.sidebar-collapse-toggle {
+  position: relative;
+}
+
+.toggle-state {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  transition: opacity var(--motion-fast) ease, transform var(--motion-fast) ease;
+}
+
+.sidebar-collapse-toggle .toggle-state.collapse {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(0.85);
+}
+
+.sidebar-collapse-toggle:hover .toggle-state.menu {
+  opacity: 0;
+  transform: scale(0.85);
+}
+
+.sidebar-collapse-toggle:hover .toggle-state.collapse {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 收起态顶栏 logo：默认应用图标，悬浮变展开箭头（Obsidian 式） */
+.sidebar-rail-logo .toggle-state.logo img {
+  display: block;
+  width: 17px;
+  height: 17px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.sidebar-rail-logo .toggle-state.expand {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(0.85);
+}
+
+.sidebar-rail-logo:hover .toggle-state.logo {
+  opacity: 0;
+  transform: scale(0.85);
+}
+
+.sidebar-rail-logo:hover .toggle-state.expand {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .workspace-badge {
@@ -323,10 +371,14 @@
   color: var(--danger-color);
 }
 
-/* ---------- 侧栏底部：用户信息 ---------- */
+/* ---------- 侧栏底部：用户信息 + 向上弹出菜单 ---------- */
 
 .nav-footer {
   flex: 0 0 auto;
+}
+
+.nav-user-wrap {
+  position: relative;
 }
 
 .nav-user {
@@ -348,7 +400,8 @@
     color var(--motion-base) var(--ease-smooth);
 }
 
-.nav-user:hover {
+.nav-user:hover,
+.nav-user[aria-expanded="true"] {
   background: var(--surface-hover-soft);
   color: var(--text-color);
 }
@@ -374,9 +427,68 @@
   white-space: nowrap;
 }
 
-.nav-user > svg {
+.nav-user-chevron {
   flex: 0 0 auto;
-  opacity: 0.6;
+  color: var(--subtle-text);
+  transition: transform var(--motion-base) var(--ease-smooth);
+}
+
+.nav-user-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+/* 菜单：从用户行上方弹出 */
+.nav-user-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  min-width: 210px;
+  max-height: 440px;
+  overflow-y: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-floating);
+  padding: 6px;
+}
+
+.nav-user-menu button {
+  display: flex;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-color);
+  padding: 7px 12px;
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.nav-user-menu button:hover {
+  background: var(--surface-hover);
+}
+
+.nav-user-submenu button {
+  padding-left: 24px;
+  color: var(--muted-text);
+}
+
+.nav-user-menu-divider {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--panel-border);
+}
+
+/* 收起态（rail）：弹层改为固定定位，避免被窄栏滚动容器裁剪 */
+.sidebar-rail .nav-user-menu {
+  position: fixed;
+  bottom: 52px;
+  left: 14px;
 }
 
 /* ---------- 新建笔记 ---------- */

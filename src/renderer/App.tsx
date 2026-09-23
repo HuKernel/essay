@@ -2071,17 +2071,6 @@ export default function App() {
   return (
     <main className={appClassName} style={appStyle}>
       <TopBar
-          sidebarCollapsed={sidebarCollapsed}
-          onToggleSidebar={() => setSidebarCollapsed((current) => !current)}
-          onCreateNote={() => void handleCreate()}
-          onSave={() => void saveActive()}
-          onOpenHistory={() => void handleOpenHistory()}
-          onExportNote={(format) => void handleExport(format)}
-          onBatchExport={(format) => void handleBatchExport(format)}
-          onOpenSettings={openSettings}
-          onHideWindow={() => void window.suiji.hideWindow()}
-          onAbout={() => void window.suiji.about()}
-          onQuit={() => void window.suiji.quit()}
           saveState={saveState}
           formatOpen={formatPopoverOpen}
           onToggleFormat={() => setFormatPopoverOpen((current) => !current)}
@@ -2092,8 +2081,15 @@ export default function App() {
       <Sidebar
         sidebarCollapsed={sidebarCollapsed}
         onExpandSidebar={() => setSidebarCollapsed(false)}
+        onCollapseSidebar={() => setSidebarCollapsed(true)}
         onOpenHome={() => setCenterView("home")}
         onOpenFind={() => openFindPanel(false)}
+        onSave={() => void saveActive()}
+        onOpenHistory={() => void handleOpenHistory()}
+        onExportNote={(format) => void handleExport(format)}
+        onBatchExport={(format) => void handleBatchExport(format)}
+        onAbout={() => void window.suiji.about()}
+        onQuit={() => void window.suiji.quit()}
         onCreateNote={() => {
           void handleCreate();
           setCenterView("reader");

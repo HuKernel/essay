@@ -1,3 +1,7 @@
+## 0.9.67 - 2026-09-23
+
+- App menu and sidebar toggle moved into the sidebar (Notion/Obsidian style): the top bar now only carries the drag area with save status + format/info toggles on the right (save status sits left of the format button). Expanded sidebar header is a ☰ toggle (hover swaps to a collapse arrow) + 我的空间; the collapsed rail shows the app logo on top (hover swaps to an expand arrow). The full app menu (new/save/history/exports/find/pin/settings/hide/about/quit) moved to the sidebar footer user row — click to pop it upward; in rail mode a single user icon does the same.
+
 ## 0.9.66 - 2026-09-23
 
 - Knowledge Assistant panel is now a persistent column of the workspace: it no longer disappears when switching the center between Home / document list / reader. The panel moved out of the document stage into the workspace grid (300px column; same floating-overlay behavior below 1280px width), showing the current document's outline/metadata in every view.

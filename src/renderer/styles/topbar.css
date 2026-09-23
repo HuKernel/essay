@@ -1,5 +1,5 @@
 /* ============================================================
-   顶栏：菜单、侧栏开关、格式/信息面板开关、保存状态
+   顶栏：拖拽区 + 保存状态 + 格式/信息面板开关
    ============================================================ */
 
 .topbar {
@@ -14,50 +14,6 @@
   min-height: 44px;
   background: transparent;
   padding: 6px 140px 6px 12px;
-}
-
-.topbar-leading {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-}
-
-.topbar-logo {
-  width: 16px;
-  height: 16px;
-  object-fit: contain;
-  display: block;
-  margin-right: 2px;
-}
-
-/* ---------- 侧栏开关（常驻、安静） ---------- */
-
-.workspace-nav-toggle {
-  position: relative;
-  display: inline-flex;
-  height: 30px;
-  width: 30px;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--muted-text);
-  cursor: pointer;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease;
-}
-
-.workspace-nav-toggle:hover {
-  background: var(--surface-hover);
-  color: var(--text-color);
-}
-
-.workspace-nav-toggle.is-collapsed {
-  color: var(--accent-color);
 }
 
 /* ---------- 右侧状态与工具开关 ---------- */
@@ -116,12 +72,6 @@
 }
 
 .topbar button,
-.topbar input,
-.topbar .titlebar-leading {
-  -webkit-app-region: no-drag;
-}
-
-.titlebar button,
-.titlebar input {
+.topbar input {
   -webkit-app-region: no-drag;
 }

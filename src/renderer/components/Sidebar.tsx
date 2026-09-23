@@ -1,36 +1,45 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Archive,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   Clock,
-  EyeOff,
   Folder,
   Hash,
-  Home,
   List,
   ListTodo,
+  Menu as MenuIcon,
+  PanelLeftClose,
+  PanelLeftOpen,
   Pencil,
-  Pin,
   Plus,
   Search,
-  Settings as SettingsIcon,
   Star,
   Trash2,
   User,
   X
 } from "lucide-react";
 import type { DragEvent as ReactDragEvent } from "react";
-import type { ViewMode } from "../constants";
+import type { ViewMode, ExportFormat } from "../constants";
+import type { BatchExportFormat } from "../../shared/types";
+import appIconUrl from "../assets/app-icon.png";
 
 type SidebarProps = {
   sidebarCollapsed: boolean;
   onExpandSidebar: () => void;
+  onCollapseSidebar: () => void;
   onOpenHome: () => void;
   onOpenFind: () => void;
   onCreateNote: () => void;
+  onSave: () => void;
+  onOpenHistory: () => void;
+  onExportNote: (format: ExportFormat) => void;
+  onBatchExport: (format: BatchExportFormat) => void;
   onHideWindow: () => void;
   onOpenSettings: () => void;
+  onAbout: () => void;
+  onQuit: () => void;
   alwaysOnTop: boolean;
   onToggleAlwaysOnTop: () => void;
   query: string;
@@ -50,6 +59,21 @@ type SidebarProps = {
   onAssignTag: (noteId: string, tag: string) => void;
 };
 
+const NOTE_EXPORTS: Array<{ format: ExportFormat; label: string }> = [
+  { format: "pdf", label: "导出 PDF" },
+  { format: "html", label: "导出 HTML" },
+  { format: "md", label: "导出 Markdown" },
+  { format: "txt", label: "导出 TXT" },
+  { format: "json", label: "导出 JSON" }
+];
+
+const BATCH_EXPORTS: Array<{ format: BatchExportFormat; label: string }> = [
+  { format: "md", label: "批量导出 Markdown" },
+  { format: "html", label: "批量导出 HTML" },
+  { format: "txt", label: "批量导出 TXT" },
+  { format: "json", label: "批量导出 JSON" }
+];
+
 const VIEW_MODES: Array<[ViewMode, string, typeof List]> = [
   ["active", "全部记录", List],
   ["recent", "最近编辑", Clock],
@@ -63,11 +87,18 @@ export function Sidebar(props: SidebarProps) {
   const {
     sidebarCollapsed,
     onExpandSidebar,
+    onCollapseSidebar,
     onOpenHome,
     onOpenFind,
     onCreateNote,
+    onSave,
+    onOpenHistory,
+    onExportNote,
+    onBatchExport,
     onHideWindow,
     onOpenSettings,
+    onAbout,
+    onQuit,
     alwaysOnTop,
     onToggleAlwaysOnTop,
     query,
@@ -91,6 +122,102 @@ export function Sidebar(props: SidebarProps) {
   // 折叠分区：默认收起，选中对应筛选时自动展开
   const [tagsOpen, setTagsOpen] = useState(false);
   const [foldersOpen, setFoldersOpen] = useState(false);
+  // 底部用户菜单（从底向上弹出）
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [expanded, setExpanded] = useState<"note" | "batch" | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onDown(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenuOpen(false);
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
+
+  function act(fn: () => void) {
+    return () => {
+      setMenuOpen(false);
+      setExpanded(null);
+      fn();
+    };
+  }
+
+  const userMenu = (
+    <div className="nav-user-menu" role="menu" aria-label="应用菜单">
+      <button type="button" role="menuitem" onClick={act(onCreateNote)}>
+        新建记录
+      </button>
+      <button type="button" role="menuitem" onClick={act(onSave)}>
+        保存
+      </button>
+      <button type="button" role="menuitem" onClick={act(onOpenHistory)}>
+        版本历史
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        aria-expanded={expanded === "note"}
+        onClick={() => setExpanded((current) => (current === "note" ? null : "note"))}
+      >
+        导出当前记录
+      </button>
+      {expanded === "note" ? (
+        <div className="nav-user-submenu">
+          {NOTE_EXPORTS.map((item) => (
+            <button key={item.format} type="button" role="menuitem" onClick={act(() => onExportNote(item.format))}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <button
+        type="button"
+        role="menuitem"
+        aria-expanded={expanded === "batch"}
+        onClick={() => setExpanded((current) => (current === "batch" ? null : "batch"))}
+      >
+        批量导出记录
+      </button>
+      {expanded === "batch" ? (
+        <div className="nav-user-submenu">
+          {BATCH_EXPORTS.map((item) => (
+            <button key={item.format} type="button" role="menuitem" onClick={act(() => onBatchExport(item.format))}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <div className="nav-user-menu-divider" />
+      <button type="button" role="menuitem" onClick={act(onOpenFind)}>
+        查找
+      </button>
+      <button type="button" role="menuitem" onClick={act(onToggleAlwaysOnTop)}>
+        {alwaysOnTop ? "✓ " : ""}窗口置顶
+      </button>
+      <button type="button" role="menuitem" onClick={act(onOpenSettings)}>
+        设置
+      </button>
+      <button type="button" role="menuitem" onClick={act(onHideWindow)}>
+        隐藏窗口
+      </button>
+      <button type="button" role="menuitem" onClick={act(onAbout)}>
+        关于随记
+      </button>
+      <div className="nav-user-menu-divider" />
+      <button type="button" role="menuitem" onClick={act(onQuit)}>
+        退出
+      </button>
+    </div>
+  );
 
   function dropProps(key: string, apply: (noteId: string) => void) {
     return {
@@ -114,13 +241,18 @@ export function Sidebar(props: SidebarProps) {
       <aside className="sidebar">
         <div className="sidebar-rail">
           <button
-            className="icon-button"
-            title="我的空间"
-            aria-label="我的空间"
-            onClick={onOpenHome}
+            className="icon-button sidebar-rail-logo"
+            title="展开侧边栏"
+            aria-label="展开侧边栏"
+            onClick={onExpandSidebar}
             type="button"
           >
-            <Home size={18} />
+            <span className="toggle-state logo" aria-hidden="true">
+              <img src={appIconUrl} alt="" />
+            </span>
+            <span className="toggle-state expand" aria-hidden="true">
+              <PanelLeftOpen size={17} />
+            </span>
           </button>
           <span className="sidebar-rail-divider" aria-hidden="true" />
           {VIEW_MODES.map(([mode, label, Icon]) => (
@@ -149,21 +281,19 @@ export function Sidebar(props: SidebarProps) {
             <Plus size={18} />
           </button>
           <span className="sidebar-rail-spacer" aria-hidden="true" />
-          <button className="icon-button" title="设置" aria-label="设置" onClick={onOpenSettings} type="button">
-            <SettingsIcon size={18} />
-          </button>
-          <button
-            className={alwaysOnTop ? "icon-button is-active" : "icon-button"}
-            title={alwaysOnTop ? "取消窗口置顶" : "窗口置顶"}
-            aria-label={alwaysOnTop ? "取消窗口置顶" : "窗口置顶"}
-            onClick={onToggleAlwaysOnTop}
-            type="button"
-          >
-            <Pin size={18} />
-          </button>
-          <button className="icon-button" title="隐藏窗口" aria-label="隐藏窗口" onClick={onHideWindow} type="button">
-            <EyeOff size={18} />
-          </button>
+          <div className="nav-user-wrap" ref={menuRef}>
+            <button
+              className={menuOpen ? "icon-button is-active" : "icon-button"}
+              title="菜单"
+              aria-label="菜单"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((current) => !current)}
+              type="button"
+            >
+              <User size={18} />
+            </button>
+            {menuOpen ? userMenu : null}
+          </div>
         </div>
       </aside>
     );
@@ -172,29 +302,23 @@ export function Sidebar(props: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="nav-header">
+        <button
+          className="icon-button sidebar-collapse-toggle"
+          title="收起侧边栏"
+          aria-label="收起侧边栏"
+          onClick={onCollapseSidebar}
+          type="button"
+        >
+          <span className="toggle-state menu" aria-hidden="true">
+            <MenuIcon size={16} />
+          </span>
+          <span className="toggle-state collapse" aria-hidden="true">
+            <PanelLeftClose size={16} />
+          </span>
+        </button>
         <button type="button" className="workspace-badge" title="回到我的空间" onClick={onOpenHome}>
           <strong>我的空间</strong>
         </button>
-        <div className="nav-header-actions">
-          <button className="icon-button" title="查找" aria-label="查找" onClick={onOpenFind} type="button">
-            <Search size={16} />
-          </button>
-          <button className="icon-button" title="设置" aria-label="设置" onClick={onOpenSettings} type="button">
-            <SettingsIcon size={16} />
-          </button>
-          <button
-            className={alwaysOnTop ? "icon-button is-active" : "icon-button"}
-            title={alwaysOnTop ? "取消窗口置顶" : "窗口置顶"}
-            aria-label={alwaysOnTop ? "取消窗口置顶" : "窗口置顶"}
-            onClick={onToggleAlwaysOnTop}
-            type="button"
-          >
-            <Pin size={16} />
-          </button>
-          <button className="icon-button" title="隐藏窗口" aria-label="隐藏窗口" onClick={onHideWindow} type="button">
-            <EyeOff size={16} />
-          </button>
-        </div>
       </div>
 
       <div className="nav-body">
@@ -364,13 +488,22 @@ export function Sidebar(props: SidebarProps) {
       </div>
 
       <footer className="nav-footer">
-        <button type="button" className="nav-user" onClick={onOpenSettings} title="打开设置">
-          <span className="nav-user-avatar" aria-hidden="true">
-            <User size={15} />
-          </span>
-          <span className="nav-user-name">本地空间</span>
-          <SettingsIcon size={14} />
-        </button>
+        <div className="nav-user-wrap" ref={menuRef}>
+          <button
+            type="button"
+            className="nav-user"
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+            onClick={() => setMenuOpen((current) => !current)}
+          >
+            <span className="nav-user-avatar" aria-hidden="true">
+              <User size={15} />
+            </span>
+            <span className="nav-user-name">本地空间</span>
+            <ChevronUp size={14} className={menuOpen ? "nav-user-chevron is-open" : "nav-user-chevron"} />
+          </button>
+          {menuOpen ? userMenu : null}
+        </div>
       </footer>
     </aside>
   );
