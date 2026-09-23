@@ -17,17 +17,7 @@
   cursor: text;
 }
 
-/* ---------- App Header：面包屑 / 最后编辑 / 分享（窗口顶栏下方第一条） ---------- */
-
-.app-header {
-  display: flex;
-  height: 48px;
-  min-height: 48px;
-  align-items: center;
-  gap: 14px;
-  border-bottom: 1px solid var(--line-soft);
-  padding: 0 24px 0 28px;
-}
+/* ---------- 面包屑（渲染在顶栏左侧） ---------- */
 
 .app-breadcrumb {
   display: flex;

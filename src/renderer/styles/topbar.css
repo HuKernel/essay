@@ -16,6 +16,17 @@
   padding: 6px 140px 6px 12px;
 }
 
+/* 面包屑：占顶栏左侧原空白区（整体并入顶栏，省一行高度） */
+.topbar-breadcrumb {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  align-items: center;
+  overflow: hidden;
+  padding-left: 6px;
+  -webkit-app-region: no-drag;
+}
+
 /* ---------- 右侧状态与工具开关 ---------- */
 
 .topbar-drag-spacer {

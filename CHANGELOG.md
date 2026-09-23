@@ -1,3 +1,7 @@
+## 0.9.69 - 2026-09-23
+
+- Merged the two header rows into one: the breadcrumb moved up into the top bar (filling the empty area on the left), so the whole content area gains ~48px of height. The single top bar now reads [breadcrumb | drag area | 最后编辑 | 已保存 | Aa | info toggle].
+
 ## 0.9.68 - 2026-09-23
 
 - "最后编辑" date now lives in one place: the top bar shows "最后编辑 yyyy/MM/dd" to the left of the save status, replacing both the App Header's "最后编辑于 …" tag and the info panel's "更新时间" row. The info panel overview group also sits closer to the panel top (reduced header/body padding).

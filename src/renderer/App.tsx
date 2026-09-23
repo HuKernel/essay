@@ -2077,7 +2077,49 @@ export default function App() {
           onToggleFormat={() => setFormatPopoverOpen((current) => !current)}
           infoOpen={infoPanelOpen}
           onToggleInfo={() => setInfoPanelOpen((current) => !current)}
-        />
+        >
+          <nav className="app-breadcrumb" aria-label="位置">
+            <button type="button" className="app-breadcrumb-root" onClick={() => setCenterView("home")}>
+              我的空间
+            </button>
+            {centerView === "list" ? (
+              <>
+                <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
+                <strong>{selectedTag ? `#${selectedTag}` : selectedFolder || (CENTER_TITLES[viewMode] ?? "全部记录")}</strong>
+              </>
+            ) : null}
+            {centerView === "reader" ? (
+              <>
+                {folderPreview ? (
+                  <>
+                    <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFolder(folderPreview);
+                        setViewMode("active");
+                        setCenterView("list");
+                      }}
+                      title="按此文件夹筛选"
+                    >
+                      {folderPreview}
+                    </button>
+                  </>
+                ) : null}
+                {activeNote?.parentId ? (
+                  <>
+                    <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
+                    <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
+                      {notes.find((note) => note.id === activeNote.parentId)?.title || "父页面"}
+                    </button>
+                  </>
+                ) : null}
+                <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
+                <strong>{title.trim() || activeNote?.title || "未命名记录"}</strong>
+              </>
+            ) : null}
+          </nav>
+        </TopBar>
 
       <Sidebar
         sidebarCollapsed={sidebarCollapsed}
@@ -2133,49 +2175,6 @@ export default function App() {
       />
 
         <section className="workspace">
-          <header className="app-header">
-            <nav className="app-breadcrumb" aria-label="位置">
-              <button type="button" className="app-breadcrumb-root" onClick={() => setCenterView("home")}>
-                我的空间
-              </button>
-              {centerView === "list" ? (
-                <>
-                  <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                  <strong>{selectedTag ? `#${selectedTag}` : selectedFolder || (CENTER_TITLES[viewMode] ?? "全部记录")}</strong>
-                </>
-              ) : null}
-              {centerView === "reader" ? (
-                <>
-                  {folderPreview ? (
-                    <>
-                      <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedFolder(folderPreview);
-                          setViewMode("active");
-                          setCenterView("list");
-                        }}
-                        title="按此文件夹筛选"
-                      >
-                        {folderPreview}
-                      </button>
-                    </>
-                  ) : null}
-                  {activeNote?.parentId ? (
-                    <>
-                      <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                      <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
-                        {notes.find((note) => note.id === activeNote.parentId)?.title || "父页面"}
-                      </button>
-                    </>
-                  ) : null}
-                  <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                  <strong>{title.trim() || activeNote?.title || "未命名记录"}</strong>
-                </>
-              ) : null}
-            </nav>
-          </header>
           <div className="workspace-main">
             {centerView === "home" ? (
               <WorkspaceHome

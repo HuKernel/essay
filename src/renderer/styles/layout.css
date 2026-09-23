@@ -59,8 +59,7 @@
   display: grid;
   height: 100%;
   overflow: hidden;
-  /* 三层分离：App Header 固定条 + 文档舞台 */
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   background: var(--app-bg);
 }
 
