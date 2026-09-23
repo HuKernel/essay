@@ -2152,7 +2152,15 @@ export default function App() {
                   {folderPreview ? (
                     <>
                       <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                      <button type="button" onClick={() => setSelectedFolder(folderPreview)} title="按此文件夹筛选">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedFolder(folderPreview);
+                          setViewMode("active");
+                          setCenterView("list");
+                        }}
+                        title="按此文件夹筛选"
+                      >
                         {folderPreview}
                       </button>
                     </>
@@ -2296,8 +2304,16 @@ export default function App() {
                 setFolderDraft(value);
                 markDirty();
               }}
-              onTagClick={(tag) => setSelectedTag(tag)}
-              onFolderClick={(folder) => setSelectedFolder(folder)}
+              onTagClick={(tag) => {
+                setSelectedTag(tag);
+                setViewMode("active");
+                setCenterView("list");
+              }}
+              onFolderClick={(folder) => {
+                setSelectedFolder(folder);
+                setViewMode("active");
+                setCenterView("list");
+              }}
               backlinks={backlinks}
               onJump={(id) => void handleSelectNote(id)}
               onExport={(format) => void handleExport(format)}
