@@ -1,3 +1,7 @@
+## 0.9.65 - 2026-09-23
+
+- Sidebar is now pure navigation (Notion/Craft style): removed the live document list at the bottom and added a user row ("本地空间", click to open settings) pinned at the sidebar foot. Clicking a nav item, folder, or tag now always opens the filtered list page in the center so every navigation click has visible feedback. Center editor and right info panel untouched.
+
 ## 0.9.64 - 2026-09-23
 
 - Sidebar rebuilt as one unified knowledge navigation system: main nav (全部记录/最近编辑/收藏/待办/归档/回收站) is followed by collapsible folder and tag sections and then a live document list that filters with the selected nav item — all in a single scrolling column with consistent row styling, no more split "nav above / content below" look. Clicking a nav item while reading no longer yanks you out of the document (the sidebar list re-filters in place; other center views still switch to the big list). The calendar entry point is removed from the sidebar (calendar list-page code retained).

@@ -1,11 +1,10 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Archive,
   ChevronDown,
   ChevronRight,
   Clock,
   EyeOff,
-  FileText,
   Folder,
   Hash,
   Home,
@@ -18,12 +17,11 @@ import {
   Settings as SettingsIcon,
   Star,
   Trash2,
+  User,
   X
 } from "lucide-react";
 import type { DragEvent as ReactDragEvent } from "react";
-import type { NoteRecord } from "../../shared/types";
 import type { ViewMode } from "../constants";
-import { formatTime } from "../utils/text";
 
 type SidebarProps = {
   sidebarCollapsed: boolean;
@@ -50,9 +48,6 @@ type SidebarProps = {
   onRenameTag: (tag: string) => void;
   onAssignFolder: (noteId: string, folder: string) => void;
   onAssignTag: (noteId: string, tag: string) => void;
-  visibleNotes: NoteRecord[];
-  activeId: string;
-  onOpenNote: (id: string) => void;
 };
 
 const VIEW_MODES: Array<[ViewMode, string, typeof List]> = [
@@ -89,22 +84,13 @@ export function Sidebar(props: SidebarProps) {
     onRemoveTag,
     onRenameTag,
     onAssignFolder,
-    onAssignTag,
-    visibleNotes,
-    activeId,
-    onOpenNote
+    onAssignTag
   } = props;
 
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   // 折叠分区：默认收起，选中对应筛选时自动展开
   const [tagsOpen, setTagsOpen] = useState(false);
   const [foldersOpen, setFoldersOpen] = useState(false);
-
-  // 侧栏记录列表：与当前导航/筛选联动，按更新时间倒序
-  const docRows = useMemo(
-    () => [...visibleNotes].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt)),
-    [visibleNotes]
-  );
 
   function dropProps(key: string, apply: (noteId: string) => void) {
     return {
@@ -375,37 +361,17 @@ export function Sidebar(props: SidebarProps) {
           </section>
         ) : null}
 
-        <section className="nav-group nav-docs" aria-label="记录列表">
-          <div className="nav-section-toggle nav-docs-head">
-            <span>记录</span>
-            <em>{docRows.length}</em>
-          </div>
-          {docRows.length > 0 ? (
-            <div className="nav-doc-list">
-              {docRows.map((note) => (
-                <button
-                  key={note.id}
-                  type="button"
-                  className={[
-                    "nav-doc-row",
-                    activeId === note.id ? "is-active" : "",
-                    note.trashedAt ? "is-trashed" : ""
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() => onOpenNote(note.id)}
-                >
-                  <FileText size={14} />
-                  <span className="nav-doc-title">{note.title || "未命名记录"}</span>
-                  <span className="nav-doc-time">{formatTime(note.updatedAt).split(" ")[0]}</span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="nav-doc-empty">当前视图没有记录</p>
-          )}
-        </section>
       </div>
+
+      <footer className="nav-footer">
+        <button type="button" className="nav-user" onClick={onOpenSettings} title="打开设置">
+          <span className="nav-user-avatar" aria-hidden="true">
+            <User size={15} />
+          </span>
+          <span className="nav-user-name">本地空间</span>
+          <SettingsIcon size={14} />
+        </button>
+      </footer>
     </aside>
   );
 }

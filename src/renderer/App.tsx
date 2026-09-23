@@ -2113,30 +2113,26 @@ export default function App() {
             // 先落盘当前未保存的修改，再切换，避免 650ms 防抖窗口内丢内容
             await saveActive({ skipClean: true });
             setViewMode(mode);
-            // 阅读中不打断当前文档（侧栏列表已联动），其余视图态跳到大列表
-            setCenterView((current) => (current === "reader" ? current : "list"));
+            setCenterView("list");
           })();
         }}
         allFolders={allFolders}
         selectedFolder={selectedFolder}
         onSelectFolder={(folder) => {
           setSelectedFolder(folder);
-          setCenterView((current) => (current === "reader" ? current : "list"));
+          setCenterView("list");
         }}
         onRemoveFolder={(folder) => handleRemoveMetadata("folder", folder)}
         allTags={allTags}
         selectedTag={selectedTag}
         onSelectTag={(tag) => {
           setSelectedTag(tag);
-          setCenterView((current) => (current === "reader" ? current : "list"));
+          setCenterView("list");
         }}
         onRemoveTag={(tag) => handleRemoveMetadata("tag", tag)}
         onRenameTag={(tag) => setTagRename({ from: tag, draft: tag })}
         onAssignFolder={(noteId, folder) => void handleAssignFolder(noteId, folder)}
         onAssignTag={(noteId, tag) => void handleAssignTag(noteId, tag)}
-        visibleNotes={filteredNotes}
-        activeId={activeId}
-        onOpenNote={openNoteInReader}
       />
 
         <section className="workspace">

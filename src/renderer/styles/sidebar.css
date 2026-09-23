@@ -323,37 +323,24 @@
   color: var(--danger-color);
 }
 
-/* ---------- 侧栏记录列表：跟随当前导航项联动 ---------- */
+/* ---------- 侧栏底部：用户信息 ---------- */
 
-.nav-docs {
-  padding-bottom: 10px;
+.nav-footer {
+  flex: 0 0 auto;
 }
 
-.nav-docs-head {
-  cursor: default;
-}
-
-.nav-doc-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.nav-doc-row {
+.nav-user {
   display: flex;
   width: 100%;
   min-width: 0;
-  min-height: 30px;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+  gap: 9px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
   color: var(--muted-text);
   font-size: 13px;
-  line-height: 1;
-  padding: 0 8px;
+  padding: 6px 8px;
   text-align: left;
   cursor: pointer;
   transition:
@@ -361,50 +348,35 @@
     color var(--motion-base) var(--ease-smooth);
 }
 
-.nav-doc-row svg {
-  flex: 0 0 auto;
-  opacity: 0.6;
-}
-
-.nav-doc-row:hover {
+.nav-user:hover {
   background: var(--surface-hover-soft);
   color: var(--text-color);
 }
 
-.nav-doc-row.is-active {
-  background: var(--surface-active);
-  color: var(--text-color);
+.nav-user-avatar {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--muted-text);
 }
 
-.nav-doc-row.is-active svg {
-  opacity: 0.9;
-}
-
-.nav-doc-row.is-trashed .nav-doc-title {
-  text-decoration: line-through;
-  text-decoration-color: var(--subtle-text);
-}
-
-.nav-doc-title {
+.nav-user-name {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.nav-doc-time {
+.nav-user > svg {
   flex: 0 0 auto;
-  color: var(--subtle-text);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-}
-
-.nav-doc-empty {
-  margin: 2px 8px 6px;
-  color: var(--subtle-text);
-  font-size: 12px;
-  line-height: 1.6;
+  opacity: 0.6;
 }
 
 /* ---------- 新建笔记 ---------- */
