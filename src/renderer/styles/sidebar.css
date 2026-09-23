@@ -76,6 +76,10 @@
 }
 
 /* 收起态顶栏 logo：默认应用图标，悬浮变展开箭头（Obsidian 式；display 切换） */
+.sidebar-rail-logo {
+  position: relative;
+}
+
 .sidebar-rail-logo .toggle-state.logo img {
   display: block;
   width: 17px;

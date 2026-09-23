@@ -1,3 +1,7 @@
+## 0.9.74 - 2026-09-23
+
+- Fixed the rail logo hover: the expanding arrow was absolutely positioned against the window (missing position:relative on the button), so it floated to the middle of the app; it now swaps in place like the ☰ toggle.
+
 ## 0.9.73 - 2026-09-23
 
 - Info panel group order fixed: 概览 → 目录 → 属性 (outline sits below overview, above properties). Hover-swap icons (☰→««, rail logo→») now toggle via display instead of opacity/transform animation, which could render blank in GPU-composited layers.
