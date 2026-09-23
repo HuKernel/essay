@@ -66,6 +66,26 @@ export function InfoPanel(props: InfoPanelProps) {
       <div className="info-panel-body">
         <section className="info-group">
           <span className="info-label">
+            <CalendarDays size={12} aria-hidden="true" /> 概览
+          </span>
+          <dl className="info-rows">
+            <div className="info-row">
+              <dt>创建时间</dt>
+              <dd>{fullDate.format(new Date(props.createdAt))}</dd>
+            </div>
+            <div className="info-row">
+              <dt>字数</dt>
+              <dd>{props.chars} 字</dd>
+            </div>
+            <div className="info-row">
+              <dt>阅读时间</dt>
+              <dd>约 {props.readingMinutes} 分钟</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="info-group">
+          <span className="info-label">
             <ListTree size={12} aria-hidden="true" /> 目录
           </span>
           {props.outlineItems.length > 0 ? (
@@ -84,26 +104,6 @@ export function InfoPanel(props: InfoPanelProps) {
           ) : (
             <span className="info-empty">用标题组织内容后，这里会出现目录</span>
           )}
-        </section>
-
-        <section className="info-group">
-          <span className="info-label">
-            <CalendarDays size={12} aria-hidden="true" /> 概览
-          </span>
-          <dl className="info-rows">
-            <div className="info-row">
-              <dt>创建时间</dt>
-              <dd>{fullDate.format(new Date(props.createdAt))}</dd>
-            </div>
-            <div className="info-row">
-              <dt>字数</dt>
-              <dd>{props.chars} 字</dd>
-            </div>
-            <div className="info-row">
-              <dt>阅读时间</dt>
-              <dd>约 {props.readingMinutes} 分钟</dd>
-            </div>
-          </dl>
         </section>
 
         <section className="info-group">

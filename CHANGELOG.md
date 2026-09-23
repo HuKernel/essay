@@ -1,3 +1,7 @@
+## 0.9.73 - 2026-09-23
+
+- Info panel group order fixed: 概览 → 目录 → 属性 (outline sits below overview, above properties). Hover-swap icons (☰→««, rail logo→») now toggle via display instead of opacity/transform animation, which could render blank in GPU-composited layers.
+
 ## 0.9.72 - 2026-09-23
 
 - Outline returned to the info panel (first group, above 概览) as before; removed the "目录" dropdown beside the document title. Sidebar-at-window-top layout from 0.9.71 is kept.
