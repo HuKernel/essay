@@ -68,8 +68,8 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   theme: "light",
   fontFamily: "",
   fontSize: 16,
-  lineWidth: 850,
-  lineHeight: 1.72,
+  lineWidth: 900,
+  lineHeight: 1.8,
   trashRetentionDays: 30
 };
 

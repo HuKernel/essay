@@ -35,9 +35,6 @@ type SidebarProps = {
   onCollapseSidebar: () => void;
   leftPaneMode: LeftPaneMode;
   onLeftPaneModeChange: (mode: LeftPaneMode) => void;
-  title: string;
-  activeNote: NoteRecord | null;
-  editorCharCount: number;
   outlineItems: OutlineItem[];
   onJumpToOutline: (item: OutlineItem) => void;
   onOpenFind: () => void;
@@ -102,9 +99,6 @@ export function Sidebar(props: SidebarProps) {
     onCollapseSidebar,
     leftPaneMode,
     onLeftPaneModeChange,
-    title,
-    activeNote,
-    editorCharCount,
     outlineItems,
     onJumpToOutline,
     onOpenFind,
@@ -286,14 +280,6 @@ export function Sidebar(props: SidebarProps) {
       <div className={viewMode === "calendar" ? "sidebar-body is-calendar" : "sidebar-body"}>
         {leftPaneMode === "document" ? (
           <>
-            <div className="sidebar-summary-card">
-              <span>当前文档</span>
-              <strong>{title.trim() || activeNote?.title || "未命名记录"}</strong>
-              <p>
-                {editorCharCount} 字 · {outlineItems.length} 个标题
-              </p>
-            </div>
-
             <div className="sidebar-quick-actions">
               <button type="button" className="sidebar-chip is-active">
                 <List size={14} />

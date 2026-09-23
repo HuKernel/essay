@@ -1,3 +1,10 @@
+## 0.9.48 - 2026-09-23
+
+- Reading-first layout pass: the document no longer sits in a paper card — no border, no rounded rectangle, content floats directly on the background (Notion reading mode / Medium article feel). Sidebar (260px) and the info panel (280px) became full-bleed recessed columns with no borders or shadows, so the center document is clearly the hero and the two side columns just support reading. Top bar divider removed.
+- De-duplicated the title: the sidebar "current document" summary card was removed, and when the note's own first H1 matches the note title it is hidden visually (display-only; document data is untouched), so the title renders exactly once above the meta line.
+- Document header refined: larger serif title with an "updated 2026/09/23 · 4967 chars · ~10 min" style meta line (full date format).
+- Default reading width raised to 900px and default line height to 1.8 (both still adjustable in settings).
+
 ## 0.9.47 - 2026-09-23
 
 - Visual redesign toward a quiet Notion/Craft/Obsidian-style knowledge workspace (UI only, no logic changes). New warm-paper palette (#FAF8F3 background, #222 text, #64748B slate accent; the warm yellow #E8D7B5 is reserved for the selected note and text selection), serif document headings with sans body and JetBrains Mono code stacks, sidebar narrowed to 240px.

@@ -7,24 +7,22 @@
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  width: min(100%, 1680px);
+  width: 100%;
   min-height: 0;
   margin: 0 auto;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  border: 1px solid var(--paper-border);
-  border-radius: 16px 16px 0 0;
-  background: var(--paper-bg);
+  background: transparent;
   cursor: text;
 }
 
 /* ---------- 文档头：大标题（衬线）+ 元信息行 ---------- */
 
 .doc-head {
-  width: min(100%, var(--editor-width, 850px));
+  width: min(100%, var(--editor-width, 900px));
   margin: 0 auto;
-  padding: 20px 0 2px;
+  padding: 26px 0 0;
 }
 
 .doc-title-input {
@@ -34,9 +32,9 @@
   background: transparent;
   color: var(--text-color);
   font-family: var(--font-serif);
-  font-size: clamp(26px, 2.6vw, 32px);
+  font-size: clamp(30px, 3vw, 36px);
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.2;
   letter-spacing: 0.005em;
   padding: 0;
 }
@@ -56,9 +54,9 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
-  color: var(--subtle-text);
-  font-size: 12px;
+  margin-top: 12px;
+  color: var(--muted-text);
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -66,22 +64,26 @@
   color: var(--line-strong);
 }
 
+/* 正文首个 H1 与文档标题重复时只在显示层隐藏（数据不动） */
+.editor-column.dedupe-first-h1 .editor-surface > h1:first-child {
+  display: none;
+}
+
 .editor-surface {
   flex: 1 0 auto;
-  width: min(100%, var(--editor-width, 850px));
-  min-height: max(640px, calc(100dvh - 160px));
+  width: min(100%, var(--editor-width, 900px));
+  min-height: max(640px, calc(100dvh - 220px));
   margin: 0 auto;
   border: 0;
-  border-radius: 16px 16px 0 0;
-  background: var(--paper-bg);
+  background: transparent;
   color: var(--text-color);
   cursor: text;
   font-family: var(--editor-font-family, var(--font-ui));
   font-size: var(--editor-font-size, 16px);
-  line-height: var(--editor-line-height, 1.75);
+  line-height: var(--editor-line-height, 1.8);
   letter-spacing: 0.01em;
   outline: 0;
-  padding: 20px clamp(28px, 4vw, 72px) 120px;
+  padding: 8px clamp(24px, 4vw, 64px) 160px;
 }
 
 .editor-surface > *:first-child {

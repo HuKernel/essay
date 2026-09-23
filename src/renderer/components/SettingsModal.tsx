@@ -148,13 +148,13 @@ export function SettingsModal(props: SettingsModalProps) {
                 />
               </label>
               <label className="settings-field">
-                <span>行宽（{settings?.lineWidth ?? 850}px）</span>
+                <span>行宽（{settings?.lineWidth ?? 900}px）</span>
                 <input
                   type="range"
                   min={640}
                   max={1600}
                   step={20}
-                  value={settings?.lineWidth ?? 850}
+                  value={settings?.lineWidth ?? 900}
                   onChange={(event) =>
                     onSettingsChange((current) => ({ ...current, lineWidth: Number(event.target.value) }))
                   }
@@ -162,13 +162,13 @@ export function SettingsModal(props: SettingsModalProps) {
                 <small className="setting-hint">全屏或大屏下可调宽，减少两侧留白。</small>
               </label>
               <label className="settings-field">
-                <span>行高（{(settings?.lineHeight ?? 1.72).toFixed(2)}）</span>
+                <span>行高（{(settings?.lineHeight ?? 1.8).toFixed(2)}）</span>
                 <input
                   type="range"
                   min={1.35}
                   max={2.2}
                   step={0.02}
-                  value={settings?.lineHeight ?? 1.72}
+                  value={settings?.lineHeight ?? 1.8}
                   onChange={(event) =>
                     onSettingsChange((current) => ({ ...current, lineHeight: Number(event.target.value) }))
                   }

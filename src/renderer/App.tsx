@@ -49,7 +49,6 @@ import {
   extractOutline,
   findScrollParent,
   formatHotkeyEvent,
-  formatTime,
   getContentPlainText,
   getCurrentFontPresetId,
   isEmptyParagraphSelection,
@@ -83,6 +82,12 @@ import { ConfirmDialog, HistoryModal, LinkDialog, PrivacyLock, PromptDialog, Blo
 type ActiveEditor = NonNullable<ReturnType<typeof useEditor>>;
 
 const lowlight = createLowlight(common);
+
+const docDateFormat = new Intl.DateTimeFormat("zh-CN", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+});
 
 // 各视图按各自的语义时间排序：回收站按删除时间、收藏按收藏时间、归档按归档时间、最近按编辑时间
 const VIEW_TIME_FIELD: Partial<Record<ViewMode, "trashedAt" | "favoriteAt" | "archivedAt" | "updatedAt">> = {
@@ -2030,11 +2035,19 @@ export default function App() {
   ]
     .filter(Boolean)
     .join(" ");
+  const normalizedTitle = title.trim().toLowerCase();
+  // 正文首个 H1 与文档标题重复时，编辑列做显示层去重（数据不动）
+  const firstHeadingDupesTitle =
+    normalizedTitle.length > 0 &&
+    outlineItems.length > 0 &&
+    outlineItems[0].level === 1 &&
+    outlineItems[0].text.trim().toLowerCase() === normalizedTitle;
+
   const appStyle = {
-    "--editor-width": `${settings?.lineWidth ?? 850}px`,
+    "--editor-width": `${settings?.lineWidth ?? 900}px`,
     "--editor-font-family": settings?.fontFamily?.trim() || undefined,
     "--editor-font-size": `${settings?.fontSize ?? 16}px`,
-    "--editor-line-height": settings?.lineHeight ?? 1.72
+    "--editor-line-height": settings?.lineHeight ?? 1.8
   } as React.CSSProperties;
 
   return (
@@ -2064,9 +2077,6 @@ export default function App() {
         onCollapseSidebar={() => setSidebarCollapsed(true)}
         leftPaneMode={leftPaneMode}
         onLeftPaneModeChange={setLeftPaneMode}
-        title={title}
-        activeNote={activeNote}
-        editorCharCount={editorStats.chars}
         outlineItems={outlineItems}
         onJumpToOutline={jumpToOutline}
         onOpenFind={() => openFindPanel(false)}
@@ -2117,7 +2127,7 @@ export default function App() {
 
         <section className="workspace">
           <div className={infoPanelOpen && activeNote ? "document-stage" : "document-stage info-collapsed"}>
-            <div className="editor-column">
+            <div className={firstHeadingDupesTitle ? "editor-column dedupe-first-h1" : "editor-column"}>
               {activeNote?.parentId ? (
                 <nav className="note-breadcrumb" aria-label="页面路径">
                   <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
@@ -2141,7 +2151,7 @@ export default function App() {
                 />
                 {activeNote ? (
                   <div className="doc-meta-line">
-                    <span>更新于 {formatTime(activeNote.updatedAt)}</span>
+                    <span>更新于 {docDateFormat.format(new Date(activeNote.updatedAt))}</span>
                     <span aria-hidden="true">·</span>
                     <span>{editorStats.chars} 字</span>
                     <span aria-hidden="true">·</span>

@@ -5,7 +5,7 @@
 .app-shell {
   --topbar-h: 48px;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr);
   grid-template-rows: 44px minmax(0, 1fr);
   gap: 0;
   width: 100vw;
@@ -138,13 +138,9 @@
   flex-direction: column;
   gap: 12px;
   overflow: hidden;
+  /* 全出血导航列：仅靠底色退后，无边框无阴影，文档才是主角 */
   background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 16px;
-  box-shadow: var(--shadow-paper);
-  /* 顶部下移一个顶栏高度，与右侧编辑区/信息面板顶对齐 */
-  margin: 8px 8px 10px 10px;
-  padding: 16px 12px 12px;
+  padding: 10px 12px 12px;
 }
 
 .workspace {
@@ -159,7 +155,7 @@
 .document-stage {
   display: grid;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) 300px;
+  grid-template-columns: minmax(0, 1fr) 280px;
   gap: 0;
   padding: 0;
   background: var(--app-bg);
@@ -180,5 +176,5 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  padding: 20px 40px 0;
+  padding: 16px 48px 0;
 }
