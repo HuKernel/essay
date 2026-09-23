@@ -240,12 +240,14 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-height: 240px;
+  max-height: 320px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
 .info-outline-link {
+  /* flex 子项禁止收缩：条目多时列表滚动，而不是把每行压扁 */
+  flex: 0 0 auto;
   display: block;
   width: 100%;
   overflow: hidden;
