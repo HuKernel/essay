@@ -1,3 +1,7 @@
+## 0.9.57 - 2026-09-23
+
+- Tightened the gap between the App Header divider and the document title (was ~65px of stacked paddings, now ~22px) so the title sits closer to the breadcrumb bar like Notion/Linear; narrow-viewport paddings scaled down to match.
+
 ## 0.9.56 - 2026-09-23
 
 - Top layout rebuilt into three separated layers (Navigation / App Header / Document Header), moving the page from "web article reader" toward a desktop knowledge app: a new 48px App Header below the window bar carries the breadcrumb (workspace / folder / parent / title — folder and parent are clickable filters/jumps), the last-edited date, and a Share button that copies the document as Markdown for pasting anywhere. The Document Header now shows title + meta line + tag chips (click to filter) with proper top breathing room, and the body no longer hugs the top. Old in-canvas subpage breadcrumb merged into the App Header.
