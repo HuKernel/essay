@@ -113,7 +113,8 @@ export default function App() {
   const [hotkeyDraft, setHotkeyDraft] = useState("");
   const [hotkeyStatus, setHotkeyStatus] = useState("");
   const [isCompactViewport, setIsCompactViewport] = useState(() => window.innerWidth < 980);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 980);
+  // 桌面(≥1280) 260px 全侧栏；平板(980-1279) 80px 图标栏；手机(<980) 隐藏浮层
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1280);
   const [formatPopoverOpen, setFormatPopoverOpen] = useState(false);
   const [infoPanelOpen, setInfoPanelOpen] = useState(() => window.innerWidth >= 1280);
   const [privacyLocked, setPrivacyLocked] = useState(false);
@@ -576,7 +577,7 @@ export default function App() {
     function syncResponsiveLayout() {
       const compact = window.innerWidth < 980;
       setIsCompactViewport(compact);
-      if (compact) {
+      if (window.innerWidth < 1280) {
         setSidebarCollapsed(true);
       }
     }

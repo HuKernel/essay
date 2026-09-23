@@ -124,7 +124,7 @@
 }
 
 .app-shell.sidebar-collapsed {
-  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-columns: 80px minmax(0, 1fr);
 }
 
 .sidebar,

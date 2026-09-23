@@ -3,6 +3,8 @@ import {
   Archive,
   ArchiveRestore,
   Calendar,
+  ChevronDown,
+  ChevronRight,
   Clock,
   EyeOff,
   Folder,
@@ -71,8 +73,8 @@ type SidebarProps = {
 
 const VIEW_MODES: Array<[ViewMode, string, typeof List]> = [
   ["active", "全部记录", List],
-  ["recent", "最近编辑", Clock],
   ["favorites", "收藏", Star],
+  ["recent", "最近编辑", Clock],
   ["tasks", "待办", ListTodo],
   ["archive", "归档", Archive],
   ["trash", "回收站", Trash2],
@@ -139,6 +141,9 @@ export function Sidebar(props: SidebarProps) {
   } = props;
 
   const [dropTarget, setDropTarget] = useState<string | null>(null);
+  // 折叠分区：默认收起，选中对应筛选时自动展开
+  const [tagsOpen, setTagsOpen] = useState(false);
+  const [foldersOpen, setFoldersOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -196,6 +201,23 @@ export function Sidebar(props: SidebarProps) {
           >
             <PanelLeftOpen size={18} />
           </button>
+          <span className="sidebar-rail-divider" aria-hidden="true" />
+          {VIEW_MODES.map(([mode, label, Icon]) => (
+            <button
+              key={mode}
+              className={viewMode === mode ? "icon-button is-active" : "icon-button"}
+              title={label}
+              aria-label={label}
+              onClick={() => {
+                onViewModeChange(mode);
+                onExpandSidebar();
+              }}
+              type="button"
+            >
+              <Icon size={17} />
+            </button>
+          ))}
+          <span className="sidebar-rail-divider" aria-hidden="true" />
           <button
             className="icon-button primary-icon"
             title="新记录"
@@ -205,6 +227,7 @@ export function Sidebar(props: SidebarProps) {
           >
             <Plus size={18} />
           </button>
+          <span className="sidebar-rail-spacer" aria-hidden="true" />
           <button className="icon-button" title="设置" aria-label="设置" onClick={onOpenSettings} type="button">
             <SettingsIcon size={18} />
           </button>
@@ -301,106 +324,132 @@ export function Sidebar(props: SidebarProps) {
           ))}
         </nav>
 
-        {allFolders.length > 0 ? (
-          <section className="nav-group" aria-label="文件夹">
-            <span className="nav-group-label">文件夹</span>
+        {allTags.length > 0 ? (
+          <section className="nav-group" aria-label="标签">
             <button
               type="button"
-              className={[
-                selectedFolder ? "" : "is-active",
-                dropTarget === "folder:" ? "is-drop-target" : ""
-              ]
-                .filter(Boolean)
-                .join(" ") || undefined}
-              onClick={() => onSelectFolder("")}
-              {...dropProps("folder:", (noteId) => onAssignFolder(noteId, ""))}
+              className="nav-section-toggle"
+              aria-expanded={tagsOpen || selectedTag !== ""}
+              onClick={() => setTagsOpen((current) => !current)}
             >
-              <Folder size={15} />
-              <span>全部文件夹</span>
+              {tagsOpen || selectedTag !== "" ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+              <span>标签</span>
+              <em>{allTags.length}</em>
             </button>
-            <div className="nav-group-list">
-              {allFolders.map((folder) => (
-                <div className="nav-filter-row" key={folder}>
-                  <button
-                    type="button"
-                    className={[
-                      selectedFolder === folder ? "is-active" : "",
-                      dropTarget === `folder:${folder}` ? "is-drop-target" : ""
-                    ]
-                      .filter(Boolean)
-                      .join(" ") || undefined}
-                    onClick={() => onSelectFolder(folder)}
-                    {...dropProps(`folder:${folder}`, (noteId) => onAssignFolder(noteId, folder))}
-                  >
-                    <Folder size={15} />
-                    <span>{folder}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="nav-row-remove"
-                    aria-label={`删除文件夹 ${folder}`}
-                    title={`删除文件夹 ${folder}`}
-                    onClick={() => onRemoveFolder(folder)}
-                  >
-                    <X size={12} />
-                  </button>
+            {tagsOpen || selectedTag !== "" ? (
+              <>
+                <button
+                  type="button"
+                  className={selectedTag ? "" : "is-active"}
+                  onClick={() => onSelectTag("")}
+                >
+                  <Hash size={15} />
+                  <span>全部标签</span>
+                </button>
+                <div className="nav-group-list">
+                  {allTags.map((tag) => (
+                    <div className="nav-filter-row" key={tag}>
+                      <button
+                        type="button"
+                        className={[
+                          selectedTag === tag ? "is-active" : "",
+                          dropTarget === `tag:${tag}` ? "is-drop-target" : ""
+                        ]
+                          .filter(Boolean)
+                          .join(" ") || undefined}
+                        onClick={() => onSelectTag(tag)}
+                        {...dropProps(`tag:${tag}`, (noteId) => onAssignTag(noteId, tag))}
+                      >
+                        <Hash size={15} />
+                        <span>{tag}</span>
+                      </button>
+                      <span className="nav-row-tools">
+                        <button
+                          type="button"
+                          className="nav-row-remove"
+                          aria-label={`重命名标签 ${tag}`}
+                          title={`重命名标签 ${tag}`}
+                          onClick={() => onRenameTag(tag)}
+                        >
+                          <Pencil size={12} />
+                        </button>
+                        <button
+                          type="button"
+                          className="nav-row-remove"
+                          aria-label={`删除标签 ${tag}`}
+                          title={`删除标签 ${tag}`}
+                          onClick={() => onRemoveTag(tag)}
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            ) : null}
           </section>
         ) : null}
 
-        {allTags.length > 0 ? (
-          <section className="nav-group" aria-label="标签">
-            <span className="nav-group-label">标签</span>
+        {allFolders.length > 0 ? (
+          <section className="nav-group" aria-label="文件夹">
             <button
               type="button"
-              className={selectedTag ? "" : "is-active"}
-              onClick={() => onSelectTag("")}
+              className="nav-section-toggle"
+              aria-expanded={foldersOpen || selectedFolder !== ""}
+              onClick={() => setFoldersOpen((current) => !current)}
             >
-              <Hash size={15} />
-              <span>全部标签</span>
+              {foldersOpen || selectedFolder !== "" ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+              <span>文件夹</span>
+              <em>{allFolders.length}</em>
             </button>
-            <div className="nav-group-list">
-              {allTags.map((tag) => (
-                <div className="nav-filter-row" key={tag}>
-                  <button
-                    type="button"
-                    className={[
-                      selectedTag === tag ? "is-active" : "",
-                      dropTarget === `tag:${tag}` ? "is-drop-target" : ""
-                    ]
-                      .filter(Boolean)
-                      .join(" ") || undefined}
-                    onClick={() => onSelectTag(tag)}
-                    {...dropProps(`tag:${tag}`, (noteId) => onAssignTag(noteId, tag))}
-                  >
-                    <Hash size={15} />
-                    <span>{tag}</span>
-                  </button>
-                  <span className="nav-row-tools">
-                    <button
-                      type="button"
-                      className="nav-row-remove"
-                      aria-label={`重命名标签 ${tag}`}
-                      title={`重命名标签 ${tag}`}
-                      onClick={() => onRenameTag(tag)}
-                    >
-                      <Pencil size={12} />
-                    </button>
-                    <button
-                      type="button"
-                      className="nav-row-remove"
-                      aria-label={`删除标签 ${tag}`}
-                      title={`删除标签 ${tag}`}
-                      onClick={() => onRemoveTag(tag)}
-                    >
-                      <X size={12} />
-                    </button>
-                  </span>
+            {foldersOpen || selectedFolder !== "" ? (
+              <>
+                <button
+                  type="button"
+                  className={[
+                    selectedFolder ? "" : "is-active",
+                    dropTarget === "folder:" ? "is-drop-target" : ""
+                  ]
+                    .filter(Boolean)
+                    .join(" ") || undefined}
+                  onClick={() => onSelectFolder("")}
+                  {...dropProps("folder:", (noteId) => onAssignFolder(noteId, ""))}
+                >
+                  <Folder size={15} />
+                  <span>全部文件夹</span>
+                </button>
+                <div className="nav-group-list">
+                  {allFolders.map((folder) => (
+                    <div className="nav-filter-row" key={folder}>
+                      <button
+                        type="button"
+                        className={[
+                          selectedFolder === folder ? "is-active" : "",
+                          dropTarget === `folder:${folder}` ? "is-drop-target" : ""
+                        ]
+                          .filter(Boolean)
+                          .join(" ") || undefined}
+                        onClick={() => onSelectFolder(folder)}
+                        {...dropProps(`folder:${folder}`, (noteId) => onAssignFolder(noteId, folder))}
+                      >
+                        <Folder size={15} />
+                        <span>{folder}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="nav-row-remove"
+                        aria-label={`删除文件夹 ${folder}`}
+                        title={`删除文件夹 ${folder}`}
+                        onClick={() => onRemoveFolder(folder)}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            ) : null}
           </section>
         ) : null}
 

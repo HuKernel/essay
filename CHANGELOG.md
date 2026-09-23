@@ -1,3 +1,8 @@
+## 0.9.53 - 2026-09-23
+
+- Responsive sidebar with a proper collapse pattern instead of squeezing content: desktop (≥1280px) keeps the full 260px icon+text sidebar; tablet (980–1279px) auto-collapses to an 80px icon rail (view icons with separators and active highlight, plus new/settings/pin/hide); mobile (<980px) hides the sidebar entirely behind the top bar toggle. No font sizes shrink at any width.
+- Sidebar reorganized: fixed area (workspace header, search, new note) → navigation (All / Favorites / Recent / Tasks / Archive / Trash / Calendar) → Tags and Folders are now collapsed-by-default sections with chevron + count (auto-expanding while one of their filters is active) → document list fills the rest. The icon rail switches the view and expands the sidebar in one click.
+
 ## 0.9.52 - 2026-09-23
 
 - Fixed the right-panel TOC rows collapsing to slivers: the outline list is a constrained-height flex column, so its items were shrinking to fit (each row compressed below the text size on long documents). Items now keep their height and the list scrolls internally; max height also raised from 240px to 320px.
