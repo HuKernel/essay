@@ -2,10 +2,11 @@ import {
   CalendarDays,
   FileDown,
   Link2,
+  ListTree,
   Pencil,
   TextSearch
 } from "lucide-react";
-import type { ExportFormat } from "../constants";
+import type { ExportFormat, OutlineItem } from "../constants";
 
 export type BacklinkItem = {
   id: string;
@@ -33,6 +34,8 @@ type InfoPanelProps = {
   backlinks: BacklinkItem[];
   onJump: (id: string) => void;
   onExport: (format: ExportFormat) => void;
+  outlineItems: OutlineItem[];
+  onJumpToOutline: (item: OutlineItem) => void;
 };
 
 const EXPORTS: Array<{ format: ExportFormat; label: string }> = [
@@ -61,6 +64,28 @@ export function InfoPanel(props: InfoPanelProps) {
       </header>
 
       <div className="info-panel-body">
+        <section className="info-group">
+          <span className="info-label">
+            <ListTree size={12} aria-hidden="true" /> 目录
+          </span>
+          {props.outlineItems.length > 0 ? (
+            <nav className="info-outline-list" aria-label="当前文档目录">
+              {props.outlineItems.map((item, index) => (
+                <button
+                  key={`${item.pos}-${index}`}
+                  type="button"
+                  className={`info-outline-link info-outline-level-${item.level}`}
+                  onClick={() => props.onJumpToOutline(item)}
+                >
+                  {item.text}
+                </button>
+              ))}
+            </nav>
+          ) : (
+            <span className="info-empty">用标题组织内容后，这里会出现目录</span>
+          )}
+        </section>
+
         <section className="info-group">
           <span className="info-label">
             <CalendarDays size={12} aria-hidden="true" /> 概览

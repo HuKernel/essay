@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ListTree } from "lucide-react";
 import { useEditor } from "@tiptap/react";
 import type { JSONContent } from "@tiptap/react";
 import { TextSelection } from "@tiptap/pm/state";
@@ -140,8 +139,6 @@ export default function App() {
   const [unlockError, setUnlockError] = useState("");
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
-  const [outlineDropOpen, setOutlineDropOpen] = useState(false);
-  const outlineDropRef = useRef<HTMLDivElement | null>(null);
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [findQuery, setFindQuery] = useState("");
   const [replaceValue, setReplaceValue] = useState("");
@@ -582,24 +579,6 @@ export default function App() {
   useEffect(() => {
     void loadNotes();
   }, [loadNotes]);
-
-  useEffect(() => {
-    if (!outlineDropOpen) return;
-    function onDown(event: MouseEvent) {
-      if (outlineDropRef.current && !outlineDropRef.current.contains(event.target as Node)) {
-        setOutlineDropOpen(false);
-      }
-    }
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") setOutlineDropOpen(false);
-    }
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [outlineDropOpen]);
 
   useEffect(() => {
     return () => {
@@ -2251,37 +2230,6 @@ export default function App() {
                   disabled={editorDisabled}
                   aria-label="记录标题"
                 />
-                {outlineItems.length > 0 ? (
-                  <div className="doc-outline-drop" ref={outlineDropRef}>
-                    <button
-                      type="button"
-                      className={outlineDropOpen ? "doc-outline-trigger is-open" : "doc-outline-trigger"}
-                      aria-expanded={outlineDropOpen}
-                      onClick={() => setOutlineDropOpen((current) => !current)}
-                    >
-                      <ListTree size={14} aria-hidden="true" />
-                      目录
-                      <ChevronDown size={12} aria-hidden="true" />
-                    </button>
-                    {outlineDropOpen ? (
-                      <nav className="doc-outline-menu" aria-label="当前文档目录">
-                        {outlineItems.map((item, index) => (
-                          <button
-                            key={`${item.pos}-${index}`}
-                            type="button"
-                            className={`info-outline-link info-outline-level-${item.level}`}
-                            onClick={() => {
-                              jumpToOutline(item);
-                              setOutlineDropOpen(false);
-                            }}
-                          >
-                            {item.text}
-                          </button>
-                        ))}
-                      </nav>
-                    ) : null}
-                  </div>
-                ) : null}
               </div>
             {findOpen ? (
               <FindPanel
@@ -2355,6 +2303,8 @@ export default function App() {
               backlinks={backlinks}
               onJump={(id) => void handleSelectNote(id)}
               onExport={(format) => void handleExport(format)}
+              outlineItems={outlineItems}
+              onJumpToOutline={jumpToOutline}
             />
           ) : null}
 

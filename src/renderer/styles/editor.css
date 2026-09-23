@@ -72,20 +72,16 @@
   text-overflow: ellipsis;
 }
 
-/* ---------- 文档头：大标题（衬线）+ 目录下拉 ---------- */
+/* ---------- 文档头：大标题（衬线）+ 元信息行 + 标签 ---------- */
 
 .doc-head {
-  display: flex;
   width: min(100%, var(--editor-width, 900px));
   margin: 0 auto;
-  align-items: center;
-  gap: 10px;
   padding: 8px 0 0;
 }
 
 .doc-title-input {
-  flex: 1 1 auto;
-  min-width: 0;
+  width: 100%;
   border: 0;
   outline: 0;
   background: transparent;
@@ -96,57 +92,6 @@
   line-height: 1.2;
   letter-spacing: 0.005em;
   padding: 0;
-}
-
-/* 目录下拉：挂在标题右侧 */
-.doc-outline-drop {
-  position: relative;
-  flex: 0 0 auto;
-}
-
-.doc-outline-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--muted-text);
-  font-size: 12.5px;
-  padding: 6px 10px;
-  cursor: pointer;
-  transition:
-    background-color var(--motion-fast) ease,
-    color var(--motion-fast) ease;
-}
-
-.doc-outline-trigger:hover,
-.doc-outline-trigger.is-open {
-  background: var(--surface-hover-soft);
-  color: var(--text-color);
-}
-
-.doc-outline-trigger svg {
-  opacity: 0.7;
-}
-
-.doc-outline-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 70;
-  display: flex;
-  width: min(320px, calc(100vw - 48px));
-  max-height: 400px;
-  flex-direction: column;
-  gap: 1px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  border: 1px solid var(--panel-border);
-  border-radius: 12px;
-  background: var(--surface-raised);
-  box-shadow: var(--shadow-floating);
-  padding: 6px;
 }
 
 .doc-title-input::placeholder {

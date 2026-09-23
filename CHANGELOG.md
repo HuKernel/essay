@@ -1,3 +1,7 @@
+## 0.9.72 - 2026-09-23
+
+- Outline returned to the info panel (first group, above 概览) as before; removed the "目录" dropdown beside the document title. Sidebar-at-window-top layout from 0.9.71 is kept.
+
 ## 0.9.71 - 2026-09-23
 
 - Sidebar now starts at the very top of the window (the top bar with breadcrumb/status only spans the workspace column). The outline moved out of the info panel into a "目录" dropdown on the right of the document title — click it to pop the outline and jump to any heading; the info panel now leads with 概览.
