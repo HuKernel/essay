@@ -1,3 +1,7 @@
+## 0.9.76 - 2026-09-23
+
+- Whenever the sidebar is collapsed (80px rail or compact overlay mode), the top bar now shows the app logo at the far left (before the breadcrumb) — hover swaps it to a » expand arrow, click expands the sidebar. Replaces both the compact-only ☰ button and the rail-top logo (removed to avoid duplicates).
+
 ## 0.9.75 - 2026-09-23
 
 - Compact windows (below 980px, where the sidebar is a hidden overlay) now show a ☰ button at the top-left next to the breadcrumb — click it to expand the sidebar overlay (Notion-style narrow-window behavior); previously the sidebar had no way back once collapsed.

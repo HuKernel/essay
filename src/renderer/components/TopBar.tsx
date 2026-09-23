@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Menu as MenuIcon, PanelRight, PanelRightClose, Type } from "lucide-react";
+import { PanelLeftOpen, PanelRight, PanelRightClose, Type } from "lucide-react";
 import type { SaveState } from "../constants";
+import appIconUrl from "../assets/app-icon.png";
 
 type TopBarProps = {
   saveState: SaveState;
@@ -31,12 +32,17 @@ export function TopBar(props: TopBarProps) {
       {showSidebarToggle ? (
         <button
           type="button"
-          className="icon-button topbar-nav-toggle"
+          className="icon-button topbar-nav-toggle sidebar-rail-logo"
           title="展开侧栏"
           aria-label="展开侧栏"
           onClick={onToggleSidebar}
         >
-          <MenuIcon size={16} />
+          <span className="toggle-state logo" aria-hidden="true">
+            <img src={appIconUrl} alt="" />
+          </span>
+          <span className="toggle-state expand" aria-hidden="true">
+            <PanelLeftOpen size={17} />
+          </span>
         </button>
       ) : null}
       {children ? <div className="topbar-breadcrumb">{children}</div> : null}
