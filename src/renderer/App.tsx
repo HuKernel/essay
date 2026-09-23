@@ -2073,6 +2073,8 @@ export default function App() {
       <TopBar
           saveState={saveState}
           lastEditedText={activeNote ? docDateFormat.format(new Date(activeNote.updatedAt)) : ""}
+          showSidebarToggle={isCompactViewport && sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed(false)}
           formatOpen={formatPopoverOpen}
           onToggleFormat={() => setFormatPopoverOpen((current) => !current)}
           infoOpen={infoPanelOpen}

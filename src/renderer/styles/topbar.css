@@ -16,6 +16,11 @@
   padding: 6px 140px 6px 12px;
 }
 
+/* 紧凑视口（侧栏浮层收起）时：面包屑左侧的侧栏唤出按钮 */
+.topbar-nav-toggle {
+  flex: 0 0 auto;
+}
+
 /* 面包屑：占顶栏左侧原空白区（整体并入顶栏，省一行高度） */
 .topbar-breadcrumb {
   display: flex;

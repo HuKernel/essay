@@ -1,3 +1,7 @@
+## 0.9.75 - 2026-09-23
+
+- Compact windows (below 980px, where the sidebar is a hidden overlay) now show a ☰ button at the top-left next to the breadcrumb — click it to expand the sidebar overlay (Notion-style narrow-window behavior); previously the sidebar had no way back once collapsed.
+
 ## 0.9.74 - 2026-09-23
 
 - Fixed the rail logo hover: the expanding arrow was absolutely positioned against the window (missing position:relative on the button), so it floated to the middle of the app; it now swaps in place like the ☰ toggle.

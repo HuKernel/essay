@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
-import { PanelRight, PanelRightClose, Type } from "lucide-react";
+import { Menu as MenuIcon, PanelRight, PanelRightClose, Type } from "lucide-react";
 import type { SaveState } from "../constants";
 
 type TopBarProps = {
   saveState: SaveState;
   lastEditedText: string;
+  showSidebarToggle: boolean;
+  onToggleSidebar: () => void;
   formatOpen: boolean;
   onToggleFormat: () => void;
   infoOpen: boolean;
@@ -22,10 +24,21 @@ const STATUS_TEXT: Record<SaveState, string> = {
 };
 
 export function TopBar(props: TopBarProps) {
-  const { saveState, lastEditedText, formatOpen, onToggleFormat, infoOpen, onToggleInfo, children } = props;
+  const { saveState, lastEditedText, showSidebarToggle, onToggleSidebar, formatOpen, onToggleFormat, infoOpen, onToggleInfo, children } = props;
 
   return (
     <header className="topbar">
+      {showSidebarToggle ? (
+        <button
+          type="button"
+          className="icon-button topbar-nav-toggle"
+          title="展开侧栏"
+          aria-label="展开侧栏"
+          onClick={onToggleSidebar}
+        >
+          <MenuIcon size={16} />
+        </button>
+      ) : null}
       {children ? <div className="topbar-breadcrumb">{children}</div> : null}
       <div className="topbar-drag-spacer" aria-hidden="true" />
       <div className="topbar-statuses">
