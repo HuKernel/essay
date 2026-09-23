@@ -120,7 +120,8 @@
 
 .editor-surface {
   flex: 1 0 auto;
-  width: min(100%, var(--editor-width, 900px));
+  /* 宽容器：给代码/表格/图片留出比正文更宽的空间 */
+  width: min(100%, calc(var(--editor-width, 900px) + 180px));
   min-height: max(640px, calc(100dvh - 220px));
   margin: 0 auto;
   border: 0;
@@ -132,7 +133,19 @@
   line-height: var(--editor-line-height, 1.8);
   letter-spacing: 0.01em;
   outline: 0;
-  padding: 24px clamp(24px, 4vw, 64px) 160px;
+  padding: 24px clamp(18px, 2.5vw, 28px) 160px;
+}
+
+/* 阅读宽度：文本块收敛到正文宽度并居中；代码/表格/图片不收，占满宽容器 */
+.editor-surface.ProseMirror
+  > *:not(pre):not(.tableWrapper):not(.image-block):not(.math-block) {
+  max-width: min(100%, var(--editor-width, 900px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.editor-surface .tableWrapper {
+  overflow-x: auto;
 }
 
 .editor-surface > *:first-child {

@@ -1,3 +1,7 @@
+## 0.9.60 - 2026-09-23
+
+- Wide-block reading layout: the editor container widens to reading-width + 180px (~1030px at the default 900px setting) while every text block stays capped at the reading width and centered — code blocks, tables, and images now break out to the wider measure, symmetric around the text column. Small windows keep near-full-width content; long text lines remain comfortable. Verified in-app: body ~900px, code/table ~1030px, both centered.
+
 ## 0.9.59 - 2026-09-23
 
 - Removed the AI actions section (copy markdown / prompt context / outline) from the Knowledge Assistant panel and the Share button from the App Header. The assistant panel now shows Overview, TOC, Properties, Related documents, and Export only; the header carries breadcrumb + last-edited.
