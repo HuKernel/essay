@@ -235,16 +235,7 @@
   line-height: 1.6;
 }
 
-/* ---------- 目录 ---------- */
-
-.info-outline-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  max-height: 320px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
+/* ---------- 目录条目（用于标题旁目录下拉） ---------- */
 
 .info-outline-link {
   /* flex 子项禁止收缩：条目多时列表滚动，而不是把每行压扁 */

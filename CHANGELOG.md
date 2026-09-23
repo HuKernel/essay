@@ -1,3 +1,7 @@
+## 0.9.71 - 2026-09-23
+
+- Sidebar now starts at the very top of the window (the top bar with breadcrumb/status only spans the workspace column). The outline moved out of the info panel into a "目录" dropdown on the right of the document title — click it to pop the outline and jump to any heading; the info panel now leads with 概览.
+
 ## 0.9.70 - 2026-09-23
 
 - Document title now sits right under the top bar (removed the extra top padding of the editor column and doc head), and the info panel leads with 目录 (outline) instead of 概览 — the outline top now aligns roughly with the document title.

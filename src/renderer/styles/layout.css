@@ -22,7 +22,8 @@
 
 .topbar ~ .sidebar {
   grid-column: 1;
-  grid-row: 2;
+  /* 侧栏顶到窗口第一行：面包屑顶栏只占工作区列 */
+  grid-row: 1 / 3;
 }
 
 .topbar ~ .workspace {
