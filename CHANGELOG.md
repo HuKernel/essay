@@ -1,3 +1,7 @@
+## 0.9.54 - 2026-09-23
+
+- Removed the expand button from the collapsed icon rail — the top bar sidebar toggle is now the single way to expand/collapse; the rail starts directly with the view icons.
+
 ## 0.9.53 - 2026-09-23
 
 - Responsive sidebar with a proper collapse pattern instead of squeezing content: desktop (≥1280px) keeps the full 260px icon+text sidebar; tablet (980–1279px) auto-collapses to an 80px icon rail (view icons with separators and active highlight, plus new/settings/pin/hide); mobile (<980px) hides the sidebar entirely behind the top bar toggle. No font sizes shrink at any width.

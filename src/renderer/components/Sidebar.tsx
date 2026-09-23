@@ -12,7 +12,6 @@ import {
   List,
   ListTodo,
   PanelLeftClose,
-  PanelLeftOpen,
   Pencil,
   Pin,
   PinOff,
@@ -192,16 +191,6 @@ export function Sidebar(props: SidebarProps) {
     return (
       <aside className="sidebar">
         <div className="sidebar-rail">
-          <button
-            className="icon-button"
-            title="展开侧边栏"
-            aria-label="展开侧边栏"
-            onClick={onExpandSidebar}
-            type="button"
-          >
-            <PanelLeftOpen size={18} />
-          </button>
-          <span className="sidebar-rail-divider" aria-hidden="true" />
           {VIEW_MODES.map(([mode, label, Icon]) => (
             <button
               key={mode}
