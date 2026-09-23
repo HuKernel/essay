@@ -1,3 +1,7 @@
+## 0.9.50 - 2026-09-23
+
+- Right panel table of contents is readable now: entries enlarged to 13.5px with the level-1 headings in full text color, sub-levels in progressively muted gray, and comfortable row height.
+
 ## 0.9.49 - 2026-09-23
 
 - Desktop layout rebuilt as an AI Knowledge OS rather than a Markdown editor. Left sidebar is now a vertical knowledge navigation system: workspace header, search, new note, then a vertical nav list (All / Recent / Favorites / Tasks / Archive / Trash / Calendar) with the selected view highlighted, followed by vertical Folders and Tags sections (drag-to-classify and rename/delete kept) and the document list for the current view. The old horizontal view tabs, outline pane and bottom mode switch are gone; the document outline moved into the right panel.

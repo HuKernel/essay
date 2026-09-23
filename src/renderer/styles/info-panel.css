@@ -252,10 +252,10 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: var(--muted-text);
-  font-size: 12.5px;
-  line-height: 1.2;
-  padding: 6px 8px;
+  color: var(--text-color);
+  font-size: 13.5px;
+  line-height: 1.4;
+  padding: 7px 8px;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -270,12 +270,16 @@
   color: var(--text-color);
 }
 
+/* 层级降级：二级灰、三级更淡，一级保持深色可读 */
 .info-outline-link.info-outline-level-2 {
-  padding-left: 18px;
+  color: var(--muted-text);
+  padding-left: 20px;
 }
 
 .info-outline-link.info-outline-level-3 {
-  padding-left: 28px;
+  color: var(--subtle-text);
+  font-size: 12.5px;
+  padding-left: 30px;
 }
 
 /* ---------- AI 操作 ---------- */
