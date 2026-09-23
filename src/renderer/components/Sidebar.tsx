@@ -11,6 +11,7 @@ import {
   ListTodo,
   Menu as MenuIcon,
   PanelLeftClose,
+  PanelLeftOpen,
   Pencil,
   Plus,
   Search,
@@ -22,6 +23,7 @@ import {
 import type { DragEvent as ReactDragEvent } from "react";
 import type { ViewMode, ExportFormat } from "../constants";
 import type { BatchExportFormat } from "../../shared/types";
+import appIconUrl from "../assets/app-icon.png";
 
 type SidebarProps = {
   sidebarCollapsed: boolean;
@@ -238,6 +240,20 @@ export function Sidebar(props: SidebarProps) {
     return (
       <aside className="sidebar">
         <div className="sidebar-rail">
+          <button
+            className="icon-button sidebar-rail-logo"
+            title="展开侧边栏"
+            aria-label="展开侧边栏"
+            onClick={onExpandSidebar}
+            type="button"
+          >
+            <span className="toggle-state logo" aria-hidden="true">
+              <img src={appIconUrl} alt="" />
+            </span>
+            <span className="toggle-state expand" aria-hidden="true">
+              <PanelLeftOpen size={17} />
+            </span>
+          </button>
           <span className="sidebar-rail-divider" aria-hidden="true" />
           {VIEW_MODES.map(([mode, label, Icon]) => (
             <button

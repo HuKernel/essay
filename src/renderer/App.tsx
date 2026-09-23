@@ -139,6 +139,7 @@ export default function App() {
   const [unlockError, setUnlockError] = useState("");
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
+  const [navBackStack, setNavBackStack] = useState<string[]>([]);
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [findQuery, setFindQuery] = useState("");
   const [replaceValue, setReplaceValue] = useState("");
@@ -1221,8 +1222,23 @@ export default function App() {
   }
 
   function openNoteInReader(id: string) {
+    // 记录跳转历史，供顶栏返回按钮回退
+    if (activeId && id !== activeId) {
+      setNavBackStack((stack) => (stack[stack.length - 1] === activeId ? stack : [...stack, activeId]));
+    }
     void handleSelectNote(id);
     setCenterView("reader");
+  }
+
+  function goBackNote() {
+    setNavBackStack((stack) => {
+      const prev = stack[stack.length - 1];
+      if (prev && prev !== activeId) {
+        void handleSelectNote(prev);
+        setCenterView("reader");
+      }
+      return stack.slice(0, -1);
+    });
   }
 
   async function handleDeleteNote(id: string) {
@@ -2073,7 +2089,9 @@ export default function App() {
       <TopBar
           saveState={saveState}
           lastEditedText={activeNote ? docDateFormat.format(new Date(activeNote.updatedAt)) : ""}
-          showSidebarToggle={sidebarCollapsed}
+          canGoBack={navBackStack.length > 0}
+          onGoBack={goBackNote}
+          showSidebarToggle={isCompactViewport && sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed(false)}
           formatOpen={formatPopoverOpen}
           onToggleFormat={() => setFormatPopoverOpen((current) => !current)}
@@ -2111,7 +2129,7 @@ export default function App() {
                 {activeNote?.parentId ? (
                   <>
                     <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                    <button type="button" onClick={() => void handleSelectNote(activeNote.parentId as string)}>
+                    <button type="button" onClick={() => openNoteInReader(activeNote.parentId as string)}>
                       {notes.find((note) => note.id === activeNote.parentId)?.title || "父页面"}
                     </button>
                   </>
@@ -2303,7 +2321,7 @@ export default function App() {
                 setCenterView("list");
               }}
               backlinks={backlinks}
-              onJump={(id) => void handleSelectNote(id)}
+              onJump={(id) => openNoteInReader(id)}
               onExport={(format) => void handleExport(format)}
               outlineItems={outlineItems}
               onJumpToOutline={jumpToOutline}

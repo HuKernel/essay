@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import { PanelLeftOpen, PanelRight, PanelRightClose, Type } from "lucide-react";
+import { ArrowLeft, Menu as MenuIcon, PanelRight, PanelRightClose, Type } from "lucide-react";
 import type { SaveState } from "../constants";
-import appIconUrl from "../assets/app-icon.png";
 
 type TopBarProps = {
   saveState: SaveState;
   lastEditedText: string;
+  canGoBack: boolean;
+  onGoBack: () => void;
   showSidebarToggle: boolean;
   onToggleSidebar: () => void;
   formatOpen: boolean;
@@ -25,24 +26,30 @@ const STATUS_TEXT: Record<SaveState, string> = {
 };
 
 export function TopBar(props: TopBarProps) {
-  const { saveState, lastEditedText, showSidebarToggle, onToggleSidebar, formatOpen, onToggleFormat, infoOpen, onToggleInfo, children } = props;
+  const { saveState, lastEditedText, canGoBack, onGoBack, showSidebarToggle, onToggleSidebar, formatOpen, onToggleFormat, infoOpen, onToggleInfo, children } = props;
 
   return (
     <header className="topbar">
       {showSidebarToggle ? (
         <button
           type="button"
-          className="icon-button topbar-nav-toggle sidebar-rail-logo"
+          className="icon-button topbar-nav-toggle"
           title="展开侧栏"
           aria-label="展开侧栏"
           onClick={onToggleSidebar}
         >
-          <span className="toggle-state logo" aria-hidden="true">
-            <img src={appIconUrl} alt="" />
-          </span>
-          <span className="toggle-state expand" aria-hidden="true">
-            <PanelLeftOpen size={17} />
-          </span>
+          <MenuIcon size={16} />
+        </button>
+      ) : null}
+      {canGoBack ? (
+        <button
+          type="button"
+          className="icon-button topbar-back"
+          title="返回上一文档"
+          aria-label="返回上一文档"
+          onClick={onGoBack}
+        >
+          <ArrowLeft size={16} />
         </button>
       ) : null}
       {children ? <div className="topbar-breadcrumb">{children}</div> : null}

@@ -1,3 +1,7 @@
+## 0.9.77 - 2026-09-23
+
+- Back navigation for documents: a ← button appears at the top bar (left of the breadcrumb) after jumping between documents via lists, linked notes, or breadcrumb parents — click to return to the previous document. Narrow windows show a compact ☰ (instead of the app logo) before the breadcrumb; the app logo returns to the top of the collapsed rail.
+
 ## 0.9.76 - 2026-09-23
 
 - Whenever the sidebar is collapsed (80px rail or compact overlay mode), the top bar now shows the app logo at the far left (before the breadcrumb) — hover swaps it to a » expand arrow, click expands the sidebar. Replaces both the compact-only ☰ button and the rail-top logo (removed to avoid duplicates).
