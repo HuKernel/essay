@@ -24,7 +24,6 @@ import { SafeAutolink } from "./safe-link";
 import { MathExtensions } from "./math-extension";
 import { removeNoteMetadata, type NoteMetadataKind } from "../shared/note-metadata";
 import { looksLikeMarkdown, markdownToDoc } from "../shared/markdown-doc";
-import { toMarkdown } from "../shared/markdown";
 import type { AppSettings, BackupEntry, BatchExportFormat, NoteRecord } from "../shared/types";
 import {
   DEFAULT_APP_SETTINGS,
@@ -70,8 +69,7 @@ import { findInteractiveEditorBlock } from "./editor/interactive-blocks";
 import { NoteLinkSuggestionExtension } from "./editor/note-link-suggestion";
 import { SlashMenuExtension } from "./editor/slash-menu";
 import { Sidebar } from "./components/Sidebar";
-import { InfoPanel, type AiActionItem } from "./components/InfoPanel";
-import { Share2 } from "lucide-react";
+import { InfoPanel } from "./components/InfoPanel";
 import { TopBar } from "./components/TopBar";
 import { FindPanel } from "./components/FindPanel";
 import { FormatPanel } from "./components/FormatPanel";
@@ -2029,36 +2027,6 @@ export default function App() {
     }
   }
 
-  async function copyForAI(kind: "full" | "context" | "outline", successMessage = "已复制到剪贴板，可直接粘贴给 AI") {
-    if (!activeNote) return;
-    let text: string;
-    if (kind === "outline") {
-      text = outlineItems
-        .map((item) => `${"  ".repeat(Math.max(0, item.level - 1))}- ${item.text}`)
-        .join("\n");
-    } else {
-      const md = toMarkdown(editor?.getJSON() ?? activeNote.content).trim();
-      if (kind === "full") {
-        text = md;
-      } else {
-        const title = (activeNote.title || "未命名记录").trim();
-        text = `以下是知识库文档「${title}」（约 ${editorStats.chars} 字）：\n\n${md}\n\n请基于以上内容：`;
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast(successMessage);
-    } catch {
-      showToast("复制失败，请重试");
-    }
-  }
-
-  const aiActions: AiActionItem[] = [
-    { id: "copy-md", label: "复制全文 Markdown", hint: "粘贴到任何 AI 对话使用", run: () => void copyForAI("full") },
-    { id: "copy-context", label: "复制提问上下文", hint: "标题 + 正文 + 提问引导", run: () => void copyForAI("context") },
-    { id: "copy-outline", label: "复制大纲", hint: "文档标题层级清单", run: () => void copyForAI("outline") }
-  ];
-
   const appClassName = [
     "app-shell",
     sidebarCollapsed ? "sidebar-collapsed" : "",
@@ -2177,15 +2145,6 @@ export default function App() {
             {activeNote ? (
               <span className="app-header-edited">最后编辑于 {docDateFormat.format(new Date(activeNote.updatedAt))}</span>
             ) : null}
-            <button
-              type="button"
-              className="app-header-share"
-              title="复制本文 Markdown，可粘贴分享"
-              onClick={() => void copyForAI("full", "已复制 Markdown，粘贴即可分享")}
-            >
-              <Share2 size={14} />
-              分享
-            </button>
           </header>
           <div className={infoPanelOpen && activeNote ? "document-stage" : "document-stage info-collapsed"}>
             <div className={firstHeadingDupesTitle ? "editor-column dedupe-first-h1" : "editor-column"}>
@@ -2268,7 +2227,6 @@ export default function App() {
               onExport={(format) => void handleExport(format)}
               outlineItems={outlineItems}
               onJumpToOutline={jumpToOutline}
-              aiActions={aiActions}
             />
           ) : null}
 

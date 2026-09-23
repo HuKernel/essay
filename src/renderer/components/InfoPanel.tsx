@@ -4,7 +4,6 @@ import {
   Link2,
   ListTree,
   Pencil,
-  Sparkles,
   TextSearch
 } from "lucide-react";
 import type { ExportFormat, OutlineItem } from "../constants";
@@ -13,13 +12,6 @@ export type BacklinkItem = {
   id: string;
   title: string;
   kind: "linked" | "unlinked";
-};
-
-export type AiActionItem = {
-  id: string;
-  label: string;
-  hint: string;
-  run: () => void;
 };
 
 type InfoPanelProps = {
@@ -45,7 +37,6 @@ type InfoPanelProps = {
   onExport: (format: ExportFormat) => void;
   outlineItems: OutlineItem[];
   onJumpToOutline: (item: OutlineItem) => void;
-  aiActions: AiActionItem[];
 };
 
 const EXPORTS: Array<{ format: ExportFormat; label: string }> = [
@@ -186,20 +177,6 @@ export function InfoPanel(props: InfoPanelProps) {
           ) : (
             <span className="info-empty">没有其它文档提及这篇</span>
           )}
-        </section>
-
-        <section className="info-group">
-          <span className="info-label">
-            <Sparkles size={12} aria-hidden="true" /> AI 操作
-          </span>
-          <div className="info-ai-list">
-            {props.aiActions.map((action) => (
-              <button key={action.id} type="button" className="info-ai-button" onClick={action.run}>
-                <strong>{action.label}</strong>
-                <span>{action.hint}</span>
-              </button>
-            ))}
-          </div>
         </section>
 
         <section className="info-group">

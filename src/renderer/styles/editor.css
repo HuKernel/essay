@@ -81,31 +81,6 @@
   white-space: nowrap;
 }
 
-.app-header-share {
-  display: inline-flex;
-  flex: 0 0 auto;
-  height: 28px;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--line-soft);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted-text);
-  font-size: 12px;
-  padding: 0 12px;
-  cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    color 140ms ease,
-    background-color 140ms ease;
-}
-
-.app-header-share:hover {
-  border-color: var(--accent-soft-strong);
-  background: var(--surface-hover-soft);
-  color: var(--text-color);
-}
-
 /* ---------- 文档头：大标题（衬线）+ 元信息行 + 标签 ---------- */
 
 .doc-head {

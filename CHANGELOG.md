@@ -1,3 +1,7 @@
+## 0.9.59 - 2026-09-23
+
+- Removed the AI actions section (copy markdown / prompt context / outline) from the Knowledge Assistant panel and the Share button from the App Header. The assistant panel now shows Overview, TOC, Properties, Related documents, and Export only; the header carries breadcrumb + last-edited.
+
 ## 0.9.58 - 2026-09-23
 
 - Document header is now title-only: the meta line (updated/words/reading time) and tag chips under the title were removed — that information already lives in the Knowledge Assistant panel on the right, so the reading canvas stays clean.
