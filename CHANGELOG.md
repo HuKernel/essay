@@ -1,3 +1,11 @@
+## 0.9.47 - 2026-09-23
+
+- Visual redesign toward a quiet Notion/Craft/Obsidian-style knowledge workspace (UI only, no logic changes). New warm-paper palette (#FAF8F3 background, #222 text, #64748B slate accent; the warm yellow #E8D7B5 is reserved for the selected note and text selection), serif document headings with sans body and JetBrains Mono code stacks, sidebar narrowed to 240px.
+- The permanent right-side format toolbar is gone. Selecting text now shows a floating bubble toolbar (bold/italic/underline/strike/highlight/inline code/link plus an "Aa" trigger); the full format panel became an on-demand popover toggled from the top bar.
+- New collapsible Document Info panel on the right: created/updated time, word count, reading time, tags & folder (click to filter, edit inline), related notes (backlinks), and one-click export (MD/PDF/HTML/TXT/JSON). On windows narrower than 1280px it behaves as an overlay like the format popover.
+- The note title moved from the top bar into the editor as a large serif heading with a meta line (updated time · words · reading minutes); the top bar keeps only menu, sidebar toggle, panel toggles and save status.
+- Default reading width dropped from 1120px to 850px (setting still adjustable 640–1600px).
+
 ## 0.9.46 - 2026-09-10
 
 - Notes imported from a file now write their markdown back to the source file on every save (attachments inlined as data URLs). Previously edits lived only in the app database, so reopening the same file through another path re-imported the stale on-disk snapshot and looked like "edits were lost". Write-back failures (file moved/read-only) are logged and never block the note save.

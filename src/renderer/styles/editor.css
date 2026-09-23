@@ -14,27 +14,74 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   border: 1px solid var(--paper-border);
-  border-radius: 24px 24px 0 0;
+  border-radius: 16px 16px 0 0;
   background: var(--paper-bg);
   cursor: text;
 }
 
+/* ---------- 文档头：大标题（衬线）+ 元信息行 ---------- */
+
+.doc-head {
+  width: min(100%, var(--editor-width, 850px));
+  margin: 0 auto;
+  padding: 20px 0 2px;
+}
+
+.doc-title-input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-color);
+  font-family: var(--font-serif);
+  font-size: clamp(26px, 2.6vw, 32px);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0.005em;
+  padding: 0;
+}
+
+.doc-title-input::placeholder {
+  color: var(--line-strong);
+}
+
+.doc-title-input:disabled {
+  color: var(--muted-text);
+  cursor: default;
+  opacity: 1;
+}
+
+.doc-meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--subtle-text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc-meta-line span[aria-hidden="true"] {
+  color: var(--line-strong);
+}
+
 .editor-surface {
   flex: 1 0 auto;
-  width: min(100%, var(--editor-width, 880px));
-  min-height: max(640px, calc(100dvh - 110px));
+  width: min(100%, var(--editor-width, 850px));
+  min-height: max(640px, calc(100dvh - 160px));
   margin: 0 auto;
   border: 0;
-  border-radius: 24px 24px 0 0;
+  border-radius: 16px 16px 0 0;
   background: var(--paper-bg);
   color: var(--text-color);
   cursor: text;
-  font-family: var(--editor-font-family, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif);
+  font-family: var(--editor-font-family, var(--font-ui));
   font-size: var(--editor-font-size, 16px);
-  line-height: var(--editor-line-height, 1.72);
+  line-height: var(--editor-line-height, 1.75);
   letter-spacing: 0.01em;
   outline: 0;
-  padding: 68px clamp(32px, 5vw, 112px) 120px;
+  padding: 20px clamp(28px, 4vw, 72px) 120px;
 }
 
 .editor-surface > *:first-child {
@@ -96,8 +143,9 @@
 .editor-surface h2,
 .editor-surface h3 {
   margin: 30px 0 14px;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-family: var(--editor-font-family, var(--font-serif));
+  line-height: 1.25;
+  letter-spacing: 0.005em;
 }
 
 .editor-surface h1 {
@@ -546,15 +594,20 @@
 
 .editor-surface pre {
   overflow-x: auto;
-  border-radius: 18px;
+  border-radius: 14px;
   background: var(--pre-bg);
   color: var(--pre-text);
-  padding: 18px 20px;
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  line-height: 1.65;
+  padding: 16px 18px;
 }
 
 .editor-surface code {
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--code-bg);
+  font-family: var(--font-mono);
+  font-size: 0.86em;
   padding: 2px 6px;
 }
 
@@ -891,64 +944,6 @@
 
 .editor-surface .image-block:hover .image-resize-handle {
   opacity: 1;
-}
-
-/* ---------- 反向链接面板 ---------- */
-
-.editor-column .backlinks-panel {
-  margin: 24px 0 32px;
-  border-top: 1px solid var(--panel-border);
-  padding-top: 14px;
-}
-
-.editor-column .backlinks-title {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--muted-text);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.editor-column .backlinks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.editor-column .backlinks-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-color);
-  padding: 6px 8px;
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.editor-column .backlinks-item:hover {
-  background: var(--surface-hover);
-}
-
-.editor-column .backlinks-item svg {
-  color: var(--accent-color);
-  flex: 0 0 auto;
-}
-
-.editor-column .backlinks-item span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.editor-column .backlinks-item em {
-  margin-left: auto;
-  color: var(--subtle-text);
-  font-size: 11px;
-  font-style: normal;
 }
 
 /* ---------- 子页面卡片 / 块引用卡片 ---------- */

@@ -2,74 +2,83 @@
    设计变量：浅色为默认主题，深色通过 .theme-dark 覆盖
    所有组件只允许引用这里的变量，不要写死颜色
 
-   配色方向：暖纸琥珀——奶油纸色底 + 暖墨文字 + 琥珀点缀
-   （参考 Notes & Writing App 类目：长文阅读友好、有书写气质）
+   配色方向：安静纸感——奶油纸底 + 墨色文字 + 石板灰强调
+   暖黄（#E8D7B5 系）只用于"当前选中"与"高亮"两种状态
+   （参考 Notion / Craft / Obsidian 的长时阅读取向）
    ============================================================ */
+
+:root {
+  /* 字体栈：标题衬线 / 界面正文无衬线 / 代码等宽（全部本地字体，离线可用） */
+  --font-ui: "Inter", "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", "Segoe UI", sans-serif;
+  --font-serif: "Source Serif 4", "Source Serif 3", "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, Georgia,
+    "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+}
 
 .app-shell {
   /* 表面 */
-  --app-bg: #f7f3ec;
-  --panel-bg: #fffdf9;
-  --panel-border: #e7e1d4;
-  --surface-soft: #fffdf9;
-  --surface-muted: #f4efe6;
-  --surface-hover: #f4ecdb;
-  --surface-hover-soft: #f7f0e2;
-  --surface-press: #ede4d1;
-  --surface-active: #f2e8d2;
-  --surface-raised: #fffefb;
-  --paper-bg: #fffcf6;
-  --paper-border: #e8e2d3;
+  --app-bg: #faf8f3;
+  --panel-bg: #f3f0e8;
+  --panel-border: #e8e3d6;
+  --surface-soft: #f6f3ec;
+  --surface-muted: #f1ede2;
+  --surface-hover: #ede8dc;
+  --surface-hover-soft: #f2eee3;
+  --surface-press: #e5dfd0;
+  --surface-active: #e8d7b5;
+  --surface-raised: #fffdf9;
+  --paper-bg: #fffdf8;
+  --paper-border: #ece6d8;
 
   /* 文字 */
-  --text-color: #1c1917;
-  --muted-text: #57534e;
-  --subtle-text: #78716c;
+  --text-color: #222222;
+  --muted-text: #6b7280;
+  --subtle-text: #9ca3af;
 
-  /* 语义色 */
-  --accent-color: #d97706;
-  --accent-strong: #b45309;
-  --accent-soft: rgba(217, 119, 6, 0.1);
-  --accent-soft-strong: rgba(217, 119, 6, 0.17);
-  --warning-color: #a16207;
-  --danger-color: #b94b37;
-  --danger-strong: #ad4735;
-  --danger-soft: rgba(185, 75, 55, 0.12);
-  --link-color: #b45309;
+  /* 语义色：强调为石板灰，克制安静 */
+  --accent-color: #64748b;
+  --accent-strong: #475569;
+  --accent-soft: rgba(100, 116, 139, 0.1);
+  --accent-soft-strong: rgba(100, 116, 139, 0.18);
+  --warning-color: #8a6a3b;
+  --danger-color: #b4483f;
+  --danger-strong: #a03e36;
+  --danger-soft: rgba(180, 72, 63, 0.12);
+  --link-color: #475569;
 
   /* 线条 */
-  --line-soft: #ebe5d7;
-  --line-strong: #ddd5c2;
+  --line-soft: #ece7db;
+  --line-strong: #ddd6c6;
 
   /* 内容 */
-  --selection-bg: rgba(217, 119, 6, 0.18);
-  --highlight-bg: #fce9b8;
-  --code-bg: #f2ede1;
-  --pre-bg: #292524;
-  --pre-text: #f5f0e8;
+  --selection-bg: #e8d7b5;
+  --highlight-bg: #fbe8a6;
+  --code-bg: #f2efe7;
+  --pre-bg: #2a2d33;
+  --pre-text: #e8e6e1;
   --table-cell-bg: rgba(255, 253, 248, 0.5);
-  --collapsible-line: #d8d0bd;
+  --collapsible-line: #d9d2c0;
 
   /* 弹层 */
-  --layer-surface-top: #fffefa;
-  --layer-surface-bottom: #fffcf4;
-  --layer-section-top: #f8f4ea;
-  --layer-section-bottom: #f3edde;
+  --layer-surface-top: #fffdf9;
+  --layer-surface-bottom: #fbf8f0;
+  --layer-section-top: #f6f3ea;
+  --layer-section-bottom: #f1ecdf;
   --layer-outline: transparent;
 
   /* 阴影与遮罩 */
-  --shadow-floating: 0 18px 40px rgba(62, 51, 33, 0.14);
-  --shadow-paper: 0 8px 28px rgba(62, 51, 33, 0.05);
-  --backdrop: rgba(46, 38, 26, 0.3);
-  --lock-backdrop: rgba(248, 244, 236, 0.8);
+  --shadow-floating: 0 16px 40px rgba(35, 32, 28, 0.12);
+  --shadow-paper: 0 8px 28px rgba(35, 32, 28, 0.05);
+  --backdrop: rgba(38, 35, 30, 0.3);
+  --lock-backdrop: rgba(246, 243, 236, 0.8);
 
   /* 滚动条 */
-  --scrollbar-thumb: rgba(120, 113, 108, 0.42);
-  --scrollbar-thumb-strong: rgba(101, 94, 88, 0.58);
-  --scrollbar-thumb-hover: rgba(105, 98, 92, 0.56);
-  --scrollbar-thumb-hover-strong: rgba(87, 81, 75, 0.72);
-  --scrollbar-thumb-active: rgba(85, 80, 74, 0.68);
-  --scrollbar-thumb-active-strong: rgba(70, 66, 61, 0.82);
+  --scrollbar-thumb: rgba(107, 114, 128, 0.36);
+  --scrollbar-thumb-strong: rgba(107, 114, 128, 0.5);
+  --scrollbar-thumb-hover: rgba(107, 114, 128, 0.5);
+  --scrollbar-thumb-hover-strong: rgba(90, 96, 108, 0.64);
+  --scrollbar-thumb-active: rgba(107, 114, 128, 0.58);
+  --scrollbar-thumb-active-strong: rgba(84, 90, 100, 0.74);
 
   /* 动效 */
   --motion-fast: 140ms;
@@ -81,59 +90,59 @@
 }
 
 .app-shell.theme-dark {
-  --app-bg: #1c1917;
-  --panel-bg: #262119;
-  --panel-border: rgba(255, 248, 232, 0.09);
-  --surface-soft: rgba(255, 248, 232, 0.05);
-  --surface-muted: rgba(255, 248, 232, 0.04);
-  --surface-hover: rgba(232, 163, 61, 0.15);
-  --surface-hover-soft: rgba(232, 163, 61, 0.1);
-  --surface-press: rgba(255, 248, 232, 0.08);
-  --surface-active: rgba(232, 163, 61, 0.2);
-  --surface-raised: #2c2721;
-  --paper-bg: #241f1a;
-  --paper-border: rgba(255, 248, 232, 0.09);
+  --app-bg: #1b1d21;
+  --panel-bg: #22252a;
+  --panel-border: rgba(233, 232, 228, 0.08);
+  --surface-soft: rgba(233, 232, 228, 0.05);
+  --surface-muted: rgba(233, 232, 228, 0.04);
+  --surface-hover: rgba(148, 163, 184, 0.14);
+  --surface-hover-soft: rgba(148, 163, 184, 0.09);
+  --surface-press: rgba(233, 232, 228, 0.08);
+  --surface-active: rgba(148, 163, 184, 0.22);
+  --surface-raised: #26292f;
+  --paper-bg: #22252a;
+  --paper-border: rgba(233, 232, 228, 0.08);
 
-  --text-color: #f4efe6;
-  --muted-text: #b7ada0;
-  --subtle-text: #a1988c;
+  --text-color: #e9e8e4;
+  --muted-text: #a7adb8;
+  --subtle-text: #8b919c;
 
-  --accent-color: #e8a33d;
-  --accent-strong: #f0b45c;
-  --accent-soft: rgba(232, 163, 61, 0.14);
-  --accent-soft-strong: rgba(232, 163, 61, 0.22);
-  --warning-color: #d9b45c;
-  --danger-color: #f08c77;
-  --danger-strong: #f5a08d;
-  --danger-soft: rgba(240, 140, 119, 0.14);
-  --link-color: #ecb262;
+  --accent-color: #94a3b8;
+  --accent-strong: #b5c2d4;
+  --accent-soft: rgba(148, 163, 184, 0.14);
+  --accent-soft-strong: rgba(148, 163, 184, 0.24);
+  --warning-color: #c9a86a;
+  --danger-color: #e88a7d;
+  --danger-strong: #f0a094;
+  --danger-soft: rgba(232, 138, 125, 0.14);
+  --link-color: #a8b8ce;
 
-  --line-soft: rgba(255, 248, 232, 0.09);
-  --line-strong: rgba(255, 248, 232, 0.14);
+  --line-soft: rgba(233, 232, 228, 0.08);
+  --line-strong: rgba(233, 232, 228, 0.14);
 
-  --selection-bg: rgba(232, 163, 61, 0.26);
-  --highlight-bg: #6b4d12;
-  --code-bg: #2f2a22;
-  --pre-bg: #161310;
-  --pre-text: #f0eadf;
-  --table-cell-bg: rgba(255, 248, 232, 0.03);
-  --collapsible-line: rgba(255, 248, 232, 0.15);
+  --selection-bg: rgba(148, 163, 184, 0.32);
+  --highlight-bg: #6b5518;
+  --code-bg: #2a2d33;
+  --pre-bg: #14161a;
+  --pre-text: #e8e6e1;
+  --table-cell-bg: rgba(233, 232, 228, 0.03);
+  --collapsible-line: rgba(233, 232, 228, 0.15);
 
-  --layer-surface-top: #2c2721;
-  --layer-surface-bottom: #231f1b;
-  --layer-section-top: rgba(255, 248, 232, 0.05);
-  --layer-section-bottom: rgba(255, 248, 232, 0.03);
-  --layer-outline: rgba(255, 248, 232, 0.07);
+  --layer-surface-top: #26292f;
+  --layer-surface-bottom: #23262b;
+  --layer-section-top: rgba(233, 232, 228, 0.05);
+  --layer-section-bottom: rgba(233, 232, 228, 0.03);
+  --layer-outline: rgba(233, 232, 228, 0.07);
 
-  --shadow-floating: 0 28px 62px rgba(0, 0, 0, 0.38);
+  --shadow-floating: 0 28px 62px rgba(0, 0, 0, 0.4);
   --shadow-paper: 0 24px 62px rgba(0, 0, 0, 0.32);
-  --backdrop: rgba(9, 7, 5, 0.55);
-  --lock-backdrop: rgba(17, 14, 11, 0.76);
+  --backdrop: rgba(8, 9, 11, 0.55);
+  --lock-backdrop: rgba(16, 17, 20, 0.76);
 
-  --scrollbar-thumb: rgba(214, 200, 178, 0.26);
-  --scrollbar-thumb-strong: rgba(192, 178, 156, 0.38);
-  --scrollbar-thumb-hover: rgba(224, 211, 190, 0.36);
-  --scrollbar-thumb-hover-strong: rgba(200, 187, 166, 0.5);
-  --scrollbar-thumb-active: rgba(232, 219, 199, 0.44);
-  --scrollbar-thumb-active-strong: rgba(208, 196, 176, 0.6);
+  --scrollbar-thumb: rgba(203, 209, 220, 0.24);
+  --scrollbar-thumb-strong: rgba(203, 209, 220, 0.36);
+  --scrollbar-thumb-hover: rgba(214, 220, 230, 0.34);
+  --scrollbar-thumb-hover-strong: rgba(203, 209, 220, 0.48);
+  --scrollbar-thumb-active: rgba(224, 230, 240, 0.42);
+  --scrollbar-thumb-active-strong: rgba(203, 209, 220, 0.58);
 }

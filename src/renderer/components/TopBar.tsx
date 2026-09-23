@@ -1,17 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu as MenuIcon, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Menu as MenuIcon, PanelLeftClose, PanelLeftOpen, PanelRight, PanelRightClose, Type } from "lucide-react";
 import appIconUrl from "../assets/app-icon.png";
 import type { ExportFormat } from "../constants";
 import type { BatchExportFormat } from "../../shared/types";
 import type { SaveState } from "../constants";
 
 type TopBarProps = {
-  /** 回收站笔记：标题与属性只读 */
-  readOnly?: boolean;
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
-  title: string;
-  onTitleChange: (value: string) => void;
   onCreateNote: () => void;
   onSave: () => void;
   onOpenHistory: () => void;
@@ -21,18 +17,11 @@ type TopBarProps = {
   onHideWindow: () => void;
   onAbout: () => void;
   onQuit: () => void;
-  folderPreview: string;
-  metaTagsPreview: string[];
-  hasMetaInfo: boolean;
-  metaEditorOpen: boolean;
-  onToggleMetaEditor: () => void;
-  tagsDraft: string;
-  onTagsChange: (value: string) => void;
-  folderDraft: string;
-  onFolderChange: (value: string) => void;
   saveState: SaveState;
-  editorCharCount: number;
-  readingMinutes: number;
+  formatOpen: boolean;
+  onToggleFormat: () => void;
+  infoOpen: boolean;
+  onToggleInfo: () => void;
 };
 
 const STATUS_TEXT: Record<SaveState, string> = {
@@ -59,25 +48,7 @@ const BATCH_EXPORTS: Array<{ format: BatchExportFormat; label: string }> = [
 ];
 
 export function TopBar(props: TopBarProps) {
-  const {
-    readOnly = false,
-    sidebarCollapsed,
-    onToggleSidebar,
-    title,
-    onTitleChange,
-    folderPreview,
-    metaTagsPreview,
-    hasMetaInfo,
-    metaEditorOpen,
-    onToggleMetaEditor,
-    tagsDraft,
-    onTagsChange,
-    folderDraft,
-    onFolderChange,
-    saveState,
-    editorCharCount,
-    readingMinutes
-  } = props;
+  const { sidebarCollapsed, onToggleSidebar, saveState, formatOpen, onToggleFormat, infoOpen, onToggleInfo } = props;
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState<"note" | "batch" | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -194,70 +165,38 @@ export function TopBar(props: TopBarProps) {
           ) : null}
         </div>
         <button
-          className={
-            sidebarCollapsed ? "icon-button workspace-nav-toggle is-collapsed" : "icon-button workspace-nav-toggle"
-          }
+          className="icon-button workspace-nav-toggle"
           title={sidebarCollapsed ? "展开左侧栏" : "收起左侧栏"}
           aria-label={sidebarCollapsed ? "展开左侧栏" : "收起左侧栏"}
           onClick={onToggleSidebar}
           type="button"
         >
-          <span className="workspace-nav-track" aria-hidden="true">
-            <span className="workspace-nav-thumb" />
-            <span className="workspace-nav-slot workspace-nav-slot-expand">
-              <PanelLeftOpen size={15} />
-            </span>
-            <span className="workspace-nav-slot workspace-nav-slot-collapse">
-              <PanelLeftClose size={15} />
-            </span>
-          </span>
+          {sidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
         </button>
-        </div>
-        <input
-          className="title-input"
-          value={title}
-          onChange={(event) => onTitleChange(event.target.value)}
-          placeholder="未命名记录"
-          disabled={readOnly}
-        />
-        <div className="topbar-drag-spacer" aria-hidden="true" />
+      </div>
+      <div className="topbar-drag-spacer" aria-hidden="true" />
+      <div className="topbar-statuses">
         <button
           type="button"
-          className={metaEditorOpen ? "meta-summary is-open" : "meta-summary"}
-          onClick={onToggleMetaEditor}
-          disabled={readOnly}
+          className={formatOpen ? "icon-button topbar-tool-toggle is-active" : "icon-button topbar-tool-toggle"}
+          title="格式面板（字体、颜色、对齐）"
+          aria-label="格式面板"
+          aria-pressed={formatOpen}
+          onClick={onToggleFormat}
         >
-          {folderPreview ? <span className="meta-chip meta-folder-chip">文件夹 · {folderPreview}</span> : null}
-          {metaTagsPreview.slice(0, 3).map((tag) => (
-            <span key={tag} className="meta-chip">
-              {tag}
-            </span>
-          ))}
-          {metaTagsPreview.length > 3 ? <span className="meta-chip">+{metaTagsPreview.length - 3}</span> : null}
-          {!hasMetaInfo ? <span className="meta-summary-empty">属性</span> : null}
-          <span className="meta-summary-action">{metaEditorOpen ? "收起" : "编辑"}</span>
+          <Type size={16} />
         </button>
-        {metaEditorOpen && !readOnly ? (
-          <div className="meta-input-row">
-            <input
-              className="tags-input"
-              value={tagsDraft}
-              onChange={(event) => onTagsChange(event.target.value)}
-              placeholder="标签，用逗号分隔"
-            />
-            <input
-              className="folder-input"
-              value={folderDraft}
-              onChange={(event) => onFolderChange(event.target.value)}
-              placeholder="文件夹"
-            />
-          </div>
-        ) : null}
-      <div className="topbar-statuses">
+        <button
+          type="button"
+          className={infoOpen ? "icon-button topbar-tool-toggle is-active" : "icon-button topbar-tool-toggle"}
+          title={infoOpen ? "折叠信息面板" : "展开信息面板"}
+          aria-label="信息面板"
+          aria-pressed={infoOpen}
+          onClick={onToggleInfo}
+        >
+          {infoOpen ? <PanelRightClose size={16} /> : <PanelRight size={16} />}
+        </button>
         <span className={`save-status ${saveState}`}>{STATUS_TEXT[saveState]}</span>
-        <span className="doc-stats">
-          {editorCharCount} 字 · 阅读 {readingMinutes} 分钟
-        </span>
       </div>
     </header>
   );

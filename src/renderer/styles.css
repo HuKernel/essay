@@ -6,6 +6,7 @@
 @import "./styles/sidebar.css";
 @import "./styles/topbar.css";
 @import "./styles/editor.css";
+@import "./styles/info-panel.css";
 @import "./styles/format-panel.css";
 @import "./styles/overlays.css";
 @import "./styles/math.css";

@@ -1,5 +1,5 @@
 /* ============================================================
-   响应式：浮动格式面板（1280）、紧凑侧栏（980）、窄屏（760）、矮屏（820h）
+   响应式：信息面板浮层（1280）、紧凑侧栏（980）、窄屏（760）、矮屏（820h）
    ============================================================ */
 
 @media (max-width: 1280px) {
@@ -7,18 +7,17 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .format-panel {
+  /* 信息面板脱离右栏，成为可弹出的浮层（与格式面板同款） */
+  .document-stage .info-panel {
     position: fixed;
-    top: 118px;
-    right: 86px;
+    top: 56px;
+    right: 14px;
     bottom: 18px;
-    z-index: 22;
-    width: min(340px, calc(100vw - 160px));
-    border: 1px solid var(--panel-border);
-    border-radius: 16px;
-    background: linear-gradient(180deg, var(--layer-surface-top) 0%, var(--layer-surface-bottom) 100%);
-    box-shadow: var(--shadow-floating);
-    transform: translate3d(24px, 0, 0);
+    z-index: 60;
+    display: flex;
+    width: min(320px, calc(100vw - 32px));
+    margin: 0;
+    transform: translate3d(12px, 0, 0);
     opacity: 0;
     pointer-events: none;
     transition:
@@ -26,31 +25,14 @@
       opacity var(--motion-base) var(--ease-smooth);
   }
 
-  .format-panel.is-open {
+  .document-stage .info-panel.is-open {
     transform: translate3d(0, 0, 0);
     opacity: 1;
     pointer-events: auto;
   }
 
-  .format-panel-header {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
-
-  .tool-rail {
-    position: fixed;
-    top: 118px;
-    right: 18px;
-    z-index: 23;
-    display: grid;
-    width: 56px;
-    gap: 10px;
-    border: 1px solid var(--panel-border);
-    border-radius: 20px;
-    background: linear-gradient(180deg, var(--layer-surface-top) 0%, var(--layer-surface-bottom) 100%);
-    box-shadow: var(--shadow-floating);
-    padding: 8px 6px;
+  .document-stage.info-collapsed .info-panel {
+    display: flex;
   }
 }
 
@@ -71,7 +53,7 @@
     left: 10px;
     bottom: 10px;
     z-index: 30;
-    width: min(312px, calc(100vw - 48px));
+    width: min(280px, calc(100vw - 48px));
     border: 1px solid var(--panel-border);
     border-radius: 16px;
     box-shadow: var(--shadow-floating);
@@ -131,17 +113,18 @@
     pointer-events: none;
   }
 
-  .workspace-nav-toggle {
-    display: inline-flex;
-  }
-
   .topbar {
     min-height: 48px;
-    padding: 6px 14px;
+    /* 右侧预留系统窗口按钮（WCO）宽度，状态文字不再与之重叠 */
+    padding: 6px 140px 6px 10px;
   }
 
   .editor-column {
     padding: 12px 14px 0;
+  }
+
+  .doc-head {
+    padding-top: 12px;
   }
 
   .find-panel {
@@ -151,30 +134,9 @@
     max-width: none;
   }
 
-  .format-panel {
-    top: 96px;
-    right: 72px;
-    bottom: 12px;
-    width: min(320px, calc(100vw - 96px));
-    transform: translate3d(18px, 0, 0);
-  }
-
-  .tool-rail {
-    top: 96px;
-    right: 10px;
-    width: 50px;
-    gap: 8px;
-    padding: 6px 5px;
-  }
-
-  .tool-rail-button {
-    height: 40px;
-  }
-
   .editor-surface {
-    min-height: max(480px, calc(100dvh - 96px));
-    border-radius: 18px 18px 0 0;
-    padding: 54px 28px 92px;
+    min-height: max(480px, calc(100dvh - 120px));
+    padding: 32px 20px 92px;
   }
 
   .note-item {
@@ -216,22 +178,6 @@
     width: calc(100vw - 36px);
   }
 
-  .topbar {
-    align-items: flex-start;
-  }
-
-  .topbar-actions {
-    gap: 6px;
-  }
-
-  .topbar-leading {
-    gap: 10px;
-  }
-
-  .title-input {
-    font-size: 13px;
-  }
-
   .find-panel {
     flex-wrap: wrap;
   }
@@ -256,22 +202,28 @@
   }
 
   .format-panel {
-    top: 74px;
-    right: 70px;
+    top: 50px;
+    right: 10px;
     bottom: 10px;
-    left: 12px;
+    left: 10px;
     width: auto;
-    padding: 12px;
   }
 
-  .tool-rail {
-    top: 88px;
+  .document-stage .info-panel {
+    top: 50px;
     right: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: auto;
   }
 
   .editor-surface {
-    min-height: max(360px, calc(100dvh - 92px));
-    padding: 44px 18px 88px;
+    min-height: max(360px, calc(100dvh - 110px));
+    padding: 26px 14px 88px;
+  }
+
+  .doc-title-input {
+    font-size: 24px;
   }
 
   .format-grid,

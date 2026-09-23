@@ -1,27 +1,55 @@
 /* ============================================================
-   格式面板、悬浮工具轨、块插入菜单、表格工具条
+   格式面板（浮动弹出，不再常驻）、选中浮动工具栏、块插入菜单、表格工具条
    ============================================================ */
 
 .format-panel {
-  position: relative;
+  position: fixed;
+  top: 56px;
+  right: 14px;
+  bottom: 18px;
+  z-index: 60;
   display: grid;
   align-content: start;
   min-height: 0;
   gap: 10px;
+  width: min(320px, calc(100vw - 32px));
   overflow-y: auto;
+  overscroll-behavior: contain;
   border: 1px solid var(--panel-border);
-  border-radius: 14px;
-  background: var(--panel-bg);
-  margin: 10px 10px 10px 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--layer-surface-top) 0%, var(--layer-surface-bottom) 100%);
+  box-shadow: var(--shadow-floating);
   padding: 14px 12px;
+  transform: translate3d(12px, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--motion-panel) var(--ease-smooth),
+    opacity var(--motion-base) var(--ease-smooth);
+}
+
+.format-panel.is-open {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.format-panel[aria-hidden="true"] {
+  visibility: hidden;
 }
 
 .format-panel-header {
+  position: sticky;
+  top: -14px;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 8px 4px;
+  gap: 8px;
+  margin: -14px -12px 0;
+  padding: 12px 14px 10px;
+  background: linear-gradient(180deg, var(--layer-surface-top) 0%, var(--layer-surface-bottom) 100%);
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .format-panel-header strong {
@@ -33,16 +61,74 @@
 .format-panel-chip {
   display: inline-flex;
   min-width: 42px;
-  height: 32px;
+  height: 30px;
   align-items: center;
   justify-content: center;
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: var(--surface-raised);
   color: var(--muted-text);
+  margin-right: auto;
   padding: 0 12px;
   font-size: 14px;
   font-weight: 650;
+}
+
+.format-panel-close {
+  flex: 0 0 auto;
+  height: 30px;
+  width: 30px;
+}
+
+/* ---------- 选中文字时的浮动工具栏 ---------- */
+
+.selection-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-floating);
+  padding: 4px;
+}
+
+.selection-toolbar-button {
+  display: inline-flex;
+  height: 32px;
+  min-width: 32px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-text);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) ease,
+    color var(--motion-fast) ease;
+}
+
+.selection-toolbar-button:hover {
+  background: var(--surface-hover);
+  color: var(--text-color);
+}
+
+.selection-toolbar-button.is-active {
+  background: var(--accent-soft-strong);
+  color: var(--accent-strong);
+}
+
+.selection-toolbar-more {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.selection-toolbar-divider {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--line-soft);
 }
 
 .format-panel-group {
@@ -272,32 +358,6 @@
   font-size: 12px;
   font-weight: 650;
   white-space: nowrap;
-}
-
-/* ---------- 悬浮工具轨（窄窗口） ---------- */
-
-.tool-rail {
-  display: none;
-}
-
-.tool-rail-button {
-  display: inline-flex;
-  height: 44px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
-  border-radius: 14px;
-  background: transparent;
-  color: var(--muted-text);
-  font-size: 14px;
-  font-weight: 650;
-}
-
-.tool-rail-button.is-active,
-.tool-rail-button:hover {
-  border-color: var(--line-soft);
-  background: var(--surface-hover);
-  color: var(--accent-color);
 }
 
 /* ---------- 块插入菜单 ---------- */

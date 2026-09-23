@@ -49,6 +49,7 @@ import {
   extractOutline,
   findScrollParent,
   formatHotkeyEvent,
+  formatTime,
   getContentPlainText,
   getCurrentFontPresetId,
   isEmptyParagraphSelection,
@@ -70,7 +71,7 @@ import { findInteractiveEditorBlock } from "./editor/interactive-blocks";
 import { NoteLinkSuggestionExtension } from "./editor/note-link-suggestion";
 import { SlashMenuExtension } from "./editor/slash-menu";
 import { Sidebar } from "./components/Sidebar";
-import { BacklinksPanel } from "./components/BacklinksPanel";
+import { InfoPanel } from "./components/InfoPanel";
 import { TopBar } from "./components/TopBar";
 import { FindPanel } from "./components/FindPanel";
 import { FormatPanel } from "./components/FormatPanel";
@@ -106,11 +107,11 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [hotkeyDraft, setHotkeyDraft] = useState("");
   const [hotkeyStatus, setHotkeyStatus] = useState("");
-  const [isFloatingToolViewport, setIsFloatingToolViewport] = useState(() => window.innerWidth < 1280);
   const [isCompactViewport, setIsCompactViewport] = useState(() => window.innerWidth < 980);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 980);
   const [leftPaneMode, setLeftPaneMode] = useState<LeftPaneMode>("document");
-  const [formatPanelExpanded, setFormatPanelExpanded] = useState(() => window.innerWidth >= 1280);
+  const [formatPopoverOpen, setFormatPopoverOpen] = useState(false);
+  const [infoPanelOpen, setInfoPanelOpen] = useState(() => window.innerWidth >= 1280);
   const [privacyLocked, setPrivacyLocked] = useState(false);
   const [currentPrivacyPinDraft, setCurrentPrivacyPinDraft] = useState("");
   const [privacyPinDraft, setPrivacyPinDraft] = useState("");
@@ -569,17 +570,10 @@ export default function App() {
 
   useEffect(() => {
     function syncResponsiveLayout() {
-      const floatingTools = window.innerWidth < 1280;
       const compact = window.innerWidth < 980;
-      setIsFloatingToolViewport(floatingTools);
       setIsCompactViewport(compact);
       if (compact) {
         setSidebarCollapsed(true);
-      }
-      if (floatingTools) {
-        setFormatPanelExpanded(false);
-      } else {
-        setFormatPanelExpanded(true);
       }
     }
 
@@ -978,7 +972,6 @@ export default function App() {
   }, [editorText]);
   const metaTagsPreview = useMemo(() => parseTagsInput(tagsDraft), [tagsDraft]);
   const folderPreview = folderDraft.trim();
-  const hasMetaInfo = metaTagsPreview.length > 0 || Boolean(folderPreview);
   const editorDisabled = Boolean(activeNote?.trashedAt);
 
   const filteredNotes = useMemo(() => {
@@ -2038,7 +2031,7 @@ export default function App() {
     .filter(Boolean)
     .join(" ");
   const appStyle = {
-    "--editor-width": `${settings?.lineWidth ?? 1120}px`,
+    "--editor-width": `${settings?.lineWidth ?? 850}px`,
     "--editor-font-family": settings?.fontFamily?.trim() || undefined,
     "--editor-font-size": `${settings?.fontSize ?? 16}px`,
     "--editor-line-height": settings?.lineHeight ?? 1.72
@@ -2047,14 +2040,8 @@ export default function App() {
   return (
     <main className={appClassName} style={appStyle}>
       <TopBar
-          readOnly={editorDisabled}
           sidebarCollapsed={sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed((current) => !current)}
-          title={title}
-          onTitleChange={(value) => {
-            setTitle(value);
-            markDirty();
-          }}
           onCreateNote={() => void handleCreate()}
           onSave={() => void saveActive()}
           onOpenHistory={() => void handleOpenHistory()}
@@ -2064,24 +2051,11 @@ export default function App() {
           onHideWindow={() => void window.suiji.hideWindow()}
           onAbout={() => void window.suiji.about()}
           onQuit={() => void window.suiji.quit()}
-          folderPreview={folderPreview}
-          metaTagsPreview={metaTagsPreview}
-          hasMetaInfo={hasMetaInfo}
-          metaEditorOpen={metaEditorOpen}
-          onToggleMetaEditor={() => setMetaEditorOpen((current) => !current)}
-          tagsDraft={tagsDraft}
-          onTagsChange={(value) => {
-            setTagsDraft(value);
-            markDirty();
-          }}
-          folderDraft={folderDraft}
-          onFolderChange={(value) => {
-            setFolderDraft(value);
-            markDirty();
-          }}
           saveState={saveState}
-          editorCharCount={editorStats.chars}
-          readingMinutes={editorStats.readingMinutes}
+          formatOpen={formatPopoverOpen}
+          onToggleFormat={() => setFormatPopoverOpen((current) => !current)}
+          infoOpen={infoPanelOpen}
+          onToggleInfo={() => setInfoPanelOpen((current) => !current)}
         />
 
       <Sidebar
@@ -2142,7 +2116,7 @@ export default function App() {
       />
 
         <section className="workspace">
-          <div className="document-stage">
+          <div className={infoPanelOpen && activeNote ? "document-stage" : "document-stage info-collapsed"}>
             <div className="editor-column">
               {activeNote?.parentId ? (
                 <nav className="note-breadcrumb" aria-label="页面路径">
@@ -2153,6 +2127,28 @@ export default function App() {
                   <strong>{title.trim() || activeNote.title || "未命名记录"}</strong>
                 </nav>
               ) : null}
+              <div className="doc-head">
+                <input
+                  className="doc-title-input"
+                  value={title}
+                  onChange={(event) => {
+                    setTitle(event.target.value);
+                    markDirty();
+                  }}
+                  placeholder="未命名记录"
+                  disabled={editorDisabled}
+                  aria-label="记录标题"
+                />
+                {activeNote ? (
+                  <div className="doc-meta-line">
+                    <span>更新于 {formatTime(activeNote.updatedAt)}</span>
+                    <span aria-hidden="true">·</span>
+                    <span>{editorStats.chars} 字</span>
+                    <span aria-hidden="true">·</span>
+                    <span>约 {editorStats.readingMinutes} 分钟</span>
+                  </div>
+                ) : null}
+              </div>
             {findOpen ? (
               <FindPanel
                 readOnly={editorDisabled}
@@ -2185,9 +2181,41 @@ export default function App() {
               onFocusEnd={() => editor?.commands.focus("end")}
               onFocus={() => editor?.commands.focus()}
               onImageChosen={(file) => void handleInsertImage(file)}
+              onEditLink={handleLink}
+              onOpenFormat={() => setFormatPopoverOpen(true)}
             />
-            <BacklinksPanel items={backlinks} onJump={(id) => void handleSelectNote(id)} />
           </div>
+
+          {activeNote ? (
+            <InfoPanel
+              open={infoPanelOpen}
+              onClose={() => setInfoPanelOpen(false)}
+              readOnly={editorDisabled}
+              createdAt={activeNote.createdAt}
+              updatedAt={activeNote.updatedAt}
+              chars={editorStats.chars}
+              readingMinutes={editorStats.readingMinutes}
+              folder={folderPreview}
+              tags={metaTagsPreview}
+              metaEditorOpen={metaEditorOpen}
+              onToggleMetaEditor={() => setMetaEditorOpen((current) => !current)}
+              tagsDraft={tagsDraft}
+              onTagsChange={(value) => {
+                setTagsDraft(value);
+                markDirty();
+              }}
+              folderDraft={folderDraft}
+              onFolderChange={(value) => {
+                setFolderDraft(value);
+                markDirty();
+              }}
+              onTagClick={(tag) => setSelectedTag(tag)}
+              onFolderClick={(folder) => setSelectedFolder(folder)}
+              backlinks={backlinks}
+              onJump={(id) => void handleSelectNote(id)}
+              onExport={(format) => void handleExport(format)}
+            />
+          ) : null}
 
           <FormatPanel
             editor={editor}
@@ -2196,8 +2224,8 @@ export default function App() {
             currentColorValue={currentColorValue}
             currentFontPresetId={currentFontPresetId}
             settingsReady={Boolean(settings)}
-            isFloatingToolViewport={isFloatingToolViewport}
-            formatPanelExpanded={formatPanelExpanded}
+            open={formatPopoverOpen}
+            onClose={() => setFormatPopoverOpen(false)}
             onSetTextPreset={setTextPreset}
             onApplyBlockFormat={applyBlockFormat}
             onCustomColorChange={handleCustomColorChange}
@@ -2210,19 +2238,6 @@ export default function App() {
             onRunTableCommand={runTableCommand}
           />
         </div>
-
-        {isFloatingToolViewport ? (
-          <div className="tool-rail" aria-label="右侧工具">
-            <button
-              type="button"
-              className={formatPanelExpanded ? "tool-rail-button is-active" : "tool-rail-button"}
-              aria-label={formatPanelExpanded ? "收起格式面板" : "展开格式面板"}
-              onClick={() => setFormatPanelExpanded((current) => !current)}
-            >
-              Aa
-            </button>
-          </div>
-        ) : null}
       </section>
 
       {paletteOpen ? <CommandPalette items={paletteItems} onClose={() => setPaletteOpen(false)} /> : null}

@@ -1,0 +1,266 @@
+/* ============================================================
+   信息面板：文档元信息、标签、反向链接、导出（右栏，可折叠）
+   ============================================================ */
+
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin: 8px 10px 10px 0;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow-paper);
+}
+
+.info-panel-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 8px 16px;
+}
+
+.info-panel-header strong {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.info-panel-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 14px 18px 16px;
+}
+
+.info-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--subtle-text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.info-label svg {
+  opacity: 0.72;
+}
+
+.info-label-action {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--subtle-text);
+  font-size: 11px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.info-label-action:hover {
+  color: var(--accent-color);
+}
+
+/* ---------- 概览行 ---------- */
+
+.info-rows {
+  margin: 0;
+}
+
+.info-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.info-row:last-child {
+  border-bottom: 0;
+}
+
+.info-row dt {
+  color: var(--muted-text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.info-row dd {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ---------- 标签 / 文件夹 ---------- */
+
+.info-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.info-chip {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted-text);
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 0 10px;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background-color 140ms ease;
+}
+
+.info-chip:hover {
+  border-color: var(--accent-soft-strong);
+  color: var(--accent-strong);
+}
+
+.info-chip-folder {
+  color: var(--warning-color);
+}
+
+.info-chip-folder:hover {
+  color: var(--warning-color);
+  border-color: color-mix(in srgb, var(--warning-color) 36%, transparent);
+}
+
+.info-edit-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tags-input,
+.folder-input {
+  min-width: 0;
+  height: 30px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  outline: 0;
+  background: var(--surface-muted);
+  color: var(--muted-text);
+  padding: 0 12px;
+  font-size: 12px;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.tags-input {
+  flex: 1 1 200px;
+}
+
+.folder-input {
+  flex: 0 1 130px;
+}
+
+.tags-input:focus,
+.folder-input:focus {
+  border-color: var(--accent-soft-strong);
+  background: var(--surface-hover-soft);
+  color: var(--text-color);
+}
+
+/* ---------- 关联文档 ---------- */
+
+.info-backlink-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-backlink-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 12.5px;
+  padding: 7px 8px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.info-backlink-item:hover {
+  background: var(--surface-hover);
+}
+
+.info-backlink-item svg {
+  flex: 0 0 auto;
+  color: var(--subtle-text);
+}
+
+.info-backlink-item span {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-backlink-item em {
+  flex: 0 0 auto;
+  color: var(--subtle-text);
+  font-size: 11px;
+  font-style: normal;
+}
+
+.info-empty {
+  color: var(--subtle-text);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* ---------- 导出 ---------- */
+
+.info-export-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.info-export-button {
+  min-height: 30px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: 12px;
+  padding: 0 8px;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background-color 140ms ease;
+}
+
+.info-export-button:hover {
+  border-color: var(--accent-soft-strong);
+  background: var(--surface-hover-soft);
+  color: var(--text-color);
+}

@@ -77,7 +77,7 @@ export const DEFAULT_SETTINGS: StoredSettings = {
   theme: "light",
   fontFamily: "",
   fontSize: 16,
-  lineWidth: 1120,
+  lineWidth: 850,
   lineHeight: 1.72,
   trashRetentionDays: 30,
   privacyPinHash: null,
@@ -190,7 +190,7 @@ export function sanitizeStoredSettings(raw: Partial<StoredSettings>): StoredSett
     theme: raw.theme === "dark" ? "dark" : "light",
     fontFamily: coerceString(raw.fontFamily, "", 120),
     fontSize: Math.min(Math.max(Number(raw.fontSize) || 16, 13), 24),
-    lineWidth: Math.min(Math.max(Number(raw.lineWidth) || 1120, 640), 1600),
+    lineWidth: Math.min(Math.max(Number(raw.lineWidth) || 850, 640), 1600),
     lineHeight: Math.min(Math.max(Number(raw.lineHeight) || 1.72, 1.35), 2.2),
     trashRetentionDays: Number.isFinite(Number(raw.trashRetentionDays))
       ? Math.min(Math.max(Math.round(Number(raw.trashRetentionDays)), 0), 365)

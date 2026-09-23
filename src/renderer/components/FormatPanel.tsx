@@ -19,7 +19,8 @@ import {
   Sigma,
   Strikethrough,
   Table2,
-  Underline as UnderlineIcon
+  Underline as UnderlineIcon,
+  X
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
 import type { BlockFormat } from "../editor/block-format";
@@ -33,8 +34,8 @@ type FormatPanelProps = {
   currentColorValue: string;
   currentFontPresetId: FontPresetId;
   settingsReady: boolean;
-  isFloatingToolViewport: boolean;
-  formatPanelExpanded: boolean;
+  open: boolean;
+  onClose: () => void;
   onSetTextPreset: (preset: "heading-1" | "heading-2" | "heading-3" | "body" | "caption") => void;
   onApplyBlockFormat: (attributes: Partial<BlockFormat>) => void;
   onCustomColorChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -55,7 +56,8 @@ export function FormatPanel(props: FormatPanelProps) {
     currentColorValue,
     currentFontPresetId,
     settingsReady,
-    isFloatingToolViewport,
+    open,
+    onClose,
     onSetTextPreset,
     onApplyBlockFormat,
     onCustomColorChange,
@@ -72,18 +74,16 @@ export function FormatPanel(props: FormatPanelProps) {
 
   return (
     <aside
-      className={
-        isFloatingToolViewport
-          ? props.formatPanelExpanded
-            ? "format-panel is-floating is-open"
-            : "format-panel is-floating"
-          : "format-panel"
-      }
+      className={open ? "format-panel is-floating is-open" : "format-panel is-floating"}
       aria-label="格式工具"
+      aria-hidden={!open}
     >
       <div className="format-panel-header">
         <strong>格式</strong>
         <span className="format-panel-chip">Aa</span>
+        <button type="button" className="icon-button format-panel-close" title="收起" aria-label="收起格式面板" onClick={onClose}>
+          <X size={15} />
+        </button>
       </div>
 
       <div className="format-panel-group">
