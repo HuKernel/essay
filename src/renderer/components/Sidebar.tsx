@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Archive,
-  Calendar,
   ChevronDown,
   ChevronRight,
   Clock,
   EyeOff,
+  FileText,
   Folder,
   Hash,
   Home,
@@ -21,7 +21,9 @@ import {
   X
 } from "lucide-react";
 import type { DragEvent as ReactDragEvent } from "react";
+import type { NoteRecord } from "../../shared/types";
 import type { ViewMode } from "../constants";
+import { formatTime } from "../utils/text";
 
 type SidebarProps = {
   sidebarCollapsed: boolean;
@@ -48,16 +50,18 @@ type SidebarProps = {
   onRenameTag: (tag: string) => void;
   onAssignFolder: (noteId: string, folder: string) => void;
   onAssignTag: (noteId: string, tag: string) => void;
+  visibleNotes: NoteRecord[];
+  activeId: string;
+  onOpenNote: (id: string) => void;
 };
 
 const VIEW_MODES: Array<[ViewMode, string, typeof List]> = [
   ["active", "全部记录", List],
-  ["favorites", "收藏", Star],
   ["recent", "最近编辑", Clock],
+  ["favorites", "收藏", Star],
   ["tasks", "待办", ListTodo],
   ["archive", "归档", Archive],
-  ["trash", "回收站", Trash2],
-  ["calendar", "日历", Calendar]
+  ["trash", "回收站", Trash2]
 ];
 
 export function Sidebar(props: SidebarProps) {
@@ -85,13 +89,22 @@ export function Sidebar(props: SidebarProps) {
     onRemoveTag,
     onRenameTag,
     onAssignFolder,
-    onAssignTag
+    onAssignTag,
+    visibleNotes,
+    activeId,
+    onOpenNote
   } = props;
 
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   // 折叠分区：默认收起，选中对应筛选时自动展开
   const [tagsOpen, setTagsOpen] = useState(false);
   const [foldersOpen, setFoldersOpen] = useState(false);
+
+  // 侧栏记录列表：与当前导航/筛选联动，按更新时间倒序
+  const docRows = useMemo(
+    () => [...visibleNotes].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt)),
+    [visibleNotes]
+  );
 
   function dropProps(key: string, apply: (noteId: string) => void) {
     return {
@@ -237,6 +250,68 @@ export function Sidebar(props: SidebarProps) {
           ))}
         </nav>
 
+        {allFolders.length > 0 ? (
+          <section className="nav-group" aria-label="文件夹">
+            <button
+              type="button"
+              className="nav-section-toggle"
+              aria-expanded={foldersOpen || selectedFolder !== ""}
+              onClick={() => setFoldersOpen((current) => !current)}
+            >
+              {foldersOpen || selectedFolder !== "" ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+              <span>文件夹</span>
+              <em>{allFolders.length}</em>
+            </button>
+            {foldersOpen || selectedFolder !== "" ? (
+              <>
+                <button
+                  type="button"
+                  className={[
+                    selectedFolder ? "" : "is-active",
+                    dropTarget === "folder:" ? "is-drop-target" : ""
+                  ]
+                    .filter(Boolean)
+                    .join(" ") || undefined}
+                  onClick={() => onSelectFolder("")}
+                  {...dropProps("folder:", (noteId) => onAssignFolder(noteId, ""))}
+                >
+                  <Folder size={15} />
+                  <span>全部文件夹</span>
+                </button>
+                <div className="nav-group-list">
+                  {allFolders.map((folder) => (
+                    <div className="nav-filter-row" key={folder}>
+                      <button
+                        type="button"
+                        className={[
+                          selectedFolder === folder ? "is-active" : "",
+                          dropTarget === `folder:${folder}` ? "is-drop-target" : ""
+                        ]
+                          .filter(Boolean)
+                          .join(" ") || undefined}
+                        onClick={() => onSelectFolder(folder)}
+                        {...dropProps(`folder:${folder}`, (noteId) => onAssignFolder(noteId, folder))}
+                      >
+                        <Folder size={15} />
+                        <span>{folder}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="nav-row-remove"
+                        aria-label={`删除文件夹 ${folder}`}
+                        title={`删除文件夹 ${folder}`}
+                        onClick={() => onRemoveFolder(folder)}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </section>
+        ) : null}
+
         {allTags.length > 0 ? (
           <section className="nav-group" aria-label="标签">
             <button
@@ -300,67 +375,36 @@ export function Sidebar(props: SidebarProps) {
           </section>
         ) : null}
 
-        {allFolders.length > 0 ? (
-          <section className="nav-group" aria-label="文件夹">
-            <button
-              type="button"
-              className="nav-section-toggle"
-              aria-expanded={foldersOpen || selectedFolder !== ""}
-              onClick={() => setFoldersOpen((current) => !current)}
-            >
-              {foldersOpen || selectedFolder !== "" ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-              <span>文件夹</span>
-              <em>{allFolders.length}</em>
-            </button>
-            {foldersOpen || selectedFolder !== "" ? (
-              <>
+        <section className="nav-group nav-docs" aria-label="记录列表">
+          <div className="nav-section-toggle nav-docs-head">
+            <span>记录</span>
+            <em>{docRows.length}</em>
+          </div>
+          {docRows.length > 0 ? (
+            <div className="nav-doc-list">
+              {docRows.map((note) => (
                 <button
+                  key={note.id}
                   type="button"
                   className={[
-                    selectedFolder ? "" : "is-active",
-                    dropTarget === "folder:" ? "is-drop-target" : ""
+                    "nav-doc-row",
+                    activeId === note.id ? "is-active" : "",
+                    note.trashedAt ? "is-trashed" : ""
                   ]
                     .filter(Boolean)
-                    .join(" ") || undefined}
-                  onClick={() => onSelectFolder("")}
-                  {...dropProps("folder:", (noteId) => onAssignFolder(noteId, ""))}
+                    .join(" ")}
+                  onClick={() => onOpenNote(note.id)}
                 >
-                  <Folder size={15} />
-                  <span>全部文件夹</span>
+                  <FileText size={14} />
+                  <span className="nav-doc-title">{note.title || "未命名记录"}</span>
+                  <span className="nav-doc-time">{formatTime(note.updatedAt).split(" ")[0]}</span>
                 </button>
-                <div className="nav-group-list">
-                  {allFolders.map((folder) => (
-                    <div className="nav-filter-row" key={folder}>
-                      <button
-                        type="button"
-                        className={[
-                          selectedFolder === folder ? "is-active" : "",
-                          dropTarget === `folder:${folder}` ? "is-drop-target" : ""
-                        ]
-                          .filter(Boolean)
-                          .join(" ") || undefined}
-                        onClick={() => onSelectFolder(folder)}
-                        {...dropProps(`folder:${folder}`, (noteId) => onAssignFolder(noteId, folder))}
-                      >
-                        <Folder size={15} />
-                        <span>{folder}</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="nav-row-remove"
-                        aria-label={`删除文件夹 ${folder}`}
-                        title={`删除文件夹 ${folder}`}
-                        onClick={() => onRemoveFolder(folder)}
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : null}
-          </section>
-        ) : null}
+              ))}
+            </div>
+          ) : (
+            <p className="nav-doc-empty">当前视图没有记录</p>
+          )}
+        </section>
       </div>
     </aside>
   );

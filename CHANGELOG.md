@@ -1,3 +1,7 @@
+## 0.9.64 - 2026-09-23
+
+- Sidebar rebuilt as one unified knowledge navigation system: main nav (全部记录/最近编辑/收藏/待办/归档/回收站) is followed by collapsible folder and tag sections and then a live document list that filters with the selected nav item — all in a single scrolling column with consistent row styling, no more split "nav above / content below" look. Clicking a nav item while reading no longer yanks you out of the document (the sidebar list re-filters in place; other center views still switch to the big list). The calendar entry point is removed from the sidebar (calendar list-page code retained).
+
 ## 0.9.63 - 2026-09-23
 
 - Document list page title and breadcrumb now show the active folder/tag name (e.g. "公司" or "#标签") instead of the generic "全部记录" when a filter is applied.

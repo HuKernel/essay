@@ -179,7 +179,7 @@
   color: var(--text-color);
 }
 
-/* ---------- 纵向知识导航 ---------- */
+/* ---------- 纵向知识导航：导航与记录列表共用一条滚动流 ---------- */
 
 .nav-body {
   display: flex;
@@ -187,11 +187,14 @@
   flex: 1 1 auto;
   flex-direction: column;
   gap: 10px;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
 }
 
 .nav-group {
   display: flex;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: 1px;
 }
@@ -318,6 +321,90 @@
 .nav-row-remove:hover {
   background: var(--surface-hover);
   color: var(--danger-color);
+}
+
+/* ---------- 侧栏记录列表：跟随当前导航项联动 ---------- */
+
+.nav-docs {
+  padding-bottom: 10px;
+}
+
+.nav-docs-head {
+  cursor: default;
+}
+
+.nav-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.nav-doc-row {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 30px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 8px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-base) var(--ease-smooth),
+    color var(--motion-base) var(--ease-smooth);
+}
+
+.nav-doc-row svg {
+  flex: 0 0 auto;
+  opacity: 0.6;
+}
+
+.nav-doc-row:hover {
+  background: var(--surface-hover-soft);
+  color: var(--text-color);
+}
+
+.nav-doc-row.is-active {
+  background: var(--surface-active);
+  color: var(--text-color);
+}
+
+.nav-doc-row.is-active svg {
+  opacity: 0.9;
+}
+
+.nav-doc-row.is-trashed .nav-doc-title {
+  text-decoration: line-through;
+  text-decoration-color: var(--subtle-text);
+}
+
+.nav-doc-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-doc-time {
+  flex: 0 0 auto;
+  color: var(--subtle-text);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-doc-empty {
+  margin: 2px 8px 6px;
+  color: var(--subtle-text);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 /* ---------- 新建笔记 ---------- */
@@ -658,33 +745,4 @@
   background: var(--accent-color);
 }
 
-/* ---------- 日历视图：整块滚动，避免挤压其它区块 ---------- */
-
-.nav-body > .calendar-wrap {
-  display: flex;
-  min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-}
-
-.nav-body > .calendar-wrap .note-list.is-embedded {
-  flex: 1 1 auto;
-  min-height: 90px;
-  overflow-y: auto;
-  padding: 4px 6px 8px;
-}
-
-.calendar-wrap .calendar-nav,
-.calendar-wrap .calendar-grid {
-  flex-shrink: 0;
-}
-
-.calendar-cell {
-  min-height: 28px;
-}
-
-.calendar-pad {
-  min-height: 28px;
-}
+/* ---------- 日历视图（中心列表页 calendar-wrap.is-page 使用） ---------- */
