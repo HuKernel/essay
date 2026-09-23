@@ -2144,7 +2144,7 @@ export default function App() {
               {centerView === "list" ? (
                 <>
                   <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                  <strong>{CENTER_TITLES[viewMode] ?? "全部记录"}</strong>
+                  <strong>{selectedTag ? `#${selectedTag}` : selectedFolder || (CENTER_TITLES[viewMode] ?? "全部记录")}</strong>
                 </>
               ) : null}
               {centerView === "reader" ? (
@@ -2207,6 +2207,7 @@ export default function App() {
                 activeId={activeId}
                 searchKeyword={searchKeyword}
                 hasFilter={Boolean(query || selectedFolder || selectedTag)}
+                filterLabel={selectedTag ? `#${selectedTag}` : selectedFolder || undefined}
                 openTasks={openTasks}
                 onOpenNote={openNoteInReader}
                 onOpenTaskNote={(id) => {

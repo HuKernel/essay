@@ -23,6 +23,7 @@ type DocumentListPageProps = {
   activeId: string;
   searchKeyword: string;
   hasFilter: boolean;
+  filterLabel?: string;
   openTasks: OpenTask[];
   onOpenNote: (id: string) => void;
   onOpenTaskNote: (id: string) => void;
@@ -61,6 +62,7 @@ export function DocumentListPage(props: DocumentListPageProps) {
     activeId,
     searchKeyword,
     hasFilter,
+    filterLabel,
     openTasks,
     onOpenNote,
     onOpenTaskNote,
@@ -112,7 +114,7 @@ export function DocumentListPage(props: DocumentListPageProps) {
       <div className="doc-list-head">
         <h2>
           {viewMode === "tasks" ? <ListTodo size={18} /> : null}
-          {VIEW_TITLES[viewMode] ?? "全部记录"}
+          {filterLabel || (VIEW_TITLES[viewMode] ?? "全部记录")}
         </h2>
         <span>{viewMode === "tasks" ? openTasks.length : filteredNotes.length} 篇</span>
       </div>

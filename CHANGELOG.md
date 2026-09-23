@@ -1,3 +1,7 @@
+## 0.9.63 - 2026-09-23
+
+- Document list page title and breadcrumb now show the active folder/tag name (e.g. "公司" or "#标签") instead of the generic "全部记录" when a filter is applied.
+
 ## 0.9.62 - 2026-09-23
 
 - Fixed dead clicks: the folder segment in the breadcrumb and the folder/tag chips in the Knowledge Assistant panel now actually navigate — they set the filter and switch the center to the filtered document list (previously they only set the filter silently, so nothing appeared to happen).
