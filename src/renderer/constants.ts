@@ -3,7 +3,6 @@ import type { AppSettings } from "../shared/types";
 export type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 export type ExportFormat = "html" | "json" | "txt" | "md" | "pdf";
 export type ViewMode = "active" | "favorites" | "archive" | "trash" | "recent" | "tasks" | "calendar";
-export type LeftPaneMode = "document" | "files";
 
 export type FindMatch = {
   from: number;

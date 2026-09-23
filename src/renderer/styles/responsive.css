@@ -66,7 +66,7 @@
       opacity 180ms ease;
   }
 
-  .sidebar-body {
+  .nav-body {
     gap: 10px;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -74,40 +74,12 @@
   }
 
   /* 小窗口高度有限：内容不再被 flex 压缩到不可见，改为自然高度并随侧栏整体滚动 */
-  .sidebar-body > * {
+  .nav-body > * {
     flex-shrink: 0;
   }
 
-  .note-list,
-  .document-outline-list,
-  .recent-timeline {
+  .note-list {
     flex: none;
-  }
-
-  .sidebar-summary-card {
-    display: none;
-  }
-
-  .document-outline-list {
-    padding: 8px;
-  }
-
-  .outline-link {
-    height: 32px;
-    line-height: 32px;
-    padding: 0 9px;
-    font-size: 12px;
-  }
-
-  .sidebar-mode-switch {
-    --sidebar-mode-pad: 6px;
-    --sidebar-mode-gap: 6px;
-    min-height: 52px;
-  }
-
-  .sidebar-mode-button {
-    height: 40px;
-    font-size: 12px;
   }
 
   .app-shell.sidebar-collapsed .sidebar {
@@ -278,42 +250,11 @@
     padding-bottom: 8px;
   }
 
-  .brand-row.compact {
-    padding-bottom: 0;
-  }
-
-  .sidebar-body {
+  .nav-body {
     gap: 8px;
   }
 
-  .sidebar-quick-actions {
-    gap: 6px;
-  }
-
-  .sidebar-chip,
-  .sidebar .icon-button {
+  .nav-header .icon-button {
     height: 34px;
-  }
-
-  .document-outline-list {
-    gap: 2px;
-    padding: 6px;
-  }
-
-  .outline-link {
-    height: 30px;
-    line-height: 30px;
-    padding: 0 8px;
-    font-size: 11px;
-  }
-
-  .sidebar-mode-switch {
-    --sidebar-mode-pad: 5px;
-    min-height: 50px;
-  }
-
-  .sidebar-mode-button {
-    height: 40px;
-    font-size: 12px;
   }
 }

@@ -1,10 +1,26 @@
-import { CalendarDays, FileDown, Link2, PanelRightClose, Pencil, TextSearch } from "lucide-react";
-import type { ExportFormat } from "../constants";
+import {
+  CalendarDays,
+  FileDown,
+  Link2,
+  ListTree,
+  PanelRightClose,
+  Pencil,
+  Sparkles,
+  TextSearch
+} from "lucide-react";
+import type { ExportFormat, OutlineItem } from "../constants";
 
 export type BacklinkItem = {
   id: string;
   title: string;
   kind: "linked" | "unlinked";
+};
+
+export type AiActionItem = {
+  id: string;
+  label: string;
+  hint: string;
+  run: () => void;
 };
 
 type InfoPanelProps = {
@@ -29,6 +45,9 @@ type InfoPanelProps = {
   backlinks: BacklinkItem[];
   onJump: (id: string) => void;
   onExport: (format: ExportFormat) => void;
+  outlineItems: OutlineItem[];
+  onJumpToOutline: (item: OutlineItem) => void;
+  aiActions: AiActionItem[];
 };
 
 const EXPORTS: Array<{ format: ExportFormat; label: string }> = [
@@ -51,9 +70,9 @@ export function InfoPanel(props: InfoPanelProps) {
   const { open, onClose, readOnly } = props;
 
   return (
-    <aside className={open ? "info-panel is-open" : "info-panel"} aria-label="文档信息">
+    <aside className={open ? "info-panel is-open" : "info-panel"} aria-label="知识助手">
       <header className="info-panel-header">
-        <strong>文档信息</strong>
+        <strong>知识助手</strong>
         <button
           type="button"
           className="icon-button"
@@ -92,6 +111,28 @@ export function InfoPanel(props: InfoPanelProps) {
 
         <section className="info-group">
           <span className="info-label">
+            <ListTree size={12} aria-hidden="true" /> 目录
+          </span>
+          {props.outlineItems.length > 0 ? (
+            <nav className="info-outline-list" aria-label="当前文档目录">
+              {props.outlineItems.map((item, index) => (
+                <button
+                  key={`${item.pos}-${index}`}
+                  type="button"
+                  className={`info-outline-link info-outline-level-${item.level}`}
+                  onClick={() => props.onJumpToOutline(item)}
+                >
+                  {item.text}
+                </button>
+              ))}
+            </nav>
+          ) : (
+            <span className="info-empty">用标题组织内容后，这里会出现目录</span>
+          )}
+        </section>
+
+        <section className="info-group">
+          <span className="info-label">
             <Pencil size={12} aria-hidden="true" /> 属性
             {!readOnly ? (
               <button type="button" className="info-label-action" onClick={props.onToggleMetaEditor}>
@@ -101,7 +142,11 @@ export function InfoPanel(props: InfoPanelProps) {
           </span>
           <div className="info-chip-row">
             {props.folder ? (
-              <button type="button" className="info-chip info-chip-folder" onClick={() => props.onFolderClick(props.folder)}>
+              <button
+                type="button"
+                className="info-chip info-chip-folder"
+                onClick={() => props.onFolderClick(props.folder)}
+              >
                 {props.folder}
               </button>
             ) : null}
@@ -156,11 +201,30 @@ export function InfoPanel(props: InfoPanelProps) {
 
         <section className="info-group">
           <span className="info-label">
+            <Sparkles size={12} aria-hidden="true" /> AI 操作
+          </span>
+          <div className="info-ai-list">
+            {props.aiActions.map((action) => (
+              <button key={action.id} type="button" className="info-ai-button" onClick={action.run}>
+                <strong>{action.label}</strong>
+                <span>{action.hint}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="info-group">
+          <span className="info-label">
             <FileDown size={12} aria-hidden="true" /> 导出
           </span>
           <div className="info-export-grid">
             {EXPORTS.map((item) => (
-              <button key={item.format} type="button" className="info-export-button" onClick={() => props.onExport(item.format)}>
+              <button
+                key={item.format}
+                type="button"
+                className="info-export-button"
+                onClick={() => props.onExport(item.format)}
+              >
                 {item.label}
               </button>
             ))}

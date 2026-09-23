@@ -1,3 +1,9 @@
+## 0.9.49 - 2026-09-23
+
+- Desktop layout rebuilt as an AI Knowledge OS rather than a Markdown editor. Left sidebar is now a vertical knowledge navigation system: workspace header, search, new note, then a vertical nav list (All / Recent / Favorites / Tasks / Archive / Trash / Calendar) with the selected view highlighted, followed by vertical Folders and Tags sections (drag-to-classify and rename/delete kept) and the document list for the current view. The old horizontal view tabs, outline pane and bottom mode switch are gone; the document outline moved into the right panel.
+- Right panel upgraded from metadata-only to a Knowledge Assistant (300px): Overview, clickable Table of Contents (jump to heading), Properties, Related documents, AI actions, and Export. AI actions are local clipboard helpers for working with LLMs — copy full document as Markdown, copy as a ready-to-paste prompt context (title + body + prompt lead-in), and copy the heading outline.
+- Center document stays a floating border-less reading canvas (unchanged from 0.9.48).
+
 ## 0.9.48 - 2026-09-23
 
 - Reading-first layout pass: the document no longer sits in a paper card — no border, no rounded rectangle, content floats directly on the background (Notion reading mode / Medium article feel). Sidebar (260px) and the info panel (280px) became full-bleed recessed columns with no borders or shadows, so the center document is clearly the hero and the two side columns just support reading. Top bar divider removed.
