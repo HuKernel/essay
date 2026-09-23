@@ -139,7 +139,7 @@ export default function App() {
   const [unlockError, setUnlockError] = useState("");
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
-  const [navBackStack, setNavBackStack] = useState<string[]>([]);
+  const [navBackStack, setNavBackStack] = useState<Array<{ view: "home" | "list" | "reader"; noteId: string }>>([]);
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [findQuery, setFindQuery] = useState("");
   const [replaceValue, setReplaceValue] = useState("");
@@ -1222,23 +1222,27 @@ export default function App() {
   }
 
   function openNoteInReader(id: string) {
-    // 记录跳转历史，供顶栏返回按钮回退
-    if (activeId && id !== activeId) {
-      setNavBackStack((stack) => (stack[stack.length - 1] === activeId ? stack : [...stack, activeId]));
+    // 记录跳转前的页面状态（视图 + 文档），供顶栏返回按钮回退到"上一页"
+    if (id !== activeId || centerView !== "reader") {
+      setNavBackStack((stack) => [
+        ...stack,
+        { view: centerView, noteId: activeId }
+      ]);
     }
     void handleSelectNote(id);
     setCenterView("reader");
   }
 
   function goBackNote() {
-    setNavBackStack((stack) => {
-      const prev = stack[stack.length - 1];
-      if (prev && prev !== activeId) {
-        void handleSelectNote(prev);
-        setCenterView("reader");
-      }
-      return stack.slice(0, -1);
-    });
+    const prev = navBackStack[navBackStack.length - 1];
+    if (!prev) return;
+    setNavBackStack((stack) => stack.slice(0, -1));
+    if (prev.view === "reader" && prev.noteId) {
+      if (prev.noteId !== activeId) void handleSelectNote(prev.noteId);
+      setCenterView("reader");
+    } else {
+      setCenterView(prev.view);
+    }
   }
 
   async function handleDeleteNote(id: string) {

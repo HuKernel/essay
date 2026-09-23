@@ -1,3 +1,7 @@
+## 0.9.78 - 2026-09-23
+
+- Reworked the back button into a page-history stack: jumping into a document from the list/home/linked notes now returns to that page (not to the previously restored document), and reader→reader jumps return to the previous document. Also fixed the original implementation that fired side effects inside a setState updater, which could pop the stack without switching the page.
+
 ## 0.9.77 - 2026-09-23
 
 - Back navigation for documents: a ← button appears at the top bar (left of the breadcrumb) after jumping between documents via lists, linked notes, or breadcrumb parents — click to return to the previous document. Narrow windows show a compact ☰ (instead of the app logo) before the breadcrumb; the app logo returns to the top of the collapsed rail.
