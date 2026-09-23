@@ -2,9 +2,28 @@
    中心区页面：工作空间主页 / 文档列表（侧栏只负责导航）
    ============================================================ */
 
-/* workspace 第二行容器：承载 home / list / reader 三态 */
+/* workspace 第二行容器：承载 home / list / reader 三态 + 常驻知识助手列 */
 .workspace-main {
   position: relative;
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+/* home / list / reader 同占第一格，靠 is-hidden/条件渲染互斥 */
+.workspace-main > .workspace-home,
+.workspace-main > .doc-list-page,
+.workspace-main > .document-stage {
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 0;
+}
+
+/* 知识助手列：不随中间视图切换消失 */
+.workspace-main > .info-panel {
+  grid-column: 2;
+  grid-row: 1;
   min-height: 0;
 }
 

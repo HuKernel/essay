@@ -6,6 +6,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  width: 300px;
   overflow: hidden;
   /* 全出血支撑列：底色退后，无边框无阴影 */
   background: var(--panel-bg);

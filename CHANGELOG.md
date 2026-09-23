@@ -1,3 +1,7 @@
+## 0.9.66 - 2026-09-23
+
+- Knowledge Assistant panel is now a persistent column of the workspace: it no longer disappears when switching the center between Home / document list / reader. The panel moved out of the document stage into the workspace grid (300px column; same floating-overlay behavior below 1280px width), showing the current document's outline/metadata in every view.
+
 ## 0.9.65 - 2026-09-23
 
 - Sidebar is now pure navigation (Notion/Craft style): removed the live document list at the bottom and added a user row ("本地空间", click to open settings) pinned at the sidebar foot. Clicking a nav item, folder, or tag now always opens the filtered list page in the center so every navigation click has visible feedback. Center editor and right info panel untouched.

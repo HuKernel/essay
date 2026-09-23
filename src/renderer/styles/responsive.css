@@ -3,12 +3,8 @@
    ============================================================ */
 
 @media (max-width: 1279px) {
-  .document-stage {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   /* 信息面板脱离右栏，成为可弹出的浮层（与格式面板同款） */
-  .document-stage .info-panel {
+  .info-panel {
     position: fixed;
     top: 56px;
     right: 14px;
@@ -28,14 +24,10 @@
       opacity var(--motion-base) var(--ease-smooth);
   }
 
-  .document-stage .info-panel.is-open {
+  .info-panel.is-open {
     transform: translate3d(0, 0, 0);
     opacity: 1;
     pointer-events: auto;
-  }
-
-  .document-stage.info-collapsed .info-panel {
-    display: flex;
   }
 }
 
@@ -189,7 +181,7 @@
     width: auto;
   }
 
-  .document-stage .info-panel {
+  .info-panel {
     top: 50px;
     right: 10px;
     bottom: 10px;

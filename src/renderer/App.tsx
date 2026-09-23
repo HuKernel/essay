@@ -2223,15 +2223,7 @@ export default function App() {
                 onPurgeNote={(id) => void handlePurgeNote(id)}
               />
             ) : null}
-          <div
-            className={
-              centerView !== "reader"
-                ? "document-stage is-hidden"
-                : infoPanelOpen && activeNote
-                  ? "document-stage"
-                  : "document-stage info-collapsed"
-            }
-          >
+          <div className={centerView !== "reader" ? "document-stage is-hidden" : "document-stage"}>
             <div className={firstHeadingDupesTitle ? "editor-column dedupe-first-h1" : "editor-column"}>
               <div className="doc-head">
                 <input
@@ -2282,8 +2274,9 @@ export default function App() {
               onOpenFormat={() => setFormatPopoverOpen(true)}
             />
           </div>
+          </div>
 
-          {activeNote ? (
+          {activeNote && infoPanelOpen ? (
             <InfoPanel
               open={infoPanelOpen}
               readOnly={editorDisabled}
@@ -2322,8 +2315,6 @@ export default function App() {
               onJumpToOutline={jumpToOutline}
             />
           ) : null}
-          </div>
-          </div>
 
           <FormatPanel
             editor={editor}
@@ -2345,6 +2336,7 @@ export default function App() {
             tableToolbarVisible={tableToolbarVisible}
             onRunTableCommand={runTableCommand}
           />
+          </div>
       </section>
 
       {paletteOpen ? <CommandPalette items={paletteItems} onClose={() => setPaletteOpen(false)} /> : null}
