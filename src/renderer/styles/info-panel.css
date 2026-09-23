@@ -17,7 +17,7 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 12px 6px 16px;
+  padding: 8px 12px 2px 16px;
 }
 
 .info-panel-header strong {
@@ -34,7 +34,7 @@
   gap: 16px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 4px 14px 18px 16px;
+  padding: 2px 14px 18px 16px;
 }
 
 .info-group {

@@ -62,6 +62,14 @@
   white-space: nowrap;
 }
 
+.save-status.last-edited {
+  justify-content: flex-end;
+  min-width: 0;
+  color: var(--subtle-text);
+  font-variant-numeric: tabular-nums;
+  padding-right: 2px;
+}
+
 .save-status.error {
   color: var(--danger-color);
 }

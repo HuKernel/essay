@@ -19,7 +19,6 @@ type InfoPanelProps = {
   /** 回收站笔记：标签等编辑入口只读 */
   readOnly: boolean;
   createdAt: string;
-  updatedAt: string;
   chars: number;
   readingMinutes: number;
   folder: string;
@@ -73,10 +72,6 @@ export function InfoPanel(props: InfoPanelProps) {
             <div className="info-row">
               <dt>创建时间</dt>
               <dd>{fullDate.format(new Date(props.createdAt))}</dd>
-            </div>
-            <div className="info-row">
-              <dt>更新时间</dt>
-              <dd>{fullDate.format(new Date(props.updatedAt))}</dd>
             </div>
             <div className="info-row">
               <dt>字数</dt>

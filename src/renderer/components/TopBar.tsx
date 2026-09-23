@@ -3,6 +3,7 @@ import type { SaveState } from "../constants";
 
 type TopBarProps = {
   saveState: SaveState;
+  lastEditedText: string;
   formatOpen: boolean;
   onToggleFormat: () => void;
   infoOpen: boolean;
@@ -18,12 +19,13 @@ const STATUS_TEXT: Record<SaveState, string> = {
 };
 
 export function TopBar(props: TopBarProps) {
-  const { saveState, formatOpen, onToggleFormat, infoOpen, onToggleInfo } = props;
+  const { saveState, lastEditedText, formatOpen, onToggleFormat, infoOpen, onToggleInfo } = props;
 
   return (
     <header className="topbar">
       <div className="topbar-drag-spacer" aria-hidden="true" />
       <div className="topbar-statuses">
+        {lastEditedText ? <span className="save-status last-edited">最后编辑 {lastEditedText}</span> : null}
         <span className={`save-status ${saveState}`}>{STATUS_TEXT[saveState]}</span>
         <button
           type="button"

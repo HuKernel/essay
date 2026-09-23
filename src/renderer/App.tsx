@@ -2072,6 +2072,7 @@ export default function App() {
     <main className={appClassName} style={appStyle}>
       <TopBar
           saveState={saveState}
+          lastEditedText={activeNote ? docDateFormat.format(new Date(activeNote.updatedAt)) : ""}
           formatOpen={formatPopoverOpen}
           onToggleFormat={() => setFormatPopoverOpen((current) => !current)}
           infoOpen={infoPanelOpen}
@@ -2174,9 +2175,6 @@ export default function App() {
                 </>
               ) : null}
             </nav>
-            {activeNote && centerView === "reader" ? (
-              <span className="app-header-edited">最后编辑于 {docDateFormat.format(new Date(activeNote.updatedAt))}</span>
-            ) : null}
           </header>
           <div className="workspace-main">
             {centerView === "home" ? (
@@ -2277,7 +2275,6 @@ export default function App() {
               open={infoPanelOpen}
               readOnly={editorDisabled}
               createdAt={activeNote.createdAt}
-              updatedAt={activeNote.updatedAt}
               chars={editorStats.chars}
               readingMinutes={editorStats.readingMinutes}
               folder={folderPreview}
