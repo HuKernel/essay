@@ -2082,7 +2082,7 @@ export default function App() {
     outlineItems[0].text.trim().toLowerCase() === normalizedTitle;
 
   const appStyle = {
-    "--editor-width": `${settings?.lineWidth ?? 900}px`,
+    "--editor-width": settings?.lineWidthAuto !== false ? "min(100%, 1400px)" : `${settings?.lineWidth ?? 900}px`,
     "--editor-font-family": settings?.fontFamily?.trim() || undefined,
     "--editor-font-size": `${settings?.fontSize ?? 16}px`,
     "--editor-line-height": settings?.lineHeight ?? 1.8

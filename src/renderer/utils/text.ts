@@ -261,6 +261,7 @@ export function settingsPayload(settings: AppSettings, hotkey: string) {
     fontFamily: settings.fontFamily,
     fontSize: settings.fontSize,
     lineWidth: settings.lineWidth,
+    lineWidthAuto: settings.lineWidthAuto,
     lineHeight: settings.lineHeight,
     trashRetentionDays: settings.trashRetentionDays
   };

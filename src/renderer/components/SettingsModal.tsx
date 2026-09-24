@@ -155,11 +155,25 @@ export function SettingsModal(props: SettingsModalProps) {
                   max={1600}
                   step={20}
                   value={settings?.lineWidth ?? 900}
+                  disabled={settings?.lineWidthAuto ?? true}
                   onChange={(event) =>
                     onSettingsChange((current) => ({ ...current, lineWidth: Number(event.target.value) }))
                   }
                 />
-                <small className="setting-hint">全屏或大屏下可调宽，减少两侧留白。</small>
+                <small className="setting-hint">固定行宽：关闭「自适应行宽」后生效。</small>
+              </label>
+              <label className="settings-toggle settings-field-wide">
+                <div className="settings-toggle-copy">
+                  <strong>自适应行宽</strong>
+                  <small>正文栏随窗口宽度自动伸展（上限 1400px），减少两侧留白；关闭后使用固定行宽。</small>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings?.lineWidthAuto ?? true}
+                  onChange={(event) =>
+                    onSettingsChange((current) => ({ ...current, lineWidthAuto: event.target.checked }))
+                  }
+                />
               </label>
               <label className="settings-field">
                 <span>行高（{(settings?.lineHeight ?? 1.8).toFixed(2)}）</span>

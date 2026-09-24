@@ -37,6 +37,7 @@ export type AppSettings = {
   fontFamily: string;
   fontSize: number;
   lineWidth: number;
+  lineWidthAuto: boolean;
   lineHeight: number;
   trashRetentionDays: number;
 };
@@ -55,6 +56,7 @@ export type SettingsUpdatePayload = {
   fontFamily: string;
   fontSize: number;
   lineWidth: number;
+  lineWidthAuto: boolean;
   lineHeight: number;
   trashRetentionDays: number;
   currentPrivacyPin?: string;

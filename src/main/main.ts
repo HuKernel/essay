@@ -486,6 +486,7 @@ function sanitizeSettingsPayload(raw: unknown): SettingsUpdatePayload {
     fontFamily: coerceString(payload.fontFamily, "", 120),
     fontSize: Math.min(Math.max(Number(payload.fontSize) || 16, 13), 24),
     lineWidth: Math.min(Math.max(Number(payload.lineWidth) || 850, 640), 1600),
+    lineWidthAuto: payload.lineWidthAuto !== false,
     lineHeight: Math.min(Math.max(Number(payload.lineHeight) || 1.72, 1.35), 2.2),
     trashRetentionDays: Number.isFinite(Number(payload.trashRetentionDays))
       ? Math.min(Math.max(Math.round(Number(payload.trashRetentionDays)), 0), 365)
@@ -1142,6 +1143,7 @@ async function updateStoredSettings(payload: SettingsUpdatePayload): Promise<App
     fontFamily: payload.fontFamily,
     fontSize: payload.fontSize,
     lineWidth: payload.lineWidth,
+    lineWidthAuto: payload.lineWidthAuto,
     lineHeight: payload.lineHeight,
     trashRetentionDays: payload.trashRetentionDays ?? current.trashRetentionDays
   };

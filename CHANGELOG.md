@@ -1,3 +1,19 @@
+## 0.9.82 - 2026-09-24
+
+- Added an "adaptive line width" reading option (on by default): the text column now stretches with the window up to a 1400px readability cap instead of a fixed width, shrinking the empty margins on large screens. The existing line-width slider becomes the fixed-width fallback (enabled only when adaptive is off). Settings plumbing carries the new lineWidthAuto flag through defaults, sanitizing, and IPC.
+
+## 0.9.81 - 2026-09-24
+
+- Flattened the reader title to match the body exactly: the doc title now uses the editor font size (16px default, follows the font-size setting) with only weight/serif distinguishing it — no title/body size gap at any window size. In-content headings trimmed to 1.4/1.25/1.1x body. Removed the unreachable ≤760px title override.
+
+## 0.9.80 - 2026-09-24
+
+- Narrowed the reader title further at small window sizes only: clamp floor 22px → 19px (title ≈ 1.19x body at the 820px minimum width); large-window sizes (24–26px) unchanged.
+
+## 0.9.79 - 2026-09-24
+
+- Rebalanced reader typography: the document title shrinks from clamp(30px, 3vw, 36px) to clamp(22px, 2.2vw, 26px), and in-content headings scale down accordingly (h1 2.18x → 1.6x, h2 1.68x → 1.35x, h3 1.34x → 1.18x of the body font) so titles no longer dwarf the content while the title > h1 > h2 > h3 > body hierarchy stays intact.
+
 ## 0.9.78 - 2026-09-23
 
 - Reworked the back button into a page-history stack: jumping into a document from the list/home/linked notes now returns to that page (not to the previously restored document), and reader→reader jumps return to the previous document. Also fixed the original implementation that fired side effects inside a setState updater, which could pop the stack without switching the page.

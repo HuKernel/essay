@@ -78,6 +78,7 @@ export const DEFAULT_SETTINGS: StoredSettings = {
   fontFamily: "",
   fontSize: 16,
   lineWidth: 900,
+  lineWidthAuto: true,
   lineHeight: 1.8,
   trashRetentionDays: 30,
   privacyPinHash: null,
@@ -138,6 +139,7 @@ export function publicSettings(settings: StoredSettings, activePrivacyPin: strin
     fontFamily: settings.fontFamily,
     fontSize: settings.fontSize,
     lineWidth: settings.lineWidth,
+    lineWidthAuto: settings.lineWidthAuto,
     lineHeight: settings.lineHeight,
     trashRetentionDays: settings.trashRetentionDays,
     hasPrivacyPin: Boolean(settings.privacyPinHash && settings.privacyPinSalt)
@@ -191,6 +193,7 @@ export function sanitizeStoredSettings(raw: Partial<StoredSettings>): StoredSett
     fontFamily: coerceString(raw.fontFamily, "", 120),
     fontSize: Math.min(Math.max(Number(raw.fontSize) || 16, 13), 24),
     lineWidth: Math.min(Math.max(Number(raw.lineWidth) || 900, 640), 1600),
+    lineWidthAuto: raw.lineWidthAuto !== false,
     lineHeight: Math.min(Math.max(Number(raw.lineHeight) || 1.8, 1.35), 2.2),
     trashRetentionDays: Number.isFinite(Number(raw.trashRetentionDays))
       ? Math.min(Math.max(Math.round(Number(raw.trashRetentionDays)), 0), 365)
