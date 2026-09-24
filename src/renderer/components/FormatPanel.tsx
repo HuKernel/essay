@@ -478,6 +478,38 @@ export function FormatPanel(props: FormatPanelProps) {
             </button>
             <button
               type="button"
+              className="format-button"
+              onMouseDown={keepEditorFocus}
+              onClick={() => onRunTableCommand(() => editor.chain().focus().deleteColumn().run())}
+            >
+              删列
+            </button>
+            <button
+              type="button"
+              className="format-button"
+              onMouseDown={keepEditorFocus}
+              onClick={() => onRunTableCommand(() => editor.chain().focus().mergeCells().run())}
+            >
+              合并所选
+            </button>
+            <button
+              type="button"
+              className="format-button"
+              onMouseDown={keepEditorFocus}
+              onClick={() => onRunTableCommand(() => editor.chain().focus().splitCell().run())}
+            >
+              拆分单元格
+            </button>
+            <button
+              type="button"
+              className="format-button"
+              onMouseDown={keepEditorFocus}
+              onClick={() => onRunTableCommand(() => editor.chain().focus().toggleHeaderRow().run())}
+            >
+              表头行
+            </button>
+            <button
+              type="button"
               className="format-button danger"
               onMouseDown={keepEditorFocus}
               onClick={() => onRunTableCommand(() => editor.chain().focus().deleteTable().run())}

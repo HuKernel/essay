@@ -1,3 +1,7 @@
+## 0.9.83 - 2026-09-24
+
+- Completed the table toolbar: added delete-column, merge-selected-cells, split-cell, and header-row toggle buttons alongside the existing row/column insert and delete operations. Cell selection highlight and column-resize styles were already in place, so merge/split works immediately.
+
 ## 0.9.82 - 2026-09-24
 
 - Added an "adaptive line width" reading option (on by default): the text column now stretches with the window up to a 1400px readability cap instead of a fixed width, shrinking the empty margins on large screens. The existing line-width slider becomes the fixed-width fallback (enabled only when adaptive is off). Settings plumbing carries the new lineWidthAuto flag through defaults, sanitizing, and IPC.
