@@ -1936,11 +1936,15 @@ function setupWebContentsGuards(window: BrowserWindow) {
     }
   });
 
-  window.webContents.session.setPermissionRequestHandler((_webContents, _permission, callback) => {
-    callback(false);
+  // clipboard-sanitized-write 只允许 navigator.clipboard.writeText 写纯文本，
+  // 代码块"复制"按钮依赖它；读剪贴板（clipboard-read）仍拒绝
+  const allowPermission = (permission: string) => permission === "clipboard-sanitized-write";
+
+  window.webContents.session.setPermissionRequestHandler((_webContents, permission, callback) => {
+    callback(allowPermission(permission));
   });
 
-  window.webContents.session.setPermissionCheckHandler(() => false);
+  window.webContents.session.setPermissionCheckHandler((_webContents, permission) => allowPermission(permission));
 }
 
 let currentTheme: "light" | "dark" = "light";

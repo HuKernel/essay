@@ -1,3 +1,7 @@
+## 0.9.84 - 2026-10-10
+
+- Fixed the code-block "copy" button doing nothing: the session permission handlers rejected every web permission, which silently denied the `clipboard-sanitized-write` permission required by `navigator.clipboard.writeText`. Only that permission is now allowed (plain-text clipboard writes); clipboard reads and all other permissions remain denied.
+
 ## 0.9.83 - 2026-09-24
 
 - Completed the table toolbar: added delete-column, merge-selected-cells, split-cell, and header-row toggle buttons alongside the existing row/column insert and delete operations. Cell selection highlight and column-resize styles were already in place, so merge/split works immediately.
