@@ -1,3 +1,10 @@
+## 0.9.86 - 2026-10-13
+
+- Fixed the block context menu closing when scrolling inside the menu itself: wheel events originating inside `.block-ctx-menu` no longer dismiss it; scrolling the page still does.
+- Added task due dates: task items now carry a due-date badge (today / tomorrow / next week / custom date picker). Overdue items highlight in red; completed items dim. Dates are stored on the task item as `data-due-date`.
+- Added a "Today" section on the workspace home aggregating unfinished tasks due today or overdue across all notes (oldest first, up to 8), each row jumps to the note and scrolls to the task block.
+- Added note cover images: optional cover at the top of the reader (hover to change/remove, dashed "add cover" appears on hover), stored per note in `note_meta.cover_asset` (auto-migrated) referencing the attachments folder. List cards and home rows show a cover thumbnail when present.
+
 ## 0.9.85 - 2026-10-13
 
 - Added a per-note body font override (default / serif / mono / rounded) in the info panel, stored per note in `note_meta.body_font` (auto-migrated) and taking precedence over the global font preset; "follow default" falls back to the global setting.

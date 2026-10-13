@@ -24,6 +24,8 @@ const api = {
   toggleArchiveNote: (id: string) => ipcRenderer.invoke("notes:toggle-archive", id) as Promise<NoteRecord>,
   setNoteBodyFont: (id: string, bodyFont: string | null) =>
     ipcRenderer.invoke("notes:set-body-font", id, bodyFont) as Promise<NoteRecord>,
+  setNoteCover: (id: string, coverAsset: string | null) =>
+    ipcRenderer.invoke("notes:set-cover", id, coverAsset) as Promise<NoteRecord>,
   deleteNote: (id: string) => ipcRenderer.invoke("notes:delete", id) as Promise<void>,
   restoreNote: (id: string) => ipcRenderer.invoke("notes:restore", id) as Promise<NoteRecord>,
   purgeNote: (id: string) => ipcRenderer.invoke("notes:purge", id) as Promise<void>,

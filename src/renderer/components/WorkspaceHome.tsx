@@ -1,6 +1,8 @@
-import { Clock, FolderOpen, Hash, Star } from "lucide-react";
+import { CalendarCheck, Clock, FolderOpen, Hash, Star } from "lucide-react";
 import type { NoteRecord } from "../../shared/types";
 import { formatTime } from "../utils/text";
+import { collectTodayTasks, describeDue, localDateStr } from "../editor/task-item-due";
+import { requestOpenNote } from "../editor/craft-blocks";
 
 type WorkspaceHomeProps = {
   notes: NoteRecord[];
@@ -17,6 +19,11 @@ const TAG_PREVIEW_LIMIT = 3;
 function DocRow({ note, active, onOpen }: { note: NoteRecord; active: boolean; onOpen: () => void }) {
   return (
     <button type="button" className={active ? "home-doc-row is-active" : "home-doc-row"} onClick={onOpen}>
+      {note.coverAsset ? (
+        <span className="home-doc-row-cover" aria-hidden="true">
+          <img src={`suiji-asset://${note.coverAsset}`} alt="" draggable={false} />
+        </span>
+      ) : null}
       <strong>{note.title || "未命名记录"}</strong>
       <span>{note.excerpt || "空记录"}</span>
       <em>{formatTime(note.updatedAt)}</em>
@@ -33,6 +40,8 @@ export function WorkspaceHome(props: WorkspaceHomeProps) {
   const tagGroups = allTags
     .map((tag) => ({ tag, notes: live.filter((note) => note.tags.includes(tag)) }))
     .filter((group) => group.notes.length > 0);
+  const todayTasks = collectTodayTasks(notes);
+  const localDateKey = localDateStr();
 
   return (
     <div className="workspace-home" aria-label="工作空间主页">
@@ -44,6 +53,38 @@ export function WorkspaceHome(props: WorkspaceHomeProps) {
           {allTags.length > 0 ? ` · ${allTags.length} 个标签` : ""}
         </p>
       </div>
+
+      {todayTasks.length > 0 ? (
+        <section className="home-section">
+          <div className="home-section-head">
+            <h2>
+              <CalendarCheck size={15} aria-hidden="true" /> 今日待办
+            </h2>
+            <span className="home-task-count">{todayTasks.length}</span>
+          </div>
+          <div className="home-task-list">
+            {todayTasks.map((task, index) => {
+              const overdue = task.due < localDateKey;
+              return (
+                <button
+                  key={`${task.noteId}-${index}`}
+                  type="button"
+                  className={overdue ? "home-task-row is-overdue" : "home-task-row"}
+                  onClick={() => requestOpenNote(task.noteId, task.text)}
+                  title={`打开「${task.noteTitle}」并定位到该任务`}
+                >
+                  <span className="home-task-check" aria-hidden="true" />
+                  <span className="home-task-copy">
+                    <strong>{task.text}</strong>
+                    <em>{task.noteTitle}</em>
+                  </span>
+                  <span className={overdue ? "home-task-due is-overdue" : "home-task-due"}>{describeDue(task.due)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <section className="home-section">
         <div className="home-section-head">

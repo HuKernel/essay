@@ -290,3 +290,131 @@
 .calendar-wrap.is-page .calendar-grid {
   max-width: 420px;
 }
+
+/* ---------- 首页今日待办 ---------- */
+
+.home-task-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 11.5px;
+  font-weight: 650;
+  padding: 0 7px;
+}
+
+.home-task-list {
+  display: grid;
+  gap: 6px;
+}
+
+.home-task-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: var(--surface-soft);
+  padding: 10px 14px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--motion-fast) ease,
+    background-color var(--motion-fast) ease;
+}
+
+.home-task-row:hover {
+  border-color: var(--accent-soft-strong);
+  background: var(--surface-hover);
+}
+
+.home-task-check {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 5px;
+}
+
+.home-task-row.is-overdue .home-task-check {
+  border-color: color-mix(in srgb, var(--danger-color) 60%, transparent);
+}
+
+.home-task-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.home-task-copy strong {
+  overflow: hidden;
+  color: var(--text-color);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-task-copy em {
+  overflow: hidden;
+  color: var(--subtle-text);
+  font-size: 11.5px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-task-due {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+}
+
+.home-task-due.is-overdue {
+  background: var(--danger-soft);
+  color: var(--danger-color);
+}
+
+/* ---------- 列表卡片封面缩略 ---------- */
+
+.note-item-cover {
+  display: block;
+  width: 100%;
+  margin: -4px -6px 8px;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+  flex: none;
+}
+
+.note-item-cover img {
+  display: block;
+  width: 100%;
+  height: 84px;
+  object-fit: cover;
+  user-select: none;
+}
+
+.home-doc-row-cover {
+  display: block;
+  width: 100%;
+  margin: -2px -4px 8px;
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+}
+
+.home-doc-row-cover img {
+  display: block;
+  width: 100%;
+  height: 64px;
+  object-fit: cover;
+  user-select: none;
+}

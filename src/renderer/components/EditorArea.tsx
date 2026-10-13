@@ -110,7 +110,12 @@ export function EditorArea(props: EditorAreaProps) {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setCtxMenu(null);
     };
-    const onWheel = () => setCtxMenu(null);
+    // 页面滚动时关闭菜单；鼠标在菜单内滚动（菜单自身 overflow 滚动）不关闭
+    const onWheel = (event: WheelEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest(".block-ctx-menu")) return;
+      setCtxMenu(null);
+    };
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("wheel", onWheel, { passive: true });
     return () => {

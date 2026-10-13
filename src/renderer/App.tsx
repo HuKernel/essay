@@ -13,7 +13,7 @@ import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
 import TableRow from "@tiptap/extension-table-row";
 import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
+import { TaskItemDue } from "./editor/task-item-due";
 import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 import Typography from "@tiptap/extension-typography";
@@ -164,6 +164,7 @@ export default function App() {
   const [palette, setPalette] = useState<"all" | "notes" | null>(null);
   const [tagRename, setTagRename] = useState<{ from: string; draft: string } | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+  const coverInputRef = useRef<HTMLInputElement | null>(null);
   const linkInputRef = useRef<HTMLInputElement | null>(null);
   const findInputRef = useRef<HTMLInputElement | null>(null);
   const customColorInputRef = useRef<HTMLInputElement | null>(null);
@@ -258,7 +259,7 @@ export default function App() {
       }),
       EditorPlaceholder,
       TaskList,
-      TaskItem.configure({
+      TaskItemDue.configure({
         nested: true
       }),
       Highlight,
@@ -1345,6 +1346,19 @@ export default function App() {
     setNotes((current) => current.map((note) => (note.id === updated.id ? updated : note)));
   }
 
+  async function handleSetCover(id: string, coverAsset: string | null) {
+    await saveActive({ skipClean: true });
+    const updated = await window.suiji.setNoteCover(id, coverAsset);
+    setNotes((current) => current.map((note) => (note.id === updated.id ? updated : note)));
+  }
+
+  async function handleCoverChosen(file: File | undefined) {
+    if (!file || !activeNote) return;
+    if (!file.type.startsWith("image/")) return;
+    const url = await saveImageFileToAsset(file);
+    await handleSetCover(activeNote.id, url.replace("suiji-asset://", ""));
+  }
+
   async function handleRestoreNote(id: string) {
     const restored = await window.suiji.restoreNote(id);
     setNotes((current) => sortNotes([restored, ...current.filter((note) => note.id !== restored.id)]));
@@ -2267,6 +2281,48 @@ export default function App() {
             ) : null}
           <div className={centerView !== "reader" ? "document-stage is-hidden" : "document-stage"}>
             <div className={firstHeadingDupesTitle ? "editor-column dedupe-first-h1" : "editor-column"}>
+              {activeNote && (activeNote.coverAsset || !editorDisabled) ? (
+                <div className="doc-cover">
+                  <input
+                    ref={coverInputRef}
+                    className="hidden-file-input"
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      void handleCoverChosen(event.target.files?.[0]);
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                  {activeNote.coverAsset ? (
+                    <div className="doc-cover-figure">
+                      <img
+                        className="doc-cover-image"
+                        src={`suiji-asset://${activeNote.coverAsset}`}
+                        alt="笔记封面"
+                        draggable={false}
+                      />
+                      {!editorDisabled ? (
+                        <div className="doc-cover-actions" contentEditable={false}>
+                          <button type="button" onClick={() => coverInputRef.current?.click()}>
+                            更换封面
+                          </button>
+                          <button type="button" onClick={() => void handleSetCover(activeNote.id, null)}>
+                            移除
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="doc-cover-add"
+                      onClick={() => coverInputRef.current?.click()}
+                    >
+                      添加封面
+                    </button>
+                  )}
+                </div>
+              ) : null}
               <div className="doc-head">
                 <input
                   className="doc-title-input"

@@ -522,6 +522,7 @@ function sanitizeNotePayload(raw: unknown): NoteRecord {
     pinnedAt: typeof note.pinnedAt === "string" ? note.pinnedAt : null,
     parentId: typeof note.parentId === "string" ? note.parentId : null,
     bodyFont: note.bodyFont ?? null,
+    coverAsset: note.coverAsset ?? null,
     content: note.content && typeof note.content === "object" ? note.content : emptyDoc,
     html: coerceString(note.html),
     plainText: coerceString(note.plainText),
@@ -609,9 +610,15 @@ async function buildPdfExport(note: NoteRecord): Promise<Uint8Array> {
 }
 
 const BODY_FONT_IDS = new Set(["default", "serif", "mono", "rounded"]);
+const COVER_ASSET_PATTERN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9]{1,10}$/;
 
 function normalizeBodyFont(value: unknown): string | null {
   return typeof value === "string" && BODY_FONT_IDS.has(value) ? value : null;
+}
+
+function normalizeCoverAsset(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  return COVER_ASSET_PATTERN.test(value) ? value : null;
 }
 
 function normalizeNote(raw: Partial<NoteRecord>): NoteRecord {
@@ -628,6 +635,7 @@ function normalizeNote(raw: Partial<NoteRecord>): NoteRecord {
     pinnedAt: typeof raw.pinnedAt === "string" ? raw.pinnedAt : null,
     parentId: typeof raw.parentId === "string" && raw.parentId ? raw.parentId : null,
     bodyFont: normalizeBodyFont(raw.bodyFont),
+    coverAsset: normalizeCoverAsset(raw.coverAsset),
     // 旧折叠块的标题存在节点属性里，统一升级为文档内的标题/内容节点
     content: upgradeCollapsibleContent(raw.content ?? emptyDoc),
     html: typeof raw.html === "string" ? raw.html : "",
@@ -692,27 +700,32 @@ function noteFromDbRow(row: NoteDbRow): NoteRecord {
   });
 }
 
-type NoteMetaRow = { id: string; parent_id: string | null; body_font: string | null };
+type NoteMetaRow = { id: string; parent_id: string | null; body_font: string | null; cover_asset: string | null };
 
 function loadAllNoteMeta(): Map<string, NoteMetaRow> {
-  const rows = dbRows<NoteMetaRow>("SELECT id, parent_id, body_font FROM note_meta");
+  const rows = dbRows<NoteMetaRow>("SELECT id, parent_id, body_font, cover_asset FROM note_meta");
   return new Map(rows.map((row) => [row.id, row]));
 }
 
 function loadNoteMeta(id: string): NoteMetaRow | undefined {
-  return dbRows<NoteMetaRow>("SELECT id, parent_id, body_font FROM note_meta WHERE id = ?", [id])[0];
+  return dbRows<NoteMetaRow>("SELECT id, parent_id, body_font, cover_asset FROM note_meta WHERE id = ?", [id])[0];
 }
 
 function applyNoteMeta(note: NoteRecord, meta?: NoteMetaRow): NoteRecord {
   if (!meta) return note;
-  return { ...note, parentId: meta.parent_id, bodyFont: normalizeBodyFont(meta.body_font) };
+  return {
+    ...note,
+    parentId: meta.parent_id,
+    bodyFont: normalizeBodyFont(meta.body_font),
+    coverAsset: normalizeCoverAsset(meta.cover_asset)
+  };
 }
 
 function upsertNoteMeta(note: NoteRecord) {
   dbExec(
-    `INSERT INTO note_meta (id, parent_id, body_font) VALUES (?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET parent_id = excluded.parent_id, body_font = excluded.body_font`,
-    [note.id, note.parentId ?? null, note.bodyFont ?? null]
+    `INSERT INTO note_meta (id, parent_id, body_font, cover_asset) VALUES (?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET parent_id = excluded.parent_id, body_font = excluded.body_font, cover_asset = excluded.cover_asset`,
+    [note.id, note.parentId ?? null, note.bodyFont ?? null, note.coverAsset ?? null]
   );
 }
 
@@ -837,7 +850,8 @@ function ensureNotesSchema() {
       id TEXT PRIMARY KEY,
       parent_id TEXT,
       file_path TEXT,
-      body_font TEXT
+      body_font TEXT,
+      cover_asset TEXT
     );
   `);
   // 旧库的 note_meta 没有 file_path 列，补上（已存在则忽略）
@@ -848,6 +862,11 @@ function ensureNotesSchema() {
   }
   try {
     dbExec("ALTER TABLE note_meta ADD COLUMN body_font TEXT");
+  } catch {
+    // column already exists
+  }
+  try {
+    dbExec("ALTER TABLE note_meta ADD COLUMN cover_asset TEXT");
   } catch {
     // column already exists
   }
@@ -1542,11 +1561,27 @@ async function toggleArchiveNote(id: string): Promise<NoteRecord> {
 
 async function setNoteBodyFont(id: string, bodyFont: string | null): Promise<NoteRecord> {
   const note = await readNote(id);
-  dbExec(`INSERT INTO note_meta (id, parent_id, body_font) VALUES (?, ?, ?)
+  dbExec(`INSERT INTO note_meta (id, parent_id, body_font, cover_asset) VALUES (?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET body_font = excluded.body_font`, [
     note.id,
     note.parentId ?? null,
-    normalizeBodyFont(bodyFont)
+    normalizeBodyFont(bodyFont),
+    note.coverAsset ?? null
+  ]);
+  notesDbDirty = true;
+  const latest = await finalizeNoteWrite(id);
+  await persistNotesDatabase();
+  return latest;
+}
+
+async function setNoteCover(id: string, coverAsset: string | null): Promise<NoteRecord> {
+  const note = await readNote(id);
+  dbExec(`INSERT INTO note_meta (id, parent_id, body_font, cover_asset) VALUES (?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET cover_asset = excluded.cover_asset`, [
+    note.id,
+    note.parentId ?? null,
+    note.bodyFont ?? null,
+    normalizeCoverAsset(coverAsset)
   ]);
   notesDbDirty = true;
   const latest = await finalizeNoteWrite(id);
@@ -2206,6 +2241,9 @@ function registerIpc() {
   ipcMain.handle("notes:toggle-archive", (_event, id: string) => toggleArchiveNote(id));
   ipcMain.handle("notes:set-body-font", (_event, id: string, bodyFont: string | null) =>
     setNoteBodyFont(id, bodyFont)
+  );
+  ipcMain.handle("notes:set-cover", (_event, id: string, coverAsset: string | null) =>
+    setNoteCover(id, coverAsset)
   );
   ipcMain.handle("notes:delete", (_event, id: string) => deleteNote(id));
   ipcMain.handle("notes:restore", (_event, id: string) => restoreNote(id));

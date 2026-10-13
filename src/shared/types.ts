@@ -13,6 +13,8 @@ export type NoteSummary = {
   parentId: string | null;
   /** 每篇笔记的正文字体档位（default/serif/mono/rounded），null 表示跟随全局默认 */
   bodyFont: string | null;
+  /** 笔记封面图资产文件名（存 attachments/），null 表示无封面 */
+  coverAsset: string | null;
   createdAt: string;
   updatedAt: string;
 };

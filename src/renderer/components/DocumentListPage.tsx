@@ -255,6 +255,11 @@ export function DocumentListPage(props: DocumentListPageProps) {
                 }}
               >
                 <div className="note-item-header">
+                  {note.coverAsset ? (
+                    <span className="note-item-cover" aria-hidden="true">
+                      <img src={`suiji-asset://${note.coverAsset}`} alt="" draggable={false} />
+                    </span>
+                  ) : null}
                   <span className="note-title">
                     {note.pinnedAt ? <Pin size={13} className="note-pin-mark" /> : null}
                     <span className="note-title-text">
