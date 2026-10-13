@@ -32,13 +32,26 @@ const CODE_LANGUAGES: Array<[string, string]> = [
 
 let mermaidRenderSeq = 0;
 
+/** 复制来的图源码常带统一缩进，mermaid 解析对行首空格敏感，先去掉公共缩进 */
+function dedentMermaid(source: string) {
+  const lines = source.replace(/\t/g, "  ").split("\n");
+  const indents = lines
+    .filter((line) => line.trim().length > 0)
+    .map((line) => {
+      const match = /^\s*/.exec(line);
+      return match ? match[0].length : 0;
+    });
+  const common = indents.length > 0 ? Math.min(...indents) : 0;
+  return lines.map((line) => (line.trim().length > 0 ? line.slice(common) : line)).join("\n").trim();
+}
+
 function MermaidPreview({ source }: { source: string }) {
   const [svg, setSvg] = useState("");
   const [error, setError] = useState("");
   const reactId = useId();
 
   useEffect(() => {
-    const trimmed = source.trim();
+    const trimmed = dedentMermaid(source);
     if (!trimmed) {
       setSvg("");
       setError("");
@@ -49,7 +62,8 @@ function MermaidPreview({ source }: { source: string }) {
       try {
         const mermaid = (await import("mermaid")).default;
         const dark = document.querySelector(".app-shell")?.classList.contains("theme-dark") ?? false;
-        mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: dark ? "dark" : "default" });
+        // loose 允许 htmlLabels 等特性，避免部分图型在 strict 下误报语法错误
+        mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: dark ? "dark" : "default" });
         mermaidRenderSeq += 1;
         const { svg: rendered } = await mermaid.render(`suiji-mmd-${reactId.replace(/[^a-zA-Z0-9]/g, "")}-${mermaidRenderSeq}`, trimmed);
         if (!cancelled) {

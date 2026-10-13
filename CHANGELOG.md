@@ -1,3 +1,8 @@
+## 0.9.91 - 2026-10-13
+
+- Fixed block-move commands moving blocks to the wrong place: the ProseMirror `forEach` callback signature is `(child, offset, index)` and the offset was being used as the index when recomputing the insert position. Also fixed "move to bottom" falling back to the document start when the post-delete index is out of range.
+- Fixed Mermaid previews failing with parse errors and white-background artifacts: sources are now dedented before rendering (copied diagrams often carry leading indentation), the security level is `loose` so htmlLabels-based diagram types don't misreport syntax errors, and the preview SVG background is forced transparent to follow the theme.
+
 ## 0.9.90 - 2026-10-13
 
 - Removed the floating "+" insert button that appeared on every empty line (insert entry points are now the `/` slash menu, the format panel, and the block context menu).

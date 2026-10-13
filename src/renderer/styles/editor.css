@@ -1511,6 +1511,8 @@
 .mermaid-preview svg {
   max-width: 100%;
   height: auto;
+  /* 部分图型自带白底矩形，强制透明跟随主题 */
+  background: transparent !important;
 }
 
 .mermaid-error {

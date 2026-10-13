@@ -278,11 +278,10 @@ export function EditorArea(props: EditorAreaProps) {
       .chain()
       .focus()
       .command(({ tr, state }) => {
+        // forEach 签名是 (child, offset, index)：必须用第三个参数做索引
         let index = -1;
-        let offset = 0;
-        state.doc.forEach((child, i) => {
+        state.doc.forEach((_child, offset, i) => {
           if (index < 0 && offset === start) index = i;
-          offset += child.nodeSize;
         });
         if (index < 0 || state.doc.childCount < 2) return false;
         const count = state.doc.childCount;
@@ -290,10 +289,13 @@ export function EditorArea(props: EditorAreaProps) {
           direction === "up" ? index - 1 : direction === "down" ? index + 1 : direction === "top" ? 0 : count - 1;
         if (target < 0 || target >= count || target === index) return false;
         tr.delete(start, start + size);
-        let insertPos = 0;
-        tr.doc.forEach((child, i) => {
-          if (i < target) insertPos += child.nodeSize;
-        });
+        // 删除后共 count-1 块；bottom 的 target 越界一格 → 追加到文档末尾
+        let insertPos = tr.doc.content.size;
+        if (target < tr.doc.childCount) {
+          tr.doc.forEach((_child, offset, i) => {
+            if (i === target) insertPos = offset;
+          });
+        }
         tr.insert(insertPos, node);
         return true;
       })
