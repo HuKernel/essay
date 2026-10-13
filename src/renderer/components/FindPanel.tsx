@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Regex, Search } from "lucide-react";
 
 type FindPanelProps = {
   /** 回收站笔记为只读，隐藏替换控件 */
@@ -6,6 +6,8 @@ type FindPanelProps = {
   findInputRef: React.Ref<HTMLInputElement>;
   findQuery: string;
   onFindQueryChange: (value: string) => void;
+  findRegex: boolean;
+  onToggleFindRegex: () => void;
   replaceOpen: boolean;
   replaceValue: string;
   onReplaceValueChange: (value: string) => void;
@@ -24,6 +26,8 @@ export function FindPanel(props: FindPanelProps) {
     findInputRef,
     findQuery,
     onFindQueryChange,
+    findRegex,
+    onToggleFindRegex,
     replaceOpen,
     replaceValue,
     onReplaceValueChange,
@@ -47,7 +51,7 @@ export function FindPanel(props: FindPanelProps) {
             ref={findInputRef}
             value={findQuery}
             autoFocus
-            placeholder="查找"
+            placeholder={findRegex ? "正则表达式查找" : "查找"}
             onChange={(event) => onFindQueryChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
@@ -89,6 +93,14 @@ export function FindPanel(props: FindPanelProps) {
             下一个
           </button>
         </div>
+        <button
+          type="button"
+          className={findRegex ? "is-active" : undefined}
+          onClick={onToggleFindRegex}
+          title="正则表达式模式（替换中可用 $1..$9 引用捕获组）"
+        >
+          <Regex size={13} aria-hidden="true" /> 正则
+        </button>
         {!readOnly ? (
           <button type="button" className={replaceOpen ? "is-active" : undefined} onClick={onToggleReplace}>
             替换

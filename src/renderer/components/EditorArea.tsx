@@ -1,26 +1,27 @@
 import { useEffect, useState } from "react";
-import { BubbleMenu, EditorContent, FloatingMenu } from "@tiptap/react";
+import { BubbleMenu, EditorContent } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import { TextSelection } from "@tiptap/pm/state";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import {
+  ArrowDown,
+  ArrowUp,
   Bold,
+  ChevronsDown,
+  ChevronsUp,
   Code,
   Copy,
   FileOutput,
   Highlighter,
   Italic,
   Link2,
-  Plus,
   Repeat2,
   Strikethrough,
   Trash2,
   Type,
   Underline as UnderlineIcon
 } from "lucide-react";
-import type { BlockMenuCommand } from "../constants";
 import { HR_VARIANTS, HR_VARIANT_LABELS, type HRVariant } from "../editor/hr-variant";
-import { isEmptyParagraphSelection } from "../utils/text";
 import { keepEditorFocus } from "./common";
 import { EditorErrorBoundary } from "./EditorErrorBoundary";
 import { requestOpenNote } from "../editor/craft-blocks";
@@ -30,10 +31,6 @@ type EditorAreaProps = {
   editorWrapRef: React.Ref<HTMLDivElement>;
   imageInputRef: React.Ref<HTMLInputElement>;
   trashed: boolean;
-  blockMenuOpen: boolean;
-  blockMenuCommands: BlockMenuCommand[];
-  onToggleBlockMenu: () => void;
-  onApplyBlockMenuCommand: (command: BlockMenuCommand) => void;
   onHoverBlock: (target: EventTarget | null) => void;
   onLeave: () => void;
   onFocusEnd: () => void;
@@ -44,16 +41,6 @@ type EditorAreaProps = {
   /** 把一段顶级块范围提取为子页面（原位替换为卡片） */
   onPromoteToSubpage: (range: { from: number; to: number }) => void;
 };
-
-/** 光标位于列表/任务项内部时隐藏悬浮 +，避免遮住任务复选框 */
-function inListItemContext(editor: Editor) {
-  const { $from } = editor.state.selection;
-  for (let depth = $from.depth - 1; depth > 0; depth -= 1) {
-    const name = $from.node(depth).type.name;
-    if (name === "taskItem" || name === "listItem") return true;
-  }
-  return false;
-}
 
 type CtxMenuState = {
   x: number;
@@ -95,10 +82,6 @@ export function EditorArea(props: EditorAreaProps) {
     editorWrapRef,
     imageInputRef,
     trashed,
-    blockMenuOpen,
-    blockMenuCommands,
-    onToggleBlockMenu,
-    onApplyBlockMenuCommand,
     onHoverBlock,
     onLeave,
     onFocusEnd,
@@ -286,6 +269,38 @@ export function EditorArea(props: EditorAreaProps) {
     setCtxMenu(null);
   }
 
+  /** 顶级块四向移动：delete 后按目标索引重插 */
+  function runMoveBlock(direction: "up" | "down" | "top" | "bottom") {
+    if (!editor || !ctxMenu) return;
+    const { start, node } = ctxMenu;
+    const size = node.nodeSize;
+    editor
+      .chain()
+      .focus()
+      .command(({ tr, state }) => {
+        let index = -1;
+        let offset = 0;
+        state.doc.forEach((child, i) => {
+          if (index < 0 && offset === start) index = i;
+          offset += child.nodeSize;
+        });
+        if (index < 0 || state.doc.childCount < 2) return false;
+        const count = state.doc.childCount;
+        const target =
+          direction === "up" ? index - 1 : direction === "down" ? index + 1 : direction === "top" ? 0 : count - 1;
+        if (target < 0 || target >= count || target === index) return false;
+        tr.delete(start, start + size);
+        let insertPos = 0;
+        tr.doc.forEach((child, i) => {
+          if (i < target) insertPos += child.nodeSize;
+        });
+        tr.insert(insertPos, node);
+        return true;
+      })
+      .run();
+    setCtxMenu(null);
+  }
+
   return (
     <div
       ref={editorWrapRef}
@@ -430,51 +445,6 @@ export function EditorArea(props: EditorAreaProps) {
         </BubbleMenu>
       ) : null}
       {editor ? (
-        <FloatingMenu
-          editor={editor}
-          tippyOptions={{
-            duration: 120,
-            placement: "left-start",
-            maxWidth: "none",
-            offset: [0, 8],
-            zIndex: 40000
-          }}
-          shouldShow={({ editor }) => isEmptyParagraphSelection(editor) && !trashed && !inListItemContext(editor)}
-        >
-          <div className="block-insert-anchor">
-            <button
-              type="button"
-              className={blockMenuOpen ? "block-insert-trigger is-open" : "block-insert-trigger"}
-              aria-label="插入块"
-              title="插入块"
-              onMouseDown={(event) => {
-                event.preventDefault();
-                onToggleBlockMenu();
-              }}
-            >
-              <Plus size={15} />
-            </button>
-            {blockMenuOpen ? (
-              <div className="block-insert-menu" aria-label="块格式菜单">
-                {blockMenuCommands.map((command) => (
-                  <button
-                    key={command.id}
-                    type="button"
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      onApplyBlockMenuCommand(command);
-                    }}
-                  >
-                    <strong>{command.label}</strong>
-                    <span>{command.hint}</span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </FloatingMenu>
-      ) : null}
-      {editor ? (
         <EditorErrorBoundary>
           <EditorContent editor={editor} />
         </EditorErrorBoundary>
@@ -538,6 +508,20 @@ export function EditorArea(props: EditorAreaProps) {
                 <span className="block-ctx-divider" aria-hidden="true" />
               </>
             ) : null}
+            <span className="block-ctx-move" role="group" aria-label="移动区块">
+              <button type="button" title="移到顶部" aria-label="移到顶部" onMouseDown={keepEditorFocus} onClick={() => runMoveBlock("top")}>
+                <ChevronsUp size={14} />
+              </button>
+              <button type="button" title="上移一格" aria-label="上移一格" onMouseDown={keepEditorFocus} onClick={() => runMoveBlock("up")}>
+                <ArrowUp size={14} />
+              </button>
+              <button type="button" title="下移一格" aria-label="下移一格" onMouseDown={keepEditorFocus} onClick={() => runMoveBlock("down")}>
+                <ArrowDown size={14} />
+              </button>
+              <button type="button" title="移到底部" aria-label="移到底部" onMouseDown={keepEditorFocus} onClick={() => runMoveBlock("bottom")}>
+                <ChevronsDown size={14} />
+              </button>
+            </span>
             <button
               type="button"
               role="menuitem"

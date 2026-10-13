@@ -26,6 +26,8 @@ const api = {
     ipcRenderer.invoke("notes:set-body-font", id, bodyFont) as Promise<NoteRecord>,
   setNoteCover: (id: string, coverAsset: string | null) =>
     ipcRenderer.invoke("notes:set-cover", id, coverAsset) as Promise<NoteRecord>,
+  setNotePageBg: (id: string, pageBg: string | null) =>
+    ipcRenderer.invoke("notes:set-page-bg", id, pageBg) as Promise<NoteRecord>,
   deleteNote: (id: string) => ipcRenderer.invoke("notes:delete", id) as Promise<void>,
   restoreNote: (id: string) => ipcRenderer.invoke("notes:restore", id) as Promise<NoteRecord>,
   purgeNote: (id: string) => ipcRenderer.invoke("notes:purge", id) as Promise<void>,
@@ -125,6 +127,13 @@ const api = {
     ipcRenderer.on("notes:reload", listener);
     return () => {
       ipcRenderer.removeListener("notes:reload", listener);
+    };
+  },
+  onOpenDueTask: (callback: (payload: { noteId: string; text: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: { noteId: string; text: string }) => callback(payload);
+    ipcRenderer.on("task:open-due", listener);
+    return () => {
+      ipcRenderer.removeListener("task:open-due", listener);
     };
   }
 };

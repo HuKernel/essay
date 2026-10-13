@@ -364,3 +364,33 @@
   background: var(--surface-hover-soft);
   color: var(--text-color);
 }
+
+/* ---------- 页面背景色板 ---------- */
+
+.info-bg-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+
+.info-bg-swatch {
+  height: 30px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  cursor: pointer;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.info-bg-swatch:hover:not(:disabled) {
+  border-color: var(--accent-color);
+}
+
+.info-bg-swatch.is-active {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px var(--accent-soft-strong);
+}
+
+.info-bg-swatch:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

@@ -1,3 +1,16 @@
+## 0.9.90 - 2026-10-13
+
+- Removed the floating "+" insert button that appeared on every empty line (insert entry points are now the `/` slash menu, the format panel, and the block context menu).
+- Added regex find & replace: a toggle in the find panel switches to regular-expression matching (invalid patterns fail safe to zero matches), and replacement strings support `$1..$9` capture-group references.
+- Added block move commands in the block context menu: move block up/down/one-up/one-down (top/bottom included).
+- Added focus mode (Ctrl+Shift+F or command palette): hides sidebar, info panel and format panel, remembers and restores the previous layout on exit; Esc exits.
+- Added Mermaid diagrams: code blocks with the "Mermaid 图表" language render a live diagram preview below the source (lazy-loaded, dark-theme aware, syntax errors shown inline).
+- Added per-note page backgrounds: preset solid/gradient swatches in the info panel, stored per note in `note_meta.page_bg` (auto-migrated).
+- Added custom block styles: the format panel can save the current block's format (text role, color, focus/card decorations) as a named reusable style (stored locally, up to 24), apply or delete with one click.
+- Added task due notifications: the main process scans unfinished tasks every 30 minutes and raises a system notification when a task's due date arrives (deduplicated per session); clicking the notification jumps to and scrolls to the task block.
+- Added "图链" (image URL) insertion in the format panel for embedding network images by link.
+- Note: inline TeX math (`$...$`) already existed (MathInline) — no change needed.
+
 ## 0.9.89 - 2026-10-13
 
 - Fixed right-clicking a divider still opening the wrong menu: replaced the `posAtDOM` boundary-based lookup with an exact reverse match that walks the document and compares `view.nodeDOM(pos)` against the clicked `hr` element — the divider style menu now always appears.

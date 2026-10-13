@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import type { NodeViewProps } from "@tiptap/react";
@@ -8,6 +8,7 @@ import { Check, ChevronDown, Copy } from "lucide-react";
 const CODE_LANGUAGES: Array<[string, string]> = [
   ["", "自动"],
   ["plaintext", "纯文本"],
+  ["mermaid", "Mermaid 图表"],
   ["javascript", "JavaScript"],
   ["typescript", "TypeScript"],
   ["python", "Python"],
@@ -28,6 +29,55 @@ const CODE_LANGUAGES: Array<[string, string]> = [
   ["xml", "XML"],
   ["markdown", "Markdown"]
 ];
+
+let mermaidRenderSeq = 0;
+
+function MermaidPreview({ source }: { source: string }) {
+  const [svg, setSvg] = useState("");
+  const [error, setError] = useState("");
+  const reactId = useId();
+
+  useEffect(() => {
+    const trimmed = source.trim();
+    if (!trimmed) {
+      setSvg("");
+      setError("");
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        const mermaid = (await import("mermaid")).default;
+        const dark = document.querySelector(".app-shell")?.classList.contains("theme-dark") ?? false;
+        mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: dark ? "dark" : "default" });
+        mermaidRenderSeq += 1;
+        const { svg: rendered } = await mermaid.render(`suiji-mmd-${reactId.replace(/[^a-zA-Z0-9]/g, "")}-${mermaidRenderSeq}`, trimmed);
+        if (!cancelled) {
+          setSvg(rendered);
+          setError("");
+        }
+      } catch (renderError) {
+        if (!cancelled) {
+          setSvg("");
+          setError(renderError instanceof Error ? renderError.message : String(renderError));
+        }
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [source, reactId]);
+
+  if (!source.trim()) return null;
+  return (
+    <div className="mermaid-preview" contentEditable={false} aria-label="Mermaid 图表预览">
+      {svg ? <div dangerouslySetInnerHTML={{ __html: svg }} /> : null}
+      {error ? <p className="mermaid-error">图表语法错误：{error}</p> : null}
+      {!svg && !error ? <p className="mermaid-loading">渲染中…</p> : null}
+    </div>
+  );
+}
 
 function CodeBlockView({ node, updateAttributes }: NodeViewProps) {
   const [copied, setCopied] = useState(false);
@@ -95,6 +145,7 @@ function CodeBlockView({ node, updateAttributes }: NodeViewProps) {
           {copied ? "已复制" : "复制"}
         </button>
       </div>
+      {language === "mermaid" ? <MermaidPreview source={node.textContent} /> : null}
       <NodeViewContent as="pre" />
     </NodeViewWrapper>
   );

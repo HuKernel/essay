@@ -5,7 +5,8 @@ import {
   ListTree,
   Pencil,
   TextSearch,
-  Type
+  Type,
+  Wallpaper
 } from "lucide-react";
 import { FONT_PRESETS, type ExportFormat, type OutlineItem } from "../constants";
 
@@ -31,6 +32,9 @@ type InfoPanelProps = {
   /** 全局默认字体档位 id，用于「跟随默认」按钮的显示 */
   defaultBodyFontId: string;
   onSetBodyFont: (bodyFont: string | null) => void;
+  /** 页面背景编码（color:#hex / grad:#a,#b / null=默认） */
+  pageBg: string | null;
+  onSetPageBg: (pageBg: string | null) => void;
   tagsDraft: string;
   onTagsChange: (value: string) => void;
   folderDraft: string;
@@ -59,6 +63,17 @@ const fullDate = new Intl.DateTimeFormat("zh-CN", {
   hour: "2-digit",
   minute: "2-digit"
 });
+
+const PAGE_BG_PRESETS: Array<{ id: string | null; css: string; label: string }> = [
+  { id: null, css: "transparent", label: "默认" },
+  { id: "color:#fdf6e3", css: "#fdf6e3", label: "米纸" },
+  { id: "color:#eef2ff", css: "#eef2ff", label: "淡靛" },
+  { id: "color:#ecfdf5", css: "#ecfdf5", label: "薄荷" },
+  { id: "color:#fdf2f8", css: "#fdf2f8", label: "樱粉" },
+  { id: "grad:#fef3c7,#ecfeff", css: "linear-gradient(160deg,#fef3c7,#ecfeff)", label: "暖晨" },
+  { id: "grad:#e0e7ff,#fbe9f4", css: "linear-gradient(160deg,#e0e7ff,#fbe9f4)", label: "霞光" },
+  { id: "grad:#e8f5e9,#fffde7", css: "linear-gradient(160deg,#e8f5e9,#fffde7)", label: "青草" }
+];
 
 export function InfoPanel(props: InfoPanelProps) {
   const { open, readOnly } = props;
@@ -182,6 +197,28 @@ export function InfoPanel(props: InfoPanelProps) {
                 <span style={{ fontFamily: preset.family || undefined }}>{preset.preview}</span>
                 {preset.label}
               </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="info-group">
+          <span className="info-label">
+            <Wallpaper size={12} aria-hidden="true" /> 页面背景
+          </span>
+          <div className="info-bg-row" role="group" aria-label="页面背景">
+            {PAGE_BG_PRESETS.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                className={
+                  (props.pageBg ?? null) === preset.id ? "info-bg-swatch is-active" : "info-bg-swatch"
+                }
+                style={{ background: preset.css }}
+                disabled={props.readOnly}
+                title={preset.label}
+                aria-label={`背景：${preset.label}`}
+                onClick={() => props.onSetPageBg(preset.id)}
+              />
             ))}
           </div>
         </section>

@@ -7,6 +7,8 @@ export type ViewMode = "active" | "favorites" | "archive" | "trash" | "recent" |
 export type FindMatch = {
   from: number;
   to: number;
+  /** 正则模式下的捕获组（供替换时 $1..$9 引用） */
+  captures?: string[];
 };
 
 export type OutlineItem = {

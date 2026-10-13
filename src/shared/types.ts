@@ -15,6 +15,8 @@ export type NoteSummary = {
   bodyFont: string | null;
   /** 笔记封面图资产文件名（存 attachments/），null 表示无封面 */
   coverAsset: string | null;
+  /** 页面背景：color:#hex 或 grad:#hex,#hex，null 表示默认 */
+  pageBg: string | null;
   createdAt: string;
   updatedAt: string;
 };

@@ -23,6 +23,7 @@ import {
   Underline as UnderlineIcon,
   X
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import type { BlockFormat } from "../editor/block-format";
 import { FORMAT_COLORS, FONT_PRESETS, type FontPresetId } from "../constants";
@@ -43,11 +44,33 @@ type FormatPanelProps = {
   customColorInputRef: { current: HTMLInputElement | null };
   onFontPreset: (presetId: FontPresetId) => void;
   onInsertCollapsibleBlock: () => void;
+  onInsertImageUrl: () => void;
   onInsertMathBlock: () => void;
   onEditLink: () => void;
   tableToolbarVisible: boolean;
   onRunTableCommand: (command: () => boolean) => void;
 };
+
+type CustomBlockStyle = {
+  id: string;
+  name: string;
+  attrs: Partial<BlockFormat>;
+};
+
+const CUSTOM_STYLES_KEY = "suiji.custom-block-styles";
+
+function loadCustomStyles(): CustomBlockStyle[] {
+  try {
+    const raw = window.localStorage.getItem(CUSTOM_STYLES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((item) => item && typeof item.name === "string" && item.attrs && typeof item.attrs === "object").slice(0, 24)
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 export function FormatPanel(props: FormatPanelProps) {
   const {
@@ -65,6 +88,7 @@ export function FormatPanel(props: FormatPanelProps) {
     customColorInputRef,
     onFontPreset,
     onInsertCollapsibleBlock,
+    onInsertImageUrl,
     onInsertMathBlock,
     onEditLink,
     tableToolbarVisible,
@@ -72,6 +96,27 @@ export function FormatPanel(props: FormatPanelProps) {
   } = props;
 
   const disabled = !editor || editorDisabled;
+  const [customStyles, setCustomStyles] = useState<CustomBlockStyle[]>(loadCustomStyles);
+  const [styleNaming, setStyleNaming] = useState(false);
+  const [styleNameDraft, setStyleNameDraft] = useState("");
+
+  useEffect(() => {
+    window.localStorage.setItem(CUSTOM_STYLES_KEY, JSON.stringify(customStyles));
+  }, [customStyles]);
+
+  function saveStyleWithName() {
+    const name = styleNameDraft.trim();
+    setStyleNaming(false);
+    if (!name) return;
+    const attrs: Partial<BlockFormat> = {
+      textRole: currentBlockFormat.textRole,
+      colorToken: currentBlockFormat.colorToken,
+      customColor: currentBlockFormat.customColor,
+      focusMode: currentBlockFormat.focusMode,
+      cardMode: currentBlockFormat.cardMode
+    };
+    setCustomStyles((current) => [...current, { id: `${Date.now()}-${name}`, name, attrs }].slice(-24));
+  }
 
   return (
     <aside
@@ -323,6 +368,17 @@ export function FormatPanel(props: FormatPanelProps) {
           </button>
           <button
             type="button"
+            className="format-button"
+            onMouseDown={keepEditorFocus}
+            onClick={onInsertImageUrl}
+            disabled={disabled}
+            title="插入网络图片链接"
+          >
+            <Link2 size={16} />
+            图链
+          </button>
+          <button
+            type="button"
             className={tableToolbarVisible ? "format-button is-active" : "format-button"}
             onMouseDown={keepEditorFocus}
             onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
@@ -368,6 +424,74 @@ export function FormatPanel(props: FormatPanelProps) {
               <span>块</span>
             </span>
           </button>
+        </div>
+      </div>
+
+      <div className="format-panel-group">
+        <span className="format-panel-label">我的样式</span>
+        <div className="format-style-list">
+          {customStyles.length === 0 && !styleNaming ? (
+            <span className="format-style-empty">把当前块格式保存成可复用样式</span>
+          ) : null}
+          {customStyles.map((style) => (
+            <span key={style.id} className="format-style-row">
+              <button
+                type="button"
+                className="format-style-apply"
+                onMouseDown={keepEditorFocus}
+                onClick={() => onApplyBlockFormat(style.attrs)}
+                disabled={disabled}
+                title={`套用「${style.name}」`}
+              >
+                {style.name}
+              </button>
+              <button
+                type="button"
+                className="format-style-delete"
+                aria-label={`删除样式「${style.name}」`}
+                onClick={() => setCustomStyles((current) => current.filter((item) => item.id !== style.id))}
+              >
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+          {styleNaming ? (
+            <span className="format-style-row format-style-naming">
+              <input
+                autoFocus
+                value={styleNameDraft}
+                placeholder="样式名"
+                aria-label="样式名"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    saveStyleWithName();
+                  }
+                  if (event.key === "Escape") {
+                    event.preventDefault();
+                    setStyleNaming(false);
+                  }
+                }}
+                onChange={(event) => setStyleNameDraft(event.target.value)}
+              />
+              <button type="button" className="format-style-delete" title="保存" aria-label="保存样式" onClick={saveStyleWithName}>
+                <Check size={12} />
+              </button>
+            </span>
+          ) : (
+            <button
+              type="button"
+              className="format-style-save"
+              onMouseDown={keepEditorFocus}
+              onClick={() => {
+                setStyleNameDraft("");
+                setStyleNaming(true);
+              }}
+              disabled={disabled}
+            >
+              存为样式
+            </button>
+          )}
         </div>
       </div>
 

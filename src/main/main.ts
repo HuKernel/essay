@@ -8,6 +8,7 @@ import {
   Menu,
   nativeImage,
   net,
+  Notification,
   powerMonitor,
   protocol,
   shell,
@@ -523,6 +524,7 @@ function sanitizeNotePayload(raw: unknown): NoteRecord {
     parentId: typeof note.parentId === "string" ? note.parentId : null,
     bodyFont: note.bodyFont ?? null,
     coverAsset: note.coverAsset ?? null,
+    pageBg: note.pageBg ?? null,
     content: note.content && typeof note.content === "object" ? note.content : emptyDoc,
     html: coerceString(note.html),
     plainText: coerceString(note.plainText),
@@ -611,6 +613,8 @@ async function buildPdfExport(note: NoteRecord): Promise<Uint8Array> {
 
 const BODY_FONT_IDS = new Set(["default", "serif", "mono", "rounded"]);
 const COVER_ASSET_PATTERN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9]{1,10}$/;
+/** 页面背景：color:#rgb/#rrggbb 或 grad:#a,#b（最多双色） */
+const PAGE_BG_PATTERN = /^(?:color|grad):#[0-9a-fA-F]{3,8}(?:,#[0-9a-fA-F]{3,8})?$/;
 
 function normalizeBodyFont(value: unknown): string | null {
   return typeof value === "string" && BODY_FONT_IDS.has(value) ? value : null;
@@ -619,6 +623,11 @@ function normalizeBodyFont(value: unknown): string | null {
 function normalizeCoverAsset(value: unknown): string | null {
   if (typeof value !== "string") return null;
   return COVER_ASSET_PATTERN.test(value) ? value : null;
+}
+
+function normalizePageBg(value: unknown): string | null {
+  if (typeof value !== "string" || !value) return null;
+  return PAGE_BG_PATTERN.test(value) ? value.slice(0, 40) : null;
 }
 
 function normalizeNote(raw: Partial<NoteRecord>): NoteRecord {
@@ -636,6 +645,7 @@ function normalizeNote(raw: Partial<NoteRecord>): NoteRecord {
     parentId: typeof raw.parentId === "string" && raw.parentId ? raw.parentId : null,
     bodyFont: normalizeBodyFont(raw.bodyFont),
     coverAsset: normalizeCoverAsset(raw.coverAsset),
+    pageBg: normalizePageBg(raw.pageBg),
     // 旧折叠块的标题存在节点属性里，统一升级为文档内的标题/内容节点
     content: upgradeCollapsibleContent(raw.content ?? emptyDoc),
     html: typeof raw.html === "string" ? raw.html : "",
@@ -700,15 +710,15 @@ function noteFromDbRow(row: NoteDbRow): NoteRecord {
   });
 }
 
-type NoteMetaRow = { id: string; parent_id: string | null; body_font: string | null; cover_asset: string | null };
+type NoteMetaRow = { id: string; parent_id: string | null; body_font: string | null; cover_asset: string | null; page_bg: string | null };
 
 function loadAllNoteMeta(): Map<string, NoteMetaRow> {
-  const rows = dbRows<NoteMetaRow>("SELECT id, parent_id, body_font, cover_asset FROM note_meta");
+  const rows = dbRows<NoteMetaRow>("SELECT id, parent_id, body_font, cover_asset, page_bg FROM note_meta");
   return new Map(rows.map((row) => [row.id, row]));
 }
 
 function loadNoteMeta(id: string): NoteMetaRow | undefined {
-  return dbRows<NoteMetaRow>("SELECT id, parent_id, body_font, cover_asset FROM note_meta WHERE id = ?", [id])[0];
+  return dbRows<NoteMetaRow>("SELECT id, parent_id, body_font, cover_asset, page_bg FROM note_meta WHERE id = ?", [id])[0];
 }
 
 function applyNoteMeta(note: NoteRecord, meta?: NoteMetaRow): NoteRecord {
@@ -717,15 +727,16 @@ function applyNoteMeta(note: NoteRecord, meta?: NoteMetaRow): NoteRecord {
     ...note,
     parentId: meta.parent_id,
     bodyFont: normalizeBodyFont(meta.body_font),
-    coverAsset: normalizeCoverAsset(meta.cover_asset)
+    coverAsset: normalizeCoverAsset(meta.cover_asset),
+    pageBg: normalizePageBg(meta.page_bg)
   };
 }
 
 function upsertNoteMeta(note: NoteRecord) {
   dbExec(
-    `INSERT INTO note_meta (id, parent_id, body_font, cover_asset) VALUES (?, ?, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET parent_id = excluded.parent_id, body_font = excluded.body_font, cover_asset = excluded.cover_asset`,
-    [note.id, note.parentId ?? null, note.bodyFont ?? null, note.coverAsset ?? null]
+    `INSERT INTO note_meta (id, parent_id, body_font, cover_asset, page_bg) VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET parent_id = excluded.parent_id, body_font = excluded.body_font, cover_asset = excluded.cover_asset, page_bg = excluded.page_bg`,
+    [note.id, note.parentId ?? null, note.bodyFont ?? null, note.coverAsset ?? null, note.pageBg ?? null]
   );
 }
 
@@ -851,7 +862,8 @@ function ensureNotesSchema() {
       parent_id TEXT,
       file_path TEXT,
       body_font TEXT,
-      cover_asset TEXT
+      cover_asset TEXT,
+      page_bg TEXT
     );
   `);
   // 旧库的 note_meta 没有 file_path 列，补上（已存在则忽略）
@@ -867,6 +879,11 @@ function ensureNotesSchema() {
   }
   try {
     dbExec("ALTER TABLE note_meta ADD COLUMN cover_asset TEXT");
+  } catch {
+    // column already exists
+  }
+  try {
+    dbExec("ALTER TABLE note_meta ADD COLUMN page_bg TEXT");
   } catch {
     // column already exists
   }
@@ -1241,6 +1258,72 @@ async function listNotes(): Promise<NoteRecord[]> {
   return sortNotes(notes);
 }
 
+/** 已提醒过的任务键（noteId + 文本 + 日期），本次会话内去重 */
+const notifiedTaskKeys = new Set<string>();
+
+function collectDueTasksForReminder(notes: NoteRecord[]): Array<{ noteId: string; noteTitle: string; text: string; due: string }> {
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const items: Array<{ noteId: string; noteTitle: string; text: string; due: string }> = [];
+  const textOf = (node: unknown): string => {
+    if (!node || typeof node !== "object") return "";
+    const current = node as { type?: string; text?: string; content?: unknown[] };
+    if (current.type === "text") return typeof current.text === "string" ? current.text : "";
+    return (current.content ?? []).map(textOf).join("");
+  };
+  const walk = (note: NoteRecord, node: unknown) => {
+    if (!node || typeof node !== "object") return;
+    const current = node as { type?: string; attrs?: Record<string, unknown>; content?: unknown[] };
+    if (current.type === "taskItem") {
+      const due = typeof current.attrs?.dueDate === "string" ? current.attrs.dueDate : null;
+      const checked = Boolean(current.attrs?.checked);
+      if (due && due <= today && !checked) {
+        const text = textOf(current).trim().slice(0, 60);
+        if (text && !notifiedTaskKeys.has(`${note.id}|${text}|${due}`)) {
+          items.push({ noteId: note.id, noteTitle: note.title || "未命名记录", text, due });
+        }
+      }
+    }
+    (current.content ?? []).forEach((child) => walk(note, child));
+  };
+  for (const note of notes) {
+    if (note.trashedAt) continue;
+    walk(note, note.content ?? {});
+  }
+  return items;
+}
+
+/** 周期扫描到期任务并弹系统通知（点击跳转到任务块） */
+function startTaskReminderScheduler() {
+  async function run() {
+    try {
+      await ensureNotesDatabaseReady();
+      const notes = await listNotes();
+      const due = collectDueTasksForReminder(notes);
+      if (due.length === 0) return;
+      for (const task of due.slice(0, 5)) {
+        notifiedTaskKeys.add(`${task.noteId}|${task.text}|${task.due}`);
+        const notification = new Notification({
+          title: "随记 · 任务到期",
+          body: `「${task.text}」（${task.noteTitle}）`,
+          icon: path.join(__dirname, "../build/icon.ico")
+        });
+        notification.on("click", () => {
+          if (mainWindow?.isMinimized() || !mainWindow?.isVisible()) {
+            mainWindow?.show();
+          }
+          mainWindow?.webContents.send("task:open-due", { noteId: task.noteId, text: task.text });
+        });
+        notification.show();
+      }
+    } catch (error) {
+      writeDebugLog(`task reminder failed: ${String(error)}`);
+    }
+  }
+  setTimeout(() => void run(), 20000).unref();
+  setInterval(() => void run(), 30 * 60 * 1000).unref();
+}
+
 function buildFtsQuery(query: string) {
   return query
     .trim()
@@ -1561,12 +1644,13 @@ async function toggleArchiveNote(id: string): Promise<NoteRecord> {
 
 async function setNoteBodyFont(id: string, bodyFont: string | null): Promise<NoteRecord> {
   const note = await readNote(id);
-  dbExec(`INSERT INTO note_meta (id, parent_id, body_font, cover_asset) VALUES (?, ?, ?, ?)
+  dbExec(`INSERT INTO note_meta (id, parent_id, body_font, cover_asset, page_bg) VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET body_font = excluded.body_font`, [
     note.id,
     note.parentId ?? null,
     normalizeBodyFont(bodyFont),
-    note.coverAsset ?? null
+    note.coverAsset ?? null,
+    note.pageBg ?? null
   ]);
   notesDbDirty = true;
   const latest = await finalizeNoteWrite(id);
@@ -1576,12 +1660,29 @@ async function setNoteBodyFont(id: string, bodyFont: string | null): Promise<Not
 
 async function setNoteCover(id: string, coverAsset: string | null): Promise<NoteRecord> {
   const note = await readNote(id);
-  dbExec(`INSERT INTO note_meta (id, parent_id, body_font, cover_asset) VALUES (?, ?, ?, ?)
+  dbExec(`INSERT INTO note_meta (id, parent_id, body_font, cover_asset, page_bg) VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET cover_asset = excluded.cover_asset`, [
     note.id,
     note.parentId ?? null,
     note.bodyFont ?? null,
-    normalizeCoverAsset(coverAsset)
+    normalizeCoverAsset(coverAsset),
+    note.pageBg ?? null
+  ]);
+  notesDbDirty = true;
+  const latest = await finalizeNoteWrite(id);
+  await persistNotesDatabase();
+  return latest;
+}
+
+async function setNotePageBg(id: string, pageBg: string | null): Promise<NoteRecord> {
+  const note = await readNote(id);
+  dbExec(`INSERT INTO note_meta (id, parent_id, body_font, cover_asset, page_bg) VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET page_bg = excluded.page_bg`, [
+    note.id,
+    note.parentId ?? null,
+    note.bodyFont ?? null,
+    note.coverAsset ?? null,
+    normalizePageBg(pageBg)
   ]);
   notesDbDirty = true;
   const latest = await finalizeNoteWrite(id);
@@ -2245,6 +2346,9 @@ function registerIpc() {
   ipcMain.handle("notes:set-cover", (_event, id: string, coverAsset: string | null) =>
     setNoteCover(id, coverAsset)
   );
+  ipcMain.handle("notes:set-page-bg", (_event, id: string, pageBg: string | null) =>
+    setNotePageBg(id, pageBg)
+  );
   ipcMain.handle("notes:delete", (_event, id: string) => deleteNote(id));
   ipcMain.handle("notes:restore", (_event, id: string) => restoreNote(id));
   ipcMain.handle("notes:purge", (_event, id: string) => purgeNote(id));
@@ -2490,6 +2594,7 @@ if (gotTheLock) {
     createTray(settings);
     registerHotkey(settings.hotkey);
     refreshIdleLockMonitor();
+    startTaskReminderScheduler();
     void purgeExpiredTrash().catch(() => undefined);
     powerMonitor.on("suspend", () => {
       void lockContentForPrivacy(true);

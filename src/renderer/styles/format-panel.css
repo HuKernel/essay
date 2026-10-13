@@ -521,3 +521,94 @@
 .table-toolbar button.danger:hover {
   color: var(--danger-color);
 }
+
+/* ---------- 我的样式 ---------- */
+
+.format-style-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.format-style-empty {
+  color: var(--subtle-text);
+  font-size: 11.5px;
+}
+
+.format-style-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  padding: 0 4px 0 10px;
+}
+
+.format-style-apply {
+  border: 0;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 12px;
+  padding: 5px 0;
+  cursor: pointer;
+}
+
+.format-style-apply:hover {
+  color: var(--accent-strong);
+}
+
+.format-style-apply:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.format-style-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--subtle-text);
+  padding: 0;
+  cursor: pointer;
+}
+
+.format-style-delete:hover {
+  background: var(--surface-hover);
+  color: var(--danger-color);
+}
+
+.format-style-naming input {
+  width: 96px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 12px;
+  padding: 5px 0;
+}
+
+.format-style-save {
+  border: 1px dashed var(--line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: 12px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.format-style-save:hover:not(:disabled) {
+  border-color: var(--accent-color);
+  color: var(--accent-strong);
+}
+
+.format-style-save:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

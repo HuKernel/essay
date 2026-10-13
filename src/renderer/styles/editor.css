@@ -1468,3 +1468,61 @@
   background: var(--selection-bg);
   opacity: 0.8;
 }
+
+/* ---------- 右键菜单移动组 ---------- */
+
+.block-ctx-move {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  padding: 2px 2px 4px;
+}
+
+.block-ctx-move button {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted-text);
+  cursor: pointer;
+}
+
+.block-ctx-move button:hover {
+  border-color: var(--line-soft);
+  background: var(--surface-hover);
+  color: var(--accent-strong);
+}
+
+/* ---------- Mermaid 预览 ---------- */
+
+.mermaid-preview {
+  margin: 0 12px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  padding: 14px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.mermaid-preview svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.mermaid-error {
+  margin: 0;
+  color: var(--danger-color);
+  font-size: 12px;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.mermaid-loading {
+  margin: 0;
+  color: var(--subtle-text);
+  font-size: 12px;
+}

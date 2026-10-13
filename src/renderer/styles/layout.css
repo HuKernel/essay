@@ -70,7 +70,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
   padding: 0;
-  background: var(--app-bg);
+  background: var(--page-bg, var(--app-bg));
 }
 
 .editor-column {
@@ -80,4 +80,12 @@
   min-width: 0;
   min-height: 0;
   padding: 0 48px;
+}
+
+/* ---------- 专注模式：只剩顶栏与编辑区 ---------- */
+
+.app-shell.focus-mode .sidebar,
+.app-shell.focus-mode .info-panel,
+.app-shell.focus-mode .format-panel {
+  display: none;
 }

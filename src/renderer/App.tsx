@@ -19,7 +19,7 @@ import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 import Typography from "@tiptap/extension-typography";
 import { CodeBlockExtension } from "./editor/code-block";
-import { BlockRefBlock, PageLinkBlock } from "./editor/craft-blocks";
+import { BlockRefBlock, PageLinkBlock, requestOpenNote } from "./editor/craft-blocks";
 import { common, createLowlight } from "lowlight";
 import { SafeAutolink } from "./safe-link";
 import { MathExtensions } from "./math-extension";
@@ -51,7 +51,6 @@ import {
   formatHotkeyEvent,
   getContentPlainText,
   getCurrentFontPresetId,
-  isEmptyParagraphSelection,
   normalizeFolderInput,
   normalizeLinkUrl,
   parseSearchSyntax,
@@ -146,6 +145,7 @@ export default function App() {
   const [replaceValue, setReplaceValue] = useState("");
   const [findMatches, setFindMatches] = useState<FindMatch[]>([]);
   const [findIndex, setFindIndex] = useState(0);
+  const [findRegex, setFindRegex] = useState(false);
   const [ftsMatchedIds, setFtsMatchedIds] = useState<string[] | null>(null);
   const [dataActionStatus, setDataActionStatus] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -153,7 +153,6 @@ export default function App() {
   const [historyStatus, setHistoryStatus] = useState("");
   const [outlineItems, setOutlineItems] = useState<OutlineItem[]>([]);
   const [editorText, setEditorText] = useState("");
-  const [blockMenuOpen, setBlockMenuOpen] = useState(false);
   const [tableToolbarVisible, setTableToolbarVisible] = useState(false);
   const [metaEditorOpen, setMetaEditorOpen] = useState(false);
   const [linkDialog, setLinkDialog] = useState<LinkDialogState | null>(null);
@@ -162,7 +161,29 @@ export default function App() {
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [toast, setToast] = useState<{ message: string; action?: () => void } | null>(null);
   const [blockRefPicker, setBlockRefPicker] = useState<{ pos: number } | null>(null);
+  const [imageUrlDialog, setImageUrlDialog] = useState<{ draft: string } | null>(null);
   const [palette, setPalette] = useState<"all" | "notes" | null>(null);
+  const [focusMode, setFocusMode] = useState(false);
+  const preFocusStateRef = useRef<{ sidebarCollapsed: boolean; infoPanelOpen: boolean } | null>(null);
+
+  // 专注模式进入/退出时同步侧栏与信息面板（记住进入前状态，退出还原）
+  useEffect(() => {
+    if (focusMode) {
+      preFocusStateRef.current = { sidebarCollapsed, infoPanelOpen };
+      setSidebarCollapsed(true);
+      setInfoPanelOpen(false);
+      setFormatPopoverOpen(false);
+    } else if (preFocusStateRef.current) {
+      setSidebarCollapsed(preFocusStateRef.current.sidebarCollapsed);
+      setInfoPanelOpen(preFocusStateRef.current.infoPanelOpen);
+      preFocusStateRef.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusMode]);
+
+  function toggleFocusMode() {
+    setFocusMode((current) => !current);
+  }
   const [tagRename, setTagRename] = useState<{ from: string; draft: string } | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
@@ -370,17 +391,11 @@ export default function App() {
     },
     onSelectionUpdate: ({ editor }) => {
       setTableToolbarVisible(editor.isActive("table") && !activeNote?.trashedAt);
-      if (!isEmptyParagraphSelection(editor) || activeNote?.trashedAt) {
-        setBlockMenuOpen(false);
-      }
       window.requestAnimationFrame(syncCurrentEditorBlock);
     },
     onUpdate: ({ editor }) => {
       markDirty();
       setTableToolbarVisible(editor.isActive("table") && !activeNote?.trashedAt);
-      if (!isEmptyParagraphSelection(editor) || activeNote?.trashedAt) {
-        setBlockMenuOpen(false);
-      }
       if (outlineTimerRef.current) window.clearTimeout(outlineTimerRef.current);
       outlineTimerRef.current = window.setTimeout(() => {
         setEditorText(getContentPlainText(editor.getJSON()));
@@ -676,12 +691,13 @@ export default function App() {
     setTableToolbarVisible(editor.isActive("table") && !activeNote?.trashedAt);
   }, [activeNote?.trashedAt, editor]);
 
-  // 关键词变化：重算匹配并自动定位到第一个
+  // 关键词/模式变化：重算匹配并自动定位到第一个
   useEffect(() => {
     if (!findOpen) return;
     const matches = findText();
     if (matches.length > 0) selectFindMatch(matches, 0);
-  }, [findQuery, findOpen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [findQuery, findOpen, findRegex]);
 
   // 文档变化：只刷新匹配位置，不移动选区（避免抢走用户正在输入的光标）
   useEffect(() => {
@@ -727,6 +743,13 @@ export default function App() {
       })();
     });
     return dispose;
+  }, []);
+
+  // 任务到期通知点击：跳转并滚动定位到任务块（复用子页面跳转管线）
+  useEffect(() => {
+    return window.suiji.onOpenDueTask((payload) => {
+      requestOpenNote(payload.noteId, payload.text);
+    });
   }, []);
 
   // 右键"用随记打开"：消费启动命令行传入的 markdown 文件，导入并选中
@@ -795,6 +818,11 @@ export default function App() {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (!event.ctrlKey && !event.metaKey) return;
+      if (event.key.toLowerCase() === "f" && event.shiftKey) {
+        event.preventDefault();
+        toggleFocusMode();
+        return;
+      }
       if (event.key.toLowerCase() === "f") {
         event.preventDefault();
         openFindPanel(false);
@@ -851,6 +879,10 @@ export default function App() {
       }
       if (findOpen) {
         closeFindPanel();
+        return;
+      }
+      if (focusMode) {
+        setFocusMode(false);
       }
     }
 
@@ -1100,20 +1132,50 @@ export default function App() {
     }
 
     const matches: FindMatch[] = [];
-    const lowerQuery = query.toLowerCase();
-    editor.state.doc.descendants((node, pos) => {
-      if (!node.isText || !node.text) return;
-      const lowerText = node.text.toLowerCase();
-      let index = lowerText.indexOf(lowerQuery);
-      while (index >= 0) {
-        matches.push({ from: pos + index, to: pos + index + query.length });
-        index = lowerText.indexOf(lowerQuery, index + Math.max(query.length, 1));
+    if (findRegex) {
+      let re: RegExp;
+      try {
+        re = new RegExp(query, "g");
+      } catch {
+        // 非法正则：清空匹配，等用户改完再试
+        setFindMatches([]);
+        setFindIndex(0);
+        return [];
       }
-    });
+      editor.state.doc.descendants((node, pos) => {
+        if (!node.isText || !node.text) return;
+        re.lastIndex = 0;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(node.text)) !== null) {
+          if (m[0].length === 0) {
+            re.lastIndex += 1; // 零宽匹配前进防止死循环
+            continue;
+          }
+          matches.push({ from: pos + m.index, to: pos + m.index + m[0].length, captures: m.slice(1) });
+        }
+      });
+    } else {
+      const lowerQuery = query.toLowerCase();
+      editor.state.doc.descendants((node, pos) => {
+        if (!node.isText || !node.text) return;
+        const lowerText = node.text.toLowerCase();
+        let index = lowerText.indexOf(lowerQuery);
+        while (index >= 0) {
+          matches.push({ from: pos + index, to: pos + index + query.length });
+          index = lowerText.indexOf(lowerQuery, index + Math.max(query.length, 1));
+        }
+      });
+    }
 
     setFindMatches(matches);
     setFindIndex((current) => Math.min(current, Math.max(matches.length - 1, 0)));
     return matches;
+  }
+
+  /** 正则替换中把 $1..$9 展开为捕获组 */
+  function expandReplace(text: string, match: FindMatch) {
+    if (!findRegex || !match.captures) return text;
+    return text.replace(/\$(\d)/g, (all, digit: string) => match.captures?.[Number(digit) - 1] ?? all);
   }
 
   function selectFindMatch(matches = findMatches, index = findIndex) {
@@ -1136,7 +1198,7 @@ export default function App() {
   function handleReplaceCurrent() {
     if (!editor || activeNote?.trashedAt || findMatches.length === 0) return;
     const match = findMatches[findIndex];
-    editor.view.dispatch(editor.state.tr.insertText(replaceValue, match.from, match.to));
+    editor.view.dispatch(editor.state.tr.insertText(expandReplace(replaceValue, match), match.from, match.to));
     markDirty();
     window.setTimeout(() => {
       const matches = findText();
@@ -1150,7 +1212,7 @@ export default function App() {
     if (matches.length === 0) return;
     const tr = editor.state.tr;
     [...matches].reverse().forEach((match) => {
-      tr.insertText(replaceValue, match.from, match.to);
+      tr.insertText(expandReplace(replaceValue, match), match.from, match.to);
     });
     editor.view.dispatch(tr);
     markDirty();
@@ -1353,6 +1415,12 @@ export default function App() {
   async function handleSetCover(id: string, coverAsset: string | null) {
     await saveActive({ skipClean: true });
     const updated = await window.suiji.setNoteCover(id, coverAsset);
+    setNotes((current) => current.map((note) => (note.id === updated.id ? updated : note)));
+  }
+
+  async function handleSetPageBg(id: string, pageBg: string | null) {
+    await saveActive({ skipClean: true });
+    const updated = await window.suiji.setNotePageBg(id, pageBg);
     setNotes((current) => current.map((note) => (note.id === updated.id ? updated : note)));
   }
 
@@ -1576,6 +1644,7 @@ export default function App() {
       { id: "theme", kind: "command", label: settings?.theme === "dark" ? "切换到浅色模式" : "切换到深色模式", run: () => void toggleTheme() },
       { id: "history", kind: "command", label: "当前记录的历史版本", run: () => void handleOpenHistory() },
       { id: "settings", kind: "command", label: "打开设置", run: () => openSettings() },
+      { id: "focus", kind: "command", label: focusMode ? "退出专注模式" : "进入专注模式（Ctrl+Shift+F）", run: () => toggleFocusMode() },
       { id: "daily", kind: "command", label: "每日笔记（打开/创建今日）", run: () => void openDailyNote() }
     ];
     const views: CommandPaletteItem[] = (
@@ -1609,7 +1678,7 @@ export default function App() {
       }));
     return [...commands, ...views, ...templateItems, ...noteItems];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notes, settings?.theme, noteItems]);
+  }, [notes, settings?.theme, focusMode, noteItems]);
 
   const backlinks = useMemo(() => {
     if (!activeNote) return [];
@@ -2127,11 +2196,6 @@ export default function App() {
     ...blockMenuCommands
   ];
 
-  function applyBlockMenuCommand(command: BlockMenuCommand) {
-    setBlockMenuOpen(false);
-    command.run();
-  }
-
   function closeConfirmDialog() {
     if (confirmBusy) return;
     setConfirmDialog(null);
@@ -2151,7 +2215,8 @@ export default function App() {
   const appClassName = [
     "app-shell",
     sidebarCollapsed ? "sidebar-collapsed" : "",
-    settings?.theme === "dark" ? "theme-dark" : ""
+    settings?.theme === "dark" ? "theme-dark" : "",
+    focusMode ? "focus-mode" : ""
   ]
     .filter(Boolean)
     .join(" ");  const normalizedTitle = title.trim().toLowerCase();
@@ -2168,11 +2233,23 @@ export default function App() {
       ? FONT_PRESETS.find((preset) => preset.id === activeNote.bodyFont)?.family
       : undefined;
 
+  // 页面背景：color:#hex → 纯色；grad:#a,#b → 渐变
+  function pageBgCss(value: string | null | undefined) {
+    if (!value) return undefined;
+    if (value.startsWith("color:")) return value.slice(6);
+    if (value.startsWith("grad:")) {
+      const [from, to] = value.slice(5).split(",");
+      return `linear-gradient(160deg, ${from}, ${to ?? from})`;
+    }
+    return undefined;
+  }
+
   const appStyle = {
     "--editor-width": settings?.lineWidthAuto !== false ? "min(100%, 1400px)" : `${settings?.lineWidth ?? 900}px`,
     "--editor-font-family": noteBodyFontFamily || settings?.fontFamily?.trim() || undefined,
     "--editor-font-size": `${settings?.fontSize ?? 16}px`,
-    "--editor-line-height": settings?.lineHeight ?? 1.8
+    "--editor-line-height": settings?.lineHeight ?? 1.8,
+    "--page-bg": pageBgCss(activeNote?.pageBg)
   } as React.CSSProperties;
 
   return (
@@ -2393,6 +2470,8 @@ export default function App() {
                 readOnly={editorDisabled}
                 findInputRef={findInputRef}
                 findQuery={findQuery}
+                findRegex={findRegex}
+                onToggleFindRegex={() => setFindRegex((current) => !current)}
                 onFindQueryChange={setFindQuery}
                 replaceOpen={replaceOpen}
                 replaceValue={replaceValue}
@@ -2411,10 +2490,6 @@ export default function App() {
               editorWrapRef={editorWrapRef}
               imageInputRef={imageInputRef}
               trashed={Boolean(activeNote?.trashedAt)}
-              blockMenuOpen={blockMenuOpen}
-              blockMenuCommands={blockMenuCommands}
-              onToggleBlockMenu={() => setBlockMenuOpen((current) => !current)}
-              onApplyBlockMenuCommand={applyBlockMenuCommand}
               onHoverBlock={updateHoveredEditorBlock}
               onLeave={() => setHoveredEditorBlock(null)}
               onFocusEnd={() => editor?.commands.focus("end")}
@@ -2441,6 +2516,8 @@ export default function App() {
               bodyFont={activeNote.bodyFont}
               defaultBodyFontId={currentFontPresetId}
               onSetBodyFont={(bodyFont) => void handleSetBodyFont(activeNote.id, bodyFont)}
+              pageBg={activeNote.pageBg}
+              onSetPageBg={(pageBg) => void handleSetPageBg(activeNote.id, pageBg)}
               tagsDraft={tagsDraft}
               onTagsChange={(value) => {
                 setTagsDraft(value);
@@ -2484,6 +2561,7 @@ export default function App() {
             customColorInputRef={customColorInputRef}
             onFontPreset={(id) => void applyFontPreset(id)}
             onInsertCollapsibleBlock={insertCollapsibleBlock}
+            onInsertImageUrl={() => setImageUrlDialog({ draft: "" })}
             onInsertMathBlock={insertMathBlock}
             onEditLink={handleLink}
             tableToolbarVisible={tableToolbarVisible}
@@ -2497,6 +2575,24 @@ export default function App() {
           items={palette === "notes" ? noteItems : paletteItems}
           mode={palette}
           onClose={() => setPalette(null)}
+        />
+      ) : null}
+
+      {imageUrlDialog ? (
+        <PromptDialog
+          title="插入网络图片"
+          description="粘贴图片链接（https://…），图片会以原地址插入。"
+          value={imageUrlDialog.draft}
+          confirmLabel="插入"
+          onChange={(value) => setImageUrlDialog({ draft: value })}
+          onConfirm={() => {
+            const url = imageUrlDialog.draft.trim();
+            setImageUrlDialog(null);
+            if (!url || !editor) return;
+            editor.chain().focus().setImage({ src: normalizeLinkUrl(url) }).run();
+            markDirty();
+          }}
+          onClose={() => setImageUrlDialog(null)}
         />
       ) : null}
 
