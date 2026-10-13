@@ -1569,20 +1569,54 @@
   }
 }
 
-/* ---------- 涂鸦装饰（手绘风边框） ---------- */
+/* ---------- 涂鸦装饰（手绘风格组） ---------- */
 
-.editor-surface [data-doodle-mode="true"] {
+.editor-surface [data-doodle-mode="sketch"] {
   border: 2px solid var(--node-accent, var(--accent-color));
   border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
   padding: 14px 18px;
   transform: rotate(-0.3deg);
 }
 
-.editor-surface [data-doodle-mode="true"][data-card-mode="true"] {
-  background: color-mix(in srgb, var(--node-accent, var(--accent-color)) 8%, transparent);
+.editor-surface [data-doodle-mode="marker"] {
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: linear-gradient(
+    100deg,
+    transparent 1%,
+    color-mix(in srgb, var(--node-accent, var(--accent-color)) 30%, transparent) 3%,
+    color-mix(in srgb, var(--node-accent, var(--accent-color)) 26%, transparent) 96%,
+    transparent 99%
+  );
 }
 
-.editor-surface [data-doodle-mode="true"][data-focus-mode="true"] {
+.editor-surface [data-doodle-mode="wavy"] {
+  padding: 6px 4px 10px;
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-color: var(--node-accent, var(--accent-color));
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 6px;
+}
+
+.editor-surface [data-doodle-mode="circle"] {
+  border: 2px solid var(--node-accent, var(--accent-color));
+  border-radius: 48% 52% 46% 54% / 14% 12% 13% 15%;
+  padding: 16px 20px;
+  transform: rotate(0.4deg);
+}
+
+.editor-surface [data-doodle-mode="double"] {
+  border: 1.5px solid var(--node-accent, var(--accent-color));
+  outline: 1.5px solid color-mix(in srgb, var(--node-accent, var(--accent-color)) 72%, transparent);
+  outline-offset: 4px;
+  border-radius: 14px 5px 16px 6px / 6px 15px 5px 14px;
+  padding: 14px 18px;
+}
+
+.editor-surface [data-doodle-mode="sketch"][data-focus-mode="true"],
+.editor-surface [data-doodle-mode="circle"][data-focus-mode="true"],
+.editor-surface [data-doodle-mode="double"][data-focus-mode="true"] {
   padding-left: 22px;
 }
 

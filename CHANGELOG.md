@@ -1,3 +1,7 @@
+## 0.9.93 - 2026-10-13
+
+- Expanded the doodle decoration into a style group: the format panel's 涂鸦 button now opens a picker with five hand-drawn styles — 手绘框 (sketch border), 荧光笔 (marker highlight band), 波浪线 (wavy underline), 圈选 (loose ellipse), 双线框 (double sketch border) — plus "无" to clear. All styles follow the block's accent color and compose with card/focus modes; existing doodle blocks migrate to the sketch style automatically.
+
 ## 0.9.92 - 2026-10-13
 
 - Added browser-style tabs: a tab bar appears under the top bar when more than one note is open. Ctrl+T opens a new tab (new note), Ctrl+W closes the current one, Ctrl+Tab cycles, Ctrl+click a list card opens it in a new tab; tabs persist across restarts and the active tab follows any navigation.

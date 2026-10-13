@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
-import type { BlockFormat } from "../editor/block-format";
+import { DOODLE_STYLES, type BlockFormat } from "../editor/block-format";
 import { FORMAT_COLORS, FONT_PRESETS, type FontPresetId } from "../constants";
 import { keepEditorFocus } from "./common";
 
@@ -99,6 +99,7 @@ export function FormatPanel(props: FormatPanelProps) {
   const [customStyles, setCustomStyles] = useState<CustomBlockStyle[]>(loadCustomStyles);
   const [styleNaming, setStyleNaming] = useState(false);
   const [styleNameDraft, setStyleNameDraft] = useState("");
+  const [doodleMenuOpen, setDoodleMenuOpen] = useState(false);
 
   useEffect(() => {
     window.localStorage.setItem(CUSTOM_STYLES_KEY, JSON.stringify(customStyles));
@@ -428,20 +429,39 @@ export function FormatPanel(props: FormatPanelProps) {
           <button
             type="button"
             className={
-              currentBlockFormat.doodleMode
+              currentBlockFormat.doodleMode !== "none"
                 ? "format-button format-decor-button is-active"
                 : "format-button format-decor-button"
             }
             onMouseDown={keepEditorFocus}
-            onClick={() => onApplyBlockFormat({ doodleMode: !currentBlockFormat.doodleMode })}
+            onClick={() => setDoodleMenuOpen((current) => !current)}
             disabled={disabled}
-            title="手绘涂鸦边框"
+            title="手绘涂鸦装饰（多种样式）"
           >
             <span className="format-decor-chip format-decor-chip-doodle" aria-hidden="true">
               <span>涂鸦</span>
             </span>
           </button>
         </div>
+        {doodleMenuOpen ? (
+          <div className="format-doodle-menu" role="group" aria-label="涂鸦样式">
+            {DOODLE_STYLES.map((style) => (
+              <button
+                key={style.id}
+                type="button"
+                className={`format-doodle-sample format-doodle-${style.id}${currentBlockFormat.doodleMode === style.id ? " is-active" : ""}`}
+                onMouseDown={keepEditorFocus}
+                onClick={() => {
+                  onApplyBlockFormat({ doodleMode: style.id });
+                  setDoodleMenuOpen(false);
+                }}
+                disabled={disabled}
+              >
+                {style.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="format-panel-group">

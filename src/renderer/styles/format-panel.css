@@ -612,3 +612,43 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* ---------- 涂鸦样式选择 ---------- */
+
+.format-doodle-menu {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 2px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  padding: 8px;
+}
+
+.format-doodle-sample {
+  min-height: 30px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--surface-soft);
+  color: var(--muted-text);
+  font-size: 11.5px;
+  padding: 0 6px;
+  cursor: pointer;
+}
+
+.format-doodle-sample:hover:not(:disabled) {
+  border-color: var(--accent-soft-strong);
+  color: var(--accent-strong);
+}
+
+.format-doodle-sample.is-active {
+  border-color: var(--accent-color);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.format-doodle-sample:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
