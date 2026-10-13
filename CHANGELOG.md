@@ -1,3 +1,7 @@
+## 0.9.88 - 2026-10-13
+
+- Fixed the horizontal-rule context menu never appearing: a 1px-tall divider makes `posAtCoords` resolve to the neighboring block, so right-clicking showed the paragraph menu instead of the divider-style options. Right-click now resolves the position from the DOM element directly (`posAtDOM`), and a transparent `::after` hit area extends the divider's clickable region by ±12px.
+
 ## 0.9.87 - 2026-10-13
 
 - Added "promote to sub-page": select content (or right-click a block) and hit the new toolbar button / context-menu item to extract the covered top-level blocks into a brand-new note linked via `parentId`, replacing the range in place with a page-link card. The sub-page title defaults to the first heading or the first line of text.

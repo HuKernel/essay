@@ -685,9 +685,20 @@
 }
 
 .editor-surface hr {
+  position: relative;
   margin: 28px 0;
   border: 0;
   border-top: 1px solid var(--line-soft);
+}
+
+/* 扩大分隔线的右键命中区（透明，不影响布局与视觉） */
+.editor-surface hr::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -12px;
+  bottom: -12px;
 }
 
 .editor-surface img {

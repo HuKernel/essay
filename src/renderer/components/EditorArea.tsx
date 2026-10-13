@@ -171,9 +171,23 @@ export function EditorArea(props: EditorAreaProps) {
 
   function handleContextMenu(event: React.MouseEvent) {
     if (!editor || trashed || !editor.isEditable) return;
-    const posInfo = editor.view.posAtCoords({ left: event.clientX, top: event.clientY });
-    if (!posInfo) return;
-    const $pos = editor.state.doc.resolve(posInfo.pos);
+    // hr 等原子块只有 1px 高，posAtCoords 的位置常落到相邻块上：
+    // 右键命中 hr 元素（含扩大的命中区）时改用 DOM 直接定位
+    const hrEl = event.target instanceof Element ? event.target.closest("hr") : null;
+    let pos: number | null = null;
+    if (hrEl) {
+      try {
+        pos = editor.view.posAtDOM(hrEl, 0);
+      } catch {
+        pos = null;
+      }
+    }
+    if (pos === null) {
+      const posInfo = editor.view.posAtCoords({ left: event.clientX, top: event.clientY });
+      if (!posInfo) return;
+      pos = posInfo.pos;
+    }
+    const $pos = editor.state.doc.resolve(pos);
     if ($pos.depth < 1) return;
     const node = $pos.node(1);
     const start = $pos.before(1);
