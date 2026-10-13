@@ -11,6 +11,8 @@ export type NoteSummary = {
   trashedAt: string | null;
   pinnedAt: string | null;
   parentId: string | null;
+  /** 每篇笔记的正文字体档位（default/serif/mono/rounded），null 表示跟随全局默认 */
+  bodyFont: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -34,6 +36,8 @@ export type AppSettings = {
   launchAtLogin: boolean;
   alwaysOnTop: boolean;
   theme: "light" | "dark";
+  /** 主题预设：paper 纸感（默认）/ pure 纯白冷灰 */
+  themePreset: "paper" | "pure";
   fontFamily: string;
   fontSize: number;
   lineWidth: number;
@@ -53,6 +57,8 @@ export type SettingsUpdatePayload = {
   launchAtLogin: boolean;
   alwaysOnTop: boolean;
   theme: "light" | "dark";
+  /** 主题预设：paper 纸感（默认）/ pure 纯白冷灰 */
+  themePreset: "paper" | "pure";
   fontFamily: string;
   fontSize: number;
   lineWidth: number;

@@ -1079,3 +1079,73 @@
     box-shadow: none;
   }
 }
+
+/* ---------- 块右键菜单 ---------- */
+
+.block-ctx-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 39999;
+}
+
+.block-ctx-menu {
+  position: fixed;
+  display: grid;
+  min-width: 232px;
+  max-height: 380px;
+  overflow: auto;
+  gap: 2px;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--layer-surface-top) 0%, var(--layer-surface-bottom) 100%);
+  box-shadow: var(--shadow-floating);
+  padding: 8px;
+  animation: panel-pop var(--motion-panel) var(--ease-smooth);
+  transform-origin: top left;
+}
+
+.block-ctx-menu button {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-color);
+  font-size: 12.5px;
+  padding: 0 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.block-ctx-menu button:hover {
+  border-color: var(--line-soft);
+  background: var(--surface-hover);
+}
+
+.block-ctx-menu button strong {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.block-ctx-menu button svg {
+  color: var(--muted-text);
+  flex: 0 0 auto;
+}
+
+.block-ctx-menu .block-ctx-danger,
+.block-ctx-menu .block-ctx-danger svg {
+  color: var(--danger-color);
+}
+
+.block-ctx-menu .block-ctx-danger:hover {
+  border-color: var(--danger-soft);
+  background: var(--danger-soft);
+}
+
+.block-ctx-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--line-soft);
+}

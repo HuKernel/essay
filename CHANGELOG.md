@@ -1,3 +1,10 @@
+## 0.9.85 - 2026-10-13
+
+- Added a per-note body font override (default / serif / mono / rounded) in the info panel, stored per note in `note_meta.body_font` (auto-migrated) and taking precedence over the global font preset; "follow default" falls back to the global setting.
+- Added theme presets: alongside the existing warm "paper" look, a new "pure" preset provides a cool-white light theme and a deeper pure-black dark theme. Only surface/line tokens are overridden, chosen in Settings next to the dark-mode toggle.
+- Added a block context menu (right-click in the editor): turn the block into paragraph/headings/quote/code block/lists (current type hidden), copy block text, duplicate block, and delete block (replaces with an empty paragraph when it is the only block). Container blocks (callouts, tables, images, page-link cards) only offer copy/duplicate/delete.
+- Added Ctrl+O for note-only quick jump: opens the command palette in a notes-only mode, while Ctrl+K keeps the combined commands+notes palette.
+
 ## 0.9.84 - 2026-10-10
 
 - Fixed the code-block "copy" button doing nothing: the session permission handlers rejected every web permission, which silently denied the `clipboard-sanitized-write` permission required by `navigator.clipboard.writeText`. Only that permission is now allowed (plain-text clipboard writes); clipboard reads and all other permissions remain denied.

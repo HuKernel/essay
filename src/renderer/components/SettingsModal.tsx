@@ -122,6 +122,27 @@ export function SettingsModal(props: SettingsModalProps) {
                   }
                 />
               </label>
+              <label className="settings-field settings-field-wide">
+                <span>主题预设</span>
+                <div className="settings-preset-row" role="group" aria-label="主题预设">
+                  {(
+                    [
+                      ["paper", "纸感", "奶油纸底 + 墨色文字，适合长时间阅读"],
+                      ["pure", "纯白", "纯白冷灰，界面更接近系统原生"]
+                    ] as Array<["paper" | "pure", string, string]>
+                  ).map(([id, label, hint]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className={(settings?.themePreset ?? "paper") === id ? "settings-preset is-active" : "settings-preset"}
+                      onClick={() => onSettingsChange((current) => ({ ...current, themePreset: id }))}
+                    >
+                      <strong>{label}</strong>
+                      <span>{hint}</span>
+                    </button>
+                  ))}
+                </div>
+              </label>
             </div>
           </section>
 

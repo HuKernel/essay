@@ -11,10 +11,12 @@ export type CommandPaletteItem = {
 
 type CommandPaletteProps = {
   items: CommandPaletteItem[];
+  /** notes 模式只展示记录条目，用于纯跳转（Ctrl+O） */
+  mode?: "all" | "notes";
   onClose: () => void;
 };
 
-export function CommandPalette({ items, onClose }: CommandPaletteProps) {
+export function CommandPalette({ items, mode = "all", onClose }: CommandPaletteProps) {
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -69,13 +71,13 @@ export function CommandPalette({ items, onClose }: CommandPaletteProps) {
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="搜索记录或输入命令..."
-          aria-label="搜索记录或命令"
+          placeholder={mode === "notes" ? "搜索记录..." : "搜索记录或输入命令..."}
+          aria-label={mode === "notes" ? "搜索记录" : "搜索记录或命令"}
         />
         <div className="command-palette-list" role="listbox">
           {filtered.length === 0 ? (
             <p className="note-list-empty" role="status">
-              没有匹配的记录或命令
+              {mode === "notes" ? "没有匹配的记录" : "没有匹配的记录或命令"}
             </p>
           ) : (
             filtered.map((item, index) => (

@@ -65,6 +65,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   launchAtLogin: false,
   alwaysOnTop: false,
   theme: "light",
+  themePreset: "paper",
   fontFamily: "",
   fontSize: 16,
   lineWidth: 900,

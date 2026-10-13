@@ -464,6 +464,47 @@ input[type="range"] {
   color: var(--danger-color);
 }
 
+.settings-preset-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.settings-preset {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.settings-preset strong {
+  color: var(--text-color);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.settings-preset span {
+  color: var(--subtle-text);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.settings-preset:hover {
+  border-color: var(--accent-soft-strong);
+}
+
+.settings-preset.is-active {
+  border-color: var(--accent-color);
+  background: var(--accent-soft);
+}
+
 .settings-status-text {
   overflow-wrap: anywhere;
   margin: 2px 0 0;

@@ -161,7 +161,7 @@ export default function App() {
   const [confirmBusy, setConfirmBusy] = useState(false);
   const [toast, setToast] = useState<{ message: string; action?: () => void } | null>(null);
   const [blockRefPicker, setBlockRefPicker] = useState<{ pos: number } | null>(null);
-  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [palette, setPalette] = useState<"all" | "notes" | null>(null);
   const [tagRename, setTagRename] = useState<{ from: string; draft: string } | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const linkInputRef = useRef<HTMLInputElement | null>(null);
@@ -804,7 +804,11 @@ export default function App() {
       }
       if (event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setPaletteOpen((current) => !current);
+        setPalette((current) => (current ? null : "all"));
+      }
+      if (event.key.toLowerCase() === "o") {
+        event.preventDefault();
+        setPalette("notes");
       }
     }
 
@@ -816,8 +820,8 @@ export default function App() {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
-      if (paletteOpen) {
-        setPaletteOpen(false);
+      if (palette) {
+        setPalette(null);
         return;
       }
       if (tagRename) {
@@ -1335,6 +1339,12 @@ export default function App() {
     }
   }
 
+  async function handleSetBodyFont(id: string, bodyFont: string | null) {
+    await saveActive({ skipClean: true });
+    const updated = await window.suiji.setNoteBodyFont(id, bodyFont);
+    setNotes((current) => current.map((note) => (note.id === updated.id ? updated : note)));
+  }
+
   async function handleRestoreNote(id: string) {
     const restored = await window.suiji.restoreNote(id);
     setNotes((current) => sortNotes([restored, ...current.filter((note) => note.id !== restored.id)]));
@@ -1478,6 +1488,21 @@ export default function App() {
     markDirty();
   }
 
+  const noteItems = useMemo<CommandPaletteItem[]>(
+    () =>
+      notes
+        .filter((note) => !note.trashedAt)
+        .map((note) => ({
+          id: note.id,
+          kind: "note" as const,
+          label: note.title || "未命名记录",
+          hint: note.excerpt.slice(0, 40),
+          run: () => void handleSelectNote(note.id)
+        })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [notes]
+  );
+
   const paletteItems = useMemo<CommandPaletteItem[]>(() => {
     const commands: CommandPaletteItem[] = [
       { id: "new", kind: "command", label: "新建记录", run: () => void handleCreate() },
@@ -1508,15 +1533,6 @@ export default function App() {
         }
       }
     }));
-    const noteItems: CommandPaletteItem[] = notes
-      .filter((note) => !note.trashedAt)
-      .map((note) => ({
-        id: note.id,
-        kind: "note",
-        label: note.title || "未命名记录",
-        hint: note.excerpt.slice(0, 40),
-        run: () => void handleSelectNote(note.id)
-      }));
     const templateItems: CommandPaletteItem[] = notes
       .filter((note) => !note.trashedAt && note.folder === "模板")
       .map((note) => ({
@@ -1527,7 +1543,7 @@ export default function App() {
       }));
     return [...commands, ...views, ...templateItems, ...noteItems];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notes, settings?.theme]);
+  }, [notes, settings?.theme, noteItems]);
 
   const backlinks = useMemo(() => {
     if (!activeNote) return [];
@@ -2072,8 +2088,7 @@ export default function App() {
     settings?.theme === "dark" ? "theme-dark" : ""
   ]
     .filter(Boolean)
-    .join(" ");
-  const normalizedTitle = title.trim().toLowerCase();
+    .join(" ");  const normalizedTitle = title.trim().toLowerCase();
   // 正文首个 H1 与文档标题重复时，编辑列做显示层去重（数据不动）
   const firstHeadingDupesTitle =
     normalizedTitle.length > 0 &&
@@ -2081,15 +2096,25 @@ export default function App() {
     outlineItems[0].level === 1 &&
     outlineItems[0].text.trim().toLowerCase() === normalizedTitle;
 
+  // 每篇笔记的字体档位优先于全局默认
+  const noteBodyFontFamily =
+    activeNote?.bodyFont && activeNote.bodyFont !== "default"
+      ? FONT_PRESETS.find((preset) => preset.id === activeNote.bodyFont)?.family
+      : undefined;
+
   const appStyle = {
     "--editor-width": settings?.lineWidthAuto !== false ? "min(100%, 1400px)" : `${settings?.lineWidth ?? 900}px`,
-    "--editor-font-family": settings?.fontFamily?.trim() || undefined,
+    "--editor-font-family": noteBodyFontFamily || settings?.fontFamily?.trim() || undefined,
     "--editor-font-size": `${settings?.fontSize ?? 16}px`,
     "--editor-line-height": settings?.lineHeight ?? 1.8
   } as React.CSSProperties;
 
   return (
-    <main className={appClassName} style={appStyle}>
+    <main
+      className={appClassName}
+      style={appStyle}
+      data-theme-preset={settings?.themePreset === "pure" ? "pure" : "paper"}
+    >
       <TopBar
           saveState={saveState}
           lastEditedText={activeNote ? docDateFormat.format(new Date(activeNote.updatedAt)) : ""}
@@ -2304,6 +2329,9 @@ export default function App() {
               tags={metaTagsPreview}
               metaEditorOpen={metaEditorOpen}
               onToggleMetaEditor={() => setMetaEditorOpen((current) => !current)}
+              bodyFont={activeNote.bodyFont}
+              defaultBodyFontId={currentFontPresetId}
+              onSetBodyFont={(bodyFont) => void handleSetBodyFont(activeNote.id, bodyFont)}
               tagsDraft={tagsDraft}
               onTagsChange={(value) => {
                 setTagsDraft(value);
@@ -2355,7 +2383,13 @@ export default function App() {
           </div>
       </section>
 
-      {paletteOpen ? <CommandPalette items={paletteItems} onClose={() => setPaletteOpen(false)} /> : null}
+      {palette ? (
+        <CommandPalette
+          items={palette === "notes" ? noteItems : paletteItems}
+          mode={palette}
+          onClose={() => setPalette(null)}
+        />
+      ) : null}
 
       {tagRename ? (
         <PromptDialog

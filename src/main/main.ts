@@ -483,6 +483,7 @@ function sanitizeSettingsPayload(raw: unknown): SettingsUpdatePayload {
     launchAtLogin: Boolean(payload.launchAtLogin),
     alwaysOnTop: Boolean(payload.alwaysOnTop),
     theme: payload.theme === "dark" ? "dark" : "light",
+    themePreset: payload.themePreset === "pure" ? "pure" : "paper",
     fontFamily: coerceString(payload.fontFamily, "", 120),
     fontSize: Math.min(Math.max(Number(payload.fontSize) || 16, 13), 24),
     lineWidth: Math.min(Math.max(Number(payload.lineWidth) || 850, 640), 1600),
@@ -520,6 +521,7 @@ function sanitizeNotePayload(raw: unknown): NoteRecord {
     trashedAt: typeof note.trashedAt === "string" ? note.trashedAt : null,
     pinnedAt: typeof note.pinnedAt === "string" ? note.pinnedAt : null,
     parentId: typeof note.parentId === "string" ? note.parentId : null,
+    bodyFont: note.bodyFont ?? null,
     content: note.content && typeof note.content === "object" ? note.content : emptyDoc,
     html: coerceString(note.html),
     plainText: coerceString(note.plainText),
@@ -606,6 +608,12 @@ async function buildPdfExport(note: NoteRecord): Promise<Uint8Array> {
   }
 }
 
+const BODY_FONT_IDS = new Set(["default", "serif", "mono", "rounded"]);
+
+function normalizeBodyFont(value: unknown): string | null {
+  return typeof value === "string" && BODY_FONT_IDS.has(value) ? value : null;
+}
+
 function normalizeNote(raw: Partial<NoteRecord>): NoteRecord {
   const now = new Date().toISOString();
   return {
@@ -619,6 +627,7 @@ function normalizeNote(raw: Partial<NoteRecord>): NoteRecord {
     trashedAt: typeof raw.trashedAt === "string" ? raw.trashedAt : null,
     pinnedAt: typeof raw.pinnedAt === "string" ? raw.pinnedAt : null,
     parentId: typeof raw.parentId === "string" && raw.parentId ? raw.parentId : null,
+    bodyFont: normalizeBodyFont(raw.bodyFont),
     // 旧折叠块的标题存在节点属性里，统一升级为文档内的标题/内容节点
     content: upgradeCollapsibleContent(raw.content ?? emptyDoc),
     html: typeof raw.html === "string" ? raw.html : "",
@@ -683,27 +692,27 @@ function noteFromDbRow(row: NoteDbRow): NoteRecord {
   });
 }
 
-type NoteMetaRow = { id: string; parent_id: string | null };
+type NoteMetaRow = { id: string; parent_id: string | null; body_font: string | null };
 
 function loadAllNoteMeta(): Map<string, NoteMetaRow> {
-  const rows = dbRows<NoteMetaRow>("SELECT id, parent_id FROM note_meta");
+  const rows = dbRows<NoteMetaRow>("SELECT id, parent_id, body_font FROM note_meta");
   return new Map(rows.map((row) => [row.id, row]));
 }
 
 function loadNoteMeta(id: string): NoteMetaRow | undefined {
-  return dbRows<NoteMetaRow>("SELECT id, parent_id FROM note_meta WHERE id = ?", [id])[0];
+  return dbRows<NoteMetaRow>("SELECT id, parent_id, body_font FROM note_meta WHERE id = ?", [id])[0];
 }
 
 function applyNoteMeta(note: NoteRecord, meta?: NoteMetaRow): NoteRecord {
   if (!meta) return note;
-  return { ...note, parentId: meta.parent_id };
+  return { ...note, parentId: meta.parent_id, bodyFont: normalizeBodyFont(meta.body_font) };
 }
 
 function upsertNoteMeta(note: NoteRecord) {
   dbExec(
-    `INSERT INTO note_meta (id, parent_id) VALUES (?, ?)
-     ON CONFLICT(id) DO UPDATE SET parent_id = excluded.parent_id`,
-    [note.id, note.parentId ?? null]
+    `INSERT INTO note_meta (id, parent_id, body_font) VALUES (?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET parent_id = excluded.parent_id, body_font = excluded.body_font`,
+    [note.id, note.parentId ?? null, note.bodyFont ?? null]
   );
 }
 
@@ -827,12 +836,18 @@ function ensureNotesSchema() {
     CREATE TABLE IF NOT EXISTS note_meta (
       id TEXT PRIMARY KEY,
       parent_id TEXT,
-      file_path TEXT
+      file_path TEXT,
+      body_font TEXT
     );
   `);
   // 旧库的 note_meta 没有 file_path 列，补上（已存在则忽略）
   try {
     dbExec("ALTER TABLE note_meta ADD COLUMN file_path TEXT");
+  } catch {
+    // column already exists
+  }
+  try {
+    dbExec("ALTER TABLE note_meta ADD COLUMN body_font TEXT");
   } catch {
     // column already exists
   }
@@ -1140,6 +1155,7 @@ async function updateStoredSettings(payload: SettingsUpdatePayload): Promise<App
     launchAtLogin: Boolean(payload.launchAtLogin),
     alwaysOnTop: Boolean(payload.alwaysOnTop),
     theme: payload.theme === "dark" ? "dark" : "light",
+    themePreset: payload.themePreset === "pure" ? "pure" : "paper",
     fontFamily: payload.fontFamily,
     fontSize: payload.fontSize,
     lineWidth: payload.lineWidth,
@@ -1521,6 +1537,20 @@ async function toggleArchiveNote(id: string): Promise<NoteRecord> {
   const latest = await finalizeNoteWrite(id);
   await persistNotesDatabase();
   void pruneBackups();
+  return latest;
+}
+
+async function setNoteBodyFont(id: string, bodyFont: string | null): Promise<NoteRecord> {
+  const note = await readNote(id);
+  dbExec(`INSERT INTO note_meta (id, parent_id, body_font) VALUES (?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET body_font = excluded.body_font`, [
+    note.id,
+    note.parentId ?? null,
+    normalizeBodyFont(bodyFont)
+  ]);
+  notesDbDirty = true;
+  const latest = await finalizeNoteWrite(id);
+  await persistNotesDatabase();
   return latest;
 }
 
@@ -2174,6 +2204,9 @@ function registerIpc() {
   ipcMain.handle("notes:toggle-pin", (_event, id: string) => togglePinNote(id));
   ipcMain.handle("notes:toggle-favorite", (_event, id: string) => toggleFavoriteNote(id));
   ipcMain.handle("notes:toggle-archive", (_event, id: string) => toggleArchiveNote(id));
+  ipcMain.handle("notes:set-body-font", (_event, id: string, bodyFont: string | null) =>
+    setNoteBodyFont(id, bodyFont)
+  );
   ipcMain.handle("notes:delete", (_event, id: string) => deleteNote(id));
   ipcMain.handle("notes:restore", (_event, id: string) => restoreNote(id));
   ipcMain.handle("notes:purge", (_event, id: string) => purgeNote(id));

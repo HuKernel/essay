@@ -1,6 +1,6 @@
 import type { JSONContent } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
-import type { AppSettings, NoteRecord, RestoreFailure } from "../../shared/types";
+import type { AppSettings, NoteRecord, RestoreFailure, SettingsUpdatePayload } from "../../shared/types";
 import { BLOCK_MATH, isStandaloneLatex, splitInlineMath } from "../../shared/math-patterns";
 import { FONT_PRESETS, type FontPresetId, type OutlineItem, type SearchSyntax } from "../constants";
 
@@ -246,7 +246,7 @@ export function formatHotkeyEvent(event: React.KeyboardEvent<HTMLInputElement>) 
   return Array.from(new Set(parts)).join("+");
 }
 
-export function settingsPayload(settings: AppSettings, hotkey: string) {
+export function settingsPayload(settings: AppSettings, hotkey: string): SettingsUpdatePayload {
   return {
     hotkey: hotkey.trim() || "CommandOrControl+Alt+J",
     startHidden: settings.startHidden,
@@ -258,6 +258,7 @@ export function settingsPayload(settings: AppSettings, hotkey: string) {
     launchAtLogin: settings.launchAtLogin,
     alwaysOnTop: settings.alwaysOnTop,
     theme: settings.theme,
+    themePreset: settings.themePreset === "pure" ? "pure" : "paper",
     fontFamily: settings.fontFamily,
     fontSize: settings.fontSize,
     lineWidth: settings.lineWidth,

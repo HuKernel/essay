@@ -4,9 +4,10 @@ import {
   Link2,
   ListTree,
   Pencil,
-  TextSearch
+  TextSearch,
+  Type
 } from "lucide-react";
-import type { ExportFormat, OutlineItem } from "../constants";
+import { FONT_PRESETS, type ExportFormat, type OutlineItem } from "../constants";
 
 export type BacklinkItem = {
   id: string;
@@ -25,6 +26,11 @@ type InfoPanelProps = {
   tags: string[];
   metaEditorOpen: boolean;
   onToggleMetaEditor: () => void;
+  /** 当前笔记字体档位（null=跟随全局默认） */
+  bodyFont: string | null;
+  /** 全局默认字体档位 id，用于「跟随默认」按钮的显示 */
+  defaultBodyFontId: string;
+  onSetBodyFont: (bodyFont: string | null) => void;
   tagsDraft: string;
   onTagsChange: (value: string) => void;
   folderDraft: string;
@@ -148,6 +154,36 @@ export function InfoPanel(props: InfoPanelProps) {
               />
             </div>
           ) : null}
+        </section>
+
+        <section className="info-group">
+          <span className="info-label">
+            <Type size={12} aria-hidden="true" /> 正文字体
+          </span>
+          <div className="info-font-row" role="group" aria-label="正文字体档位">
+            <button
+              type="button"
+              className={!props.bodyFont ? "info-font-button is-active" : "info-font-button"}
+              disabled={props.readOnly}
+              title={`跟随默认（${FONT_PRESETS.find((item) => item.id === props.defaultBodyFontId)?.label ?? "默认"}）`}
+              onClick={() => props.onSetBodyFont(null)}
+            >
+              跟随默认
+            </button>
+            {FONT_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                className={props.bodyFont === preset.id ? "info-font-button is-active" : "info-font-button"}
+                disabled={props.readOnly}
+                title={preset.label}
+                onClick={() => props.onSetBodyFont(preset.id)}
+              >
+                <span style={{ fontFamily: preset.family || undefined }}>{preset.preview}</span>
+                {preset.label}
+              </button>
+            ))}
+          </div>
         </section>
 
         <section className="info-group">

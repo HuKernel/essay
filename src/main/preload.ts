@@ -22,6 +22,8 @@ const api = {
   togglePinNote: (id: string) => ipcRenderer.invoke("notes:toggle-pin", id) as Promise<NoteRecord>,
   toggleFavoriteNote: (id: string) => ipcRenderer.invoke("notes:toggle-favorite", id) as Promise<NoteRecord>,
   toggleArchiveNote: (id: string) => ipcRenderer.invoke("notes:toggle-archive", id) as Promise<NoteRecord>,
+  setNoteBodyFont: (id: string, bodyFont: string | null) =>
+    ipcRenderer.invoke("notes:set-body-font", id, bodyFont) as Promise<NoteRecord>,
   deleteNote: (id: string) => ipcRenderer.invoke("notes:delete", id) as Promise<void>,
   restoreNote: (id: string) => ipcRenderer.invoke("notes:restore", id) as Promise<NoteRecord>,
   purgeNote: (id: string) => ipcRenderer.invoke("notes:purge", id) as Promise<void>,

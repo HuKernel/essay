@@ -146,3 +146,69 @@
   --scrollbar-thumb-active: rgba(224, 230, 240, 0.42);
   --scrollbar-thumb-active-strong: rgba(203, 209, 220, 0.58);
 }
+
+/* ============================================================
+   主题预设「pure」：纯白冷灰（浅）/ 纯黑夜读（深）
+   只覆盖底色与线条，文字、语义色、动效沿用基础令牌
+   ============================================================ */
+
+.app-shell[data-theme-preset="pure"]:not(.theme-dark) {
+  --app-bg: #ffffff;
+  --panel-bg: #f6f6f7;
+  --panel-border: #e6e6e8;
+  --surface-soft: #f8f8f9;
+  --surface-muted: #f2f2f4;
+  --surface-hover: #ececef;
+  --surface-hover-soft: #f4f4f6;
+  --surface-press: #e4e4e8;
+  --surface-active: #dfe3ea;
+  --surface-raised: #ffffff;
+  --paper-bg: #ffffff;
+  --paper-border: #ebebed;
+
+  --line-soft: #ededf0;
+  --line-strong: #dcdce0;
+
+  --selection-bg: #d8e2f0;
+  --highlight-bg: #fdf3b8;
+  --code-bg: #f1f1f4;
+  --table-cell-bg: rgba(255, 255, 255, 0.6);
+  --collapsible-line: #d9d9de;
+
+  --layer-surface-top: #ffffff;
+  --layer-surface-bottom: #fafafa;
+  --layer-section-top: #f5f5f7;
+  --layer-section-bottom: #efeff2;
+
+  --lock-backdrop: rgba(249, 249, 250, 0.8);
+}
+
+.app-shell.theme-dark[data-theme-preset="pure"] {
+  --app-bg: #101113;
+  --panel-bg: #17181c;
+  --panel-border: rgba(235, 235, 240, 0.08);
+  --surface-soft: rgba(235, 235, 240, 0.05);
+  --surface-muted: rgba(235, 235, 240, 0.04);
+  --surface-hover: rgba(160, 170, 190, 0.13);
+  --surface-hover-soft: rgba(160, 170, 190, 0.08);
+  --surface-press: rgba(235, 235, 240, 0.08);
+  --surface-active: rgba(160, 170, 190, 0.2);
+  --surface-raised: #1b1c21;
+  --paper-bg: #16171b;
+  --paper-border: rgba(235, 235, 240, 0.08);
+
+  --code-bg: #1e1f24;
+  --pre-bg: #0b0c0e;
+  --table-cell-bg: rgba(235, 235, 240, 0.03);
+  --collapsible-line: rgba(235, 235, 240, 0.15);
+
+  --layer-surface-top: #1b1c21;
+  --layer-surface-bottom: #191a1f;
+  --layer-section-top: rgba(235, 235, 240, 0.05);
+  --layer-section-bottom: rgba(235, 235, 240, 0.03);
+  --layer-outline: rgba(235, 235, 240, 0.07);
+
+  --shadow-floating: 0 28px 62px rgba(0, 0, 0, 0.5);
+  --shadow-paper: 0 24px 62px rgba(0, 0, 0, 0.4);
+  --lock-backdrop: rgba(10, 10, 12, 0.78);
+}
