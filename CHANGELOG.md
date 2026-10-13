@@ -1,3 +1,9 @@
+## 0.9.87 - 2026-10-13
+
+- Added "promote to sub-page": select content (or right-click a block) and hit the new toolbar button / context-menu item to extract the covered top-level blocks into a brand-new note linked via `parentId`, replacing the range in place with a page-link card. The sub-page title defaults to the first heading or the first line of text.
+- Added a sub-page grid at the end of the document: page-link blocks in the current note are aggregated live (follows edits) into a clickable card grid.
+- Added decorative horizontal-rule variants: right-click a divider to switch between solid, dotted, and a washi-tape style (stored as `data-variant`; exports fall back to a plain `---`).
+
 ## 0.9.86 - 2026-10-13
 
 - Fixed the block context menu closing when scrolling inside the menu itself: wheel events originating inside `.block-ctx-menu` no longer dismiss it; scrolling the page still does.

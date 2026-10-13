@@ -4,6 +4,7 @@ import type { JSONContent } from "@tiptap/react";
 import { TextSelection } from "@tiptap/pm/state";
 import { Fragment, Slice } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
+import { HrVariantExtension } from "./editor/hr-variant";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import { ResizableImageExtension } from "./editor/image-resize";
@@ -228,8 +229,11 @@ export default function App() {
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
         // 代码块交给 CodeBlockLowlight 以获得语法高亮
-        codeBlock: false
+        codeBlock: false,
+        // 分隔线换成带样式变体的扩展
+        horizontalRule: false
       }),
+      HrVariantExtension,
       CodeBlockExtension.configure({ lowlight, defaultLanguage: null }),
       BlockFormatExtension,
       FindHighlightExtension,
@@ -1359,6 +1363,54 @@ export default function App() {
     await handleSetCover(activeNote.id, url.replace("suiji-asset://", ""));
   }
 
+  /** 把一段顶级块范围提取为新笔记（子页面），原位替换为子页面卡片 */
+  async function promoteRangeToSubpage(from: number, to: number) {
+    if (!editor || !activeNote || activeNote.trashedAt) return;
+    const doc = editor.state.doc;
+    if (from < 0 || to <= from || to > doc.content.size) return;
+    const nodesJson = doc.slice(from, to).content.toJSON();
+    if (!Array.isArray(nodesJson) || nodesJson.length === 0) return;
+    const textOf = (node: JSONContent): string =>
+      (node.content ?? []).map((child) => (child.type === "text" ? child.text ?? "" : textOf(child))).join("");
+    let subTitle = "";
+    for (const node of nodesJson) {
+      if (node.type === "heading" && textOf(node).trim()) {
+        subTitle = textOf(node).trim();
+        break;
+      }
+    }
+    if (!subTitle) {
+      for (const node of nodesJson) {
+        const text = textOf(node).trim();
+        if (text) {
+          subTitle = text.slice(0, 30);
+          break;
+        }
+      }
+    }
+    if (!subTitle) subTitle = "子页面";
+
+    await saveActive({ skipClean: true });
+    const created = await window.suiji.createNote();
+    const content: JSONContent = { type: "doc", content: nodesJson };
+    const saved = await window.suiji.saveNote({
+      ...created,
+      title: subTitle,
+      excerpt: subTitle.slice(0, 100),
+      parentId: activeNote.id,
+      content,
+      html: "",
+      plainText: getContentPlainText(content)
+    });
+    setNotes((current) => sortNotes([saved, ...current]));
+    editor
+      .chain()
+      .focus()
+      .insertContentAt({ from, to }, { type: "pageLink", attrs: { noteId: saved.id, title: subTitle } })
+      .run();
+    markDirty();
+  }
+
   async function handleRestoreNote(id: string) {
     const restored = await window.suiji.restoreNote(id);
     setNotes((current) => sortNotes([restored, ...current.filter((note) => note.id !== restored.id)]));
@@ -2370,6 +2422,7 @@ export default function App() {
               onImageChosen={(file) => void handleInsertImage(file)}
               onEditLink={handleLink}
               onOpenFormat={() => setFormatPopoverOpen(true)}
+              onPromoteToSubpage={(range) => void promoteRangeToSubpage(range.from, range.to)}
             />
           </div>
           </div>

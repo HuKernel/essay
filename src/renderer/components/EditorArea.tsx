@@ -7,6 +7,7 @@ import {
   Bold,
   Code,
   Copy,
+  FileOutput,
   Highlighter,
   Italic,
   Link2,
@@ -18,9 +19,11 @@ import {
   Underline as UnderlineIcon
 } from "lucide-react";
 import type { BlockMenuCommand } from "../constants";
+import { HR_VARIANTS, HR_VARIANT_LABELS, type HRVariant } from "../editor/hr-variant";
 import { isEmptyParagraphSelection } from "../utils/text";
 import { keepEditorFocus } from "./common";
 import { EditorErrorBoundary } from "./EditorErrorBoundary";
+import { requestOpenNote } from "../editor/craft-blocks";
 
 type EditorAreaProps = {
   editor: Editor | null;
@@ -38,6 +41,8 @@ type EditorAreaProps = {
   onImageChosen: (file: File | undefined) => void;
   onEditLink: () => void;
   onOpenFormat: () => void;
+  /** 把一段顶级块范围提取为子页面（原位替换为卡片） */
+  onPromoteToSubpage: (range: { from: number; to: number }) => void;
 };
 
 /** 光标位于列表/任务项内部时隐藏悬浮 +，避免遮住任务复选框 */
@@ -100,10 +105,50 @@ export function EditorArea(props: EditorAreaProps) {
     onFocus,
     onImageChosen,
     onEditLink,
-    onOpenFormat
+    onOpenFormat,
+    onPromoteToSubpage
   } = props;
 
   const [ctxMenu, setCtxMenu] = useState<CtxMenuState | null>(null);
+  const [subPages, setSubPages] = useState<Array<{ noteId: string; title: string }>>([]);
+
+  // 文末子页面网格：跟随编辑实时聚合文档内的 pageLink 块
+  useEffect(() => {
+    if (!editor) {
+      setSubPages([]);
+      return;
+    }
+    let lastKey = "";
+    const update = () => {
+      const items: Array<{ noteId: string; title: string }> = [];
+      editor.state.doc.descendants((node) => {
+        if (node.type.name === "pageLink") {
+          items.push({ noteId: String(node.attrs.noteId ?? ""), title: String(node.attrs.title || "未命名子页面") });
+        }
+        return true;
+      });
+      const key = items.map((item) => `${item.noteId}:${item.title}`).join("|");
+      if (key !== lastKey) {
+        lastKey = key;
+        setSubPages(items);
+      }
+    };
+    update();
+    editor.on("transaction", update);
+    return () => {
+      editor.off("transaction", update);
+    };
+  }, [editor]);
+
+  /** 选区覆盖的顶级块范围（提升为子页面用） */
+  function selectionBlockRange() {
+    if (!editor) return null;
+    const { selection } = editor.state;
+    if (selection.empty) return null;
+    const start = editor.state.doc.resolve(selection.from).before(1);
+    const end = editor.state.doc.resolve(selection.to).after(1);
+    return start < end && start >= 0 && end <= editor.state.doc.content.size ? { from: start, to: end } : null;
+  }
 
   useEffect(() => {
     if (!ctxMenu) return;
@@ -204,6 +249,20 @@ export function EditorArea(props: EditorAreaProps) {
     } catch {
       // 剪贴板被占用时静默失败，与代码块复制行为一致
     }
+    setCtxMenu(null);
+  }
+
+  function runSetHrVariant(variant: HRVariant) {
+    if (!editor || !ctxMenu) return;
+    const { start, node } = ctxMenu;
+    editor
+      .chain()
+      .focus()
+      .command(({ tr }) => {
+        tr.setNodeMarkup(start, undefined, { ...node.attrs, variant });
+        return true;
+      })
+      .run();
     setCtxMenu(null);
   }
 
@@ -334,6 +393,19 @@ export function EditorArea(props: EditorAreaProps) {
             >
               <Type size={15} />
             </button>
+            <button
+              type="button"
+              className="selection-toolbar-button"
+              onMouseDown={keepEditorFocus}
+              onClick={() => {
+                const range = selectionBlockRange();
+                if (range) onPromoteToSubpage(range);
+              }}
+              title="把选中内容所在块提升为子页面"
+              aria-label="提升为子页面"
+            >
+              <FileOutput size={15} />
+            </button>
           </div>
         </BubbleMenu>
       ) : null}
@@ -387,6 +459,25 @@ export function EditorArea(props: EditorAreaProps) {
           <EditorContent editor={editor} />
         </EditorErrorBoundary>
       ) : null}
+      {!trashed && subPages.length > 0 ? (
+        <section className="subpage-grid-section" aria-label="子页面">
+          <h3 className="subpage-grid-title">子页面 · {subPages.length}</h3>
+          <div className="subpage-grid">
+            {subPages.map((page) => (
+              <button
+                key={page.noteId}
+                type="button"
+                className="subpage-grid-card"
+                onClick={() => requestOpenNote(page.noteId)}
+                title={`打开「${page.title}」`}
+              >
+                <strong>{page.title}</strong>
+                <em>子页面</em>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
       {ctxMenu ? (
         <div className="block-ctx-backdrop" onMouseDown={() => setCtxMenu(null)} role="presentation">
           <div
@@ -404,6 +495,41 @@ export function EditorArea(props: EditorAreaProps) {
                 ))
               : null}
             {TURNABLE_BLOCKS.has(ctxMenu.node.type.name) ? <span className="block-ctx-divider" aria-hidden="true" /> : null}
+            {ctxMenu.node.type.name === "horizontalRule" ? (
+              <>
+                <span className="block-ctx-label">分隔线样式</span>
+                {HR_VARIANTS.map((variant) => (
+                  <button
+                    key={variant}
+                    type="button"
+                    role="menuitem"
+                    className={
+                      (ctxMenu.node.attrs.variant || "solid") === variant
+                        ? "block-ctx-item is-active"
+                        : "block-ctx-item"
+                    }
+                    onMouseDown={keepEditorFocus}
+                    onClick={() => runSetHrVariant(variant)}
+                  >
+                    <span className={`hr-sample hr-sample-${variant}`} aria-hidden="true" />
+                    <span>{HR_VARIANT_LABELS[variant]}</span>
+                  </button>
+                ))}
+                <span className="block-ctx-divider" aria-hidden="true" />
+              </>
+            ) : null}
+            <button
+              type="button"
+              role="menuitem"
+              onMouseDown={keepEditorFocus}
+              onClick={() => {
+                onPromoteToSubpage({ from: ctxMenu.start, to: ctxMenu.start + ctxMenu.node.nodeSize });
+                setCtxMenu(null);
+              }}
+            >
+              <FileOutput size={13} />
+              <span>提升为子页面</span>
+            </button>
             <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => void runCopyBlockText()}>
               <Copy size={13} />
               <span>复制块文本</span>
