@@ -16,6 +16,7 @@ import {
   Link2,
   List,
   ListOrdered,
+  Minus,
   Sigma,
   Strikethrough,
   Table2,
@@ -308,6 +309,17 @@ export function FormatPanel(props: FormatPanelProps) {
           >
             <Code2 size={16} />
             代码
+          </button>
+          <button
+            type="button"
+            className="format-button"
+            onMouseDown={keepEditorFocus}
+            onClick={() => editor?.chain().focus().setHorizontalRule().run()}
+            disabled={disabled}
+            title="插入分割线（右键可切换样式）"
+          >
+            <Minus size={16} />
+            分割线
           </button>
           <button
             type="button"

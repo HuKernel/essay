@@ -1,3 +1,9 @@
+## 0.9.89 - 2026-10-13
+
+- Fixed right-clicking a divider still opening the wrong menu: replaced the `posAtDOM` boundary-based lookup with an exact reverse match that walks the document and compares `view.nodeDOM(pos)` against the clicked `hr` element — the divider style menu now always appears.
+- Added a "分割线" (divider) button to the format panel's block-type row (next to 代码/表格), so dividers can be inserted from the format panel and not only from the `/` slash menu or the floating + menu.
+- The floating block-insert menu now caps its height (72vh / 580px) and scrolls, so long command lists are no longer clipped off-screen.
+
 ## 0.9.88 - 2026-10-13
 
 - Fixed the horizontal-rule context menu never appearing: a 1px-tall divider makes `posAtCoords` resolve to the neighboring block, so right-clicking showed the paragraph menu instead of the divider-style options. Right-click now resolves the position from the DOM element directly (`posAtDOM`), and a transparent `::after` hit area extends the divider's clickable region by ±12px.

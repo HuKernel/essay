@@ -420,6 +420,8 @@
 .block-insert-menu {
   display: grid;
   min-width: 224px;
+  max-height: min(72vh, 580px);
+  overflow: auto;
   gap: 2px;
   border: 1px solid var(--panel-border);
   border-radius: 18px;

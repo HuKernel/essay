@@ -171,32 +171,38 @@ export function EditorArea(props: EditorAreaProps) {
 
   function handleContextMenu(event: React.MouseEvent) {
     if (!editor || trashed || !editor.isEditable) return;
-    // hr 等原子块只有 1px 高，posAtCoords 的位置常落到相邻块上：
-    // 右键命中 hr 元素（含扩大的命中区）时改用 DOM 直接定位
+    // hr 只有 1px 高，posAtCoords 会落到相邻块；posAtDOM 对 leaf 节点的
+    // 边界归属也不可靠。右键命中 hr 时反向遍历文档，用 view.nodeDOM 精确匹配。
+    let node: ProseMirrorNode | null = null;
+    let start = -1;
     const hrEl = event.target instanceof Element ? event.target.closest("hr") : null;
-    let pos: number | null = null;
     if (hrEl) {
-      try {
-        pos = editor.view.posAtDOM(hrEl, 0);
-      } catch {
-        pos = null;
-      }
+      editor.state.doc.descendants((candidate, pos) => {
+        if (candidate.type.name === "horizontalRule" && editor.view.nodeDOM(pos) === hrEl) {
+          node = candidate;
+          start = pos;
+          return false;
+        }
+        return true;
+      });
     }
-    if (pos === null) {
+    if (!node || start < 0) {
       const posInfo = editor.view.posAtCoords({ left: event.clientX, top: event.clientY });
       if (!posInfo) return;
-      pos = posInfo.pos;
+      const $pos = editor.state.doc.resolve(posInfo.pos);
+      if ($pos.depth < 1) return;
+      node = $pos.node(1);
+      start = $pos.before(1);
     }
-    const $pos = editor.state.doc.resolve(pos);
-    if ($pos.depth < 1) return;
-    const node = $pos.node(1);
-    const start = $pos.before(1);
+    const targetNode: ProseMirrorNode | null = node;
+    const targetStart: number = start;
+    if (!targetNode || targetStart < 0) return;
     event.preventDefault();
     setCtxMenu({
       x: Math.min(event.clientX, window.innerWidth - 264),
       y: Math.min(event.clientY, window.innerHeight - 396),
-      node,
-      start
+      node: targetNode,
+      start: targetStart
     });
   }
 
