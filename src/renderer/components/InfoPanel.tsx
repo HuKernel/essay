@@ -72,7 +72,10 @@ const PAGE_BG_PRESETS: Array<{ id: string | null; css: string; label: string }> 
   { id: "color:#fdf2f8", css: "#fdf2f8", label: "樱粉" },
   { id: "grad:#fef3c7,#ecfeff", css: "linear-gradient(160deg,#fef3c7,#ecfeff)", label: "暖晨" },
   { id: "grad:#e0e7ff,#fbe9f4", css: "linear-gradient(160deg,#e0e7ff,#fbe9f4)", label: "霞光" },
-  { id: "grad:#e8f5e9,#fffde7", css: "linear-gradient(160deg,#e8f5e9,#fffde7)", label: "青草" }
+  { id: "grad:#e8f5e9,#fffde7", css: "linear-gradient(160deg,#e8f5e9,#fffde7)", label: "青草" },
+  { id: "pattern:dots", css: "radial-gradient(circle at 1px 1px, var(--line-strong) 1px, transparent 0) 0 0/22px 22px", label: "点阵" },
+  { id: "pattern:grid", css: "linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/28px 28px, linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 28px", label: "网格" },
+  { id: "pattern:paper", css: "repeating-linear-gradient(0deg, transparent 0 3px, color-mix(in srgb, var(--line-soft) 34%, transparent) 3px 4px)", label: "纸纹" }
 ];
 
 export function InfoPanel(props: InfoPanelProps) {

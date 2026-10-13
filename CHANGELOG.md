@@ -1,3 +1,16 @@
+## 0.9.92 - 2026-10-13
+
+- Added browser-style tabs: a tab bar appears under the top bar when more than one note is open. Ctrl+T opens a new tab (new note), Ctrl+W closes the current one, Ctrl+Tab cycles, Ctrl+click a list card opens it in a new tab; tabs persist across restarts and the active tab follows any navigation.
+- Added block grouping: select across blocks and hit the new "组合" toolbar button to wrap them in a movable dashed container; right-click the group to ungroup.
+- Added a keyboard-shortcuts overview (Ctrl+/ or command palette) grouped by general/editing/find/tabs.
+- Added forward navigation: the top bar now has a forward arrow alongside back, with browser semantics (new jumps clear the forward stack).
+- Added page breaks: a "分页符" slash-menu item inserts a divider that breaks pages when printing / exporting to PDF.
+- Added a "涂鸦" hand-drawn border decoration in the format panel (composes with card/focus modes and colors).
+- Added page background patterns (dots / grid / paper) alongside the existing solid and gradient presets, theme-aware.
+- Added list sorting: the document list header gains a sort selector (default / recently edited / created / title), persisted locally.
+- Added sub-page card styling: right-click a page-link card to switch between standard and compact layouts.
+- Added task scheduling and timed reminders: the task popover now separates 截止 (deadline) and 计划 (scheduled) dates with separate badges, plus timed reminders (20 min / 1 / 3 hours later, tomorrow 9:00) that trigger a system notification via a 1-minute main-process scan; today's scheduled tasks join the home "今日待办" section.
+
 ## 0.9.91 - 2026-10-13
 
 - Fixed block-move commands moving blocks to the wrong place: the ProseMirror `forEach` callback signature is `(child, offset, index)` and the offset was being used as the index when recomputing the insert position. Also fixed "move to bottom" falling back to the document start when the post-delete index is out of range.

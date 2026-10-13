@@ -613,8 +613,8 @@ async function buildPdfExport(note: NoteRecord): Promise<Uint8Array> {
 
 const BODY_FONT_IDS = new Set(["default", "serif", "mono", "rounded"]);
 const COVER_ASSET_PATTERN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9]{1,10}$/;
-/** 页面背景：color:#rgb/#rrggbb 或 grad:#a,#b（最多双色） */
-const PAGE_BG_PATTERN = /^(?:color|grad):#[0-9a-fA-F]{3,8}(?:,#[0-9a-fA-F]{3,8})?$/;
+/** 页面背景：color:#rgb/#rrggbb、grad:#a,#b（最多双色）或 pattern:dots|grid|paper */
+const PAGE_BG_PATTERN = /^(?:color|grad):#[0-9a-fA-F]{3,8}(?:,#[0-9a-fA-F]{3,8})?$|^pattern:(?:dots|grid|paper)$/;
 
 function normalizeBodyFont(value: unknown): string | null {
   return typeof value === "string" && BODY_FONT_IDS.has(value) ? value : null;
@@ -1258,13 +1258,16 @@ async function listNotes(): Promise<NoteRecord[]> {
   return sortNotes(notes);
 }
 
-/** 已提醒过的任务键（noteId + 文本 + 日期），本次会话内去重 */
+/** 已提醒过的任务键（noteId + 文本 + 时间），本次会话内去重 */
 const notifiedTaskKeys = new Set<string>();
 
-function collectDueTasksForReminder(notes: NoteRecord[]): Array<{ noteId: string; noteTitle: string; text: string; due: string }> {
+type DueTaskReminder = { noteId: string; noteTitle: string; text: string; body: string; key: string };
+
+function collectDueTasksForReminder(notes: NoteRecord[]): DueTaskReminder[] {
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const items: Array<{ noteId: string; noteTitle: string; text: string; due: string }> = [];
+  const nowMs = now.getTime();
+  const items: DueTaskReminder[] = [];
   const textOf = (node: unknown): string => {
     if (!node || typeof node !== "object") return "";
     const current = node as { type?: string; text?: string; content?: unknown[] };
@@ -1276,11 +1279,20 @@ function collectDueTasksForReminder(notes: NoteRecord[]): Array<{ noteId: string
     const current = node as { type?: string; attrs?: Record<string, unknown>; content?: unknown[] };
     if (current.type === "taskItem") {
       const due = typeof current.attrs?.dueDate === "string" ? current.attrs.dueDate : null;
+      const remindAt = typeof current.attrs?.remindAt === "string" ? current.attrs.remindAt : null;
       const checked = Boolean(current.attrs?.checked);
-      if (due && due <= today && !checked) {
+      const remindDue = remindAt !== null && Date.parse(remindAt) <= nowMs;
+      const dateDue = due !== null && due <= today;
+      if ((remindDue || dateDue) && !checked) {
         const text = textOf(current).trim().slice(0, 60);
-        if (text && !notifiedTaskKeys.has(`${note.id}|${text}|${due}`)) {
-          items.push({ noteId: note.id, noteTitle: note.title || "未命名记录", text, due });
+        if (text) {
+          if (remindDue) {
+            const key = `${note.id}|${text}|${remindAt}`;
+            if (!notifiedTaskKeys.has(key)) items.push({ noteId: note.id, noteTitle: note.title || "未命名记录", text, body: `提醒：${text}（${note.title || "未命名记录"}）`, key });
+          } else {
+            const key = `${note.id}|${text}|${due}`;
+            if (!notifiedTaskKeys.has(key)) items.push({ noteId: note.id, noteTitle: note.title || "未命名记录", text, body: `任务到期：${text}（${note.title || "未命名记录"}）`, key });
+          }
         }
       }
     }
@@ -1302,10 +1314,10 @@ function startTaskReminderScheduler() {
       const due = collectDueTasksForReminder(notes);
       if (due.length === 0) return;
       for (const task of due.slice(0, 5)) {
-        notifiedTaskKeys.add(`${task.noteId}|${task.text}|${task.due}`);
+        notifiedTaskKeys.add(task.key);
         const notification = new Notification({
-          title: "随记 · 任务到期",
-          body: `「${task.text}」（${task.noteTitle}）`,
+          title: "随记 · 任务提醒",
+          body: task.body,
           icon: path.join(__dirname, "../build/icon.ico")
         });
         notification.on("click", () => {
@@ -1321,7 +1333,7 @@ function startTaskReminderScheduler() {
     }
   }
   setTimeout(() => void run(), 20000).unref();
-  setInterval(() => void run(), 30 * 60 * 1000).unref();
+  setInterval(() => void run(), 60 * 1000).unref();
 }
 
 function buildFtsQuery(query: string) {

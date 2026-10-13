@@ -5,6 +5,8 @@ import { TextSelection } from "@tiptap/pm/state";
 import { Fragment, Slice } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import { HrVariantExtension } from "./editor/hr-variant";
+import { PageBreakExtension } from "./editor/page-break";
+import { BlockGroupExtension } from "./editor/block-group";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import { ResizableImageExtension } from "./editor/image-resize";
@@ -78,6 +80,8 @@ import { FormatPanel } from "./components/FormatPanel";
 import { EditorArea } from "./components/EditorArea";
 import { SettingsModal } from "./components/SettingsModal";
 import { CommandPalette, type CommandPaletteItem } from "./components/CommandPalette";
+import { ShortcutsModal } from "./components/ShortcutsModal";
+import { TabBar } from "./components/TabBar";
 import { ConfirmDialog, HistoryModal, LinkDialog, PrivacyLock, PromptDialog, BlockRefPicker } from "./components/Modals";
 
 type ActiveEditor = NonNullable<ReturnType<typeof useEditor>>;
@@ -140,6 +144,7 @@ export default function App() {
   const [unlockBusy, setUnlockBusy] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
   const [navBackStack, setNavBackStack] = useState<Array<{ view: "home" | "list" | "reader"; noteId: string }>>([]);
+  const [navForwardStack, setNavForwardStack] = useState<Array<{ view: "home" | "list" | "reader"; noteId: string }>>([]);
   const [replaceOpen, setReplaceOpen] = useState(false);
   const [findQuery, setFindQuery] = useState("");
   const [replaceValue, setReplaceValue] = useState("");
@@ -162,6 +167,100 @@ export default function App() {
   const [toast, setToast] = useState<{ message: string; action?: () => void } | null>(null);
   const [blockRefPicker, setBlockRefPicker] = useState<{ pos: number } | null>(null);
   const [imageUrlDialog, setImageUrlDialog] = useState<{ draft: string } | null>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [listSort, setListSort] = useState<"default" | "updated" | "created" | "title">(
+    () => (window.localStorage.getItem("suiji.list-sort") as "default" | "updated" | "created" | "title" | null) ?? "default"
+  );
+
+  function changeListSort(sort: "default" | "updated" | "created" | "title") {
+    setListSort(sort);
+    window.localStorage.setItem("suiji.list-sort", sort);
+  }
+
+  // ---------- 多标签 ----------
+  const [tabs, setTabs] = useState<string[]>([]);
+  const [activeTabIndex, setActiveTabIndex] = useState(0);
+
+  // 笔记加载后恢复上次会话的标签（无效 id 过滤）
+  useEffect(() => {
+    if (tabs.length > 0 || notes.length === 0) return;
+    const current = activeIdRef.current;
+    let saved: string[] = [];
+    try {
+      const raw = window.localStorage.getItem("suiji.tabs");
+      saved = Array.isArray(JSON.parse(raw ?? "[]")) ? (JSON.parse(raw ?? "[]") as string[]) : [];
+    } catch {
+      saved = [];
+    }
+    const valid = saved.filter((id) => notes.some((note) => note.id === id));
+    const base = valid.length > 0 ? valid : current ? [current] : [];
+    const finalTabs = current && !base.includes(current) ? [...base, current] : base;
+    if (finalTabs.length > 0) {
+      setTabs(finalTabs);
+      setActiveTabIndex(Math.max(0, finalTabs.indexOf(current ?? finalTabs[0])));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes.length]);
+
+  // 当前标签跟随 activeId（任何跳转都更新当前标签内容）
+  useEffect(() => {
+    if (!activeId || tabs.length === 0) return;
+    if (tabs[activeTabIndex] === activeId) return;
+    setTabs((current) => current.map((id, index) => (index === activeTabIndex ? activeId : id)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeId]);
+
+  useEffect(() => {
+    if (tabs.length > 0) window.localStorage.setItem("suiji.tabs", JSON.stringify(tabs));
+  }, [tabs]);
+
+  function selectTab(index: number) {
+    const noteId = tabs[index];
+    if (!noteId) return;
+    setActiveTabIndex(index);
+    void handleSelectNote(noteId);
+  }
+
+  function openInNewTab(noteId: string) {
+    const existing = tabs.indexOf(noteId);
+    if (existing >= 0) {
+      selectTab(existing);
+      return;
+    }
+    const next = [...tabs];
+    next.splice(activeTabIndex + 1, 0, noteId);
+    setTabs(next);
+    setActiveTabIndex(activeTabIndex + 1);
+    void handleSelectNote(noteId);
+    setCenterView("reader");
+  }
+
+  function closeTab(index: number) {
+    if (tabs.length <= 1) return;
+    const next = tabs.filter((_, i) => i !== index);
+    setTabs(next);
+    if (index === activeTabIndex) {
+      const fallbackIndex = Math.min(index, next.length - 1);
+      setActiveTabIndex(fallbackIndex);
+      const fallback = next[fallbackIndex];
+      if (fallback) void handleSelectNote(fallback);
+    } else if (index < activeTabIndex) {
+      setActiveTabIndex((current) => current - 1);
+    }
+  }
+
+  async function openNewTab() {
+    await saveActive({ skipClean: true });
+    const created = await window.suiji.createNote();
+    setNotes((current) => sortNotes([created, ...current]));
+    openInNewTab(created.id);
+    focusEditorSoon();
+  }
+
+  const tabItems = tabs.map((noteId) => {
+    const note = notes.find((item) => item.id === noteId);
+    return { noteId, title: note?.title ?? "", dirty: noteId === activeId && saveState === "dirty" };
+  });
   const [palette, setPalette] = useState<"all" | "notes" | null>(null);
   const [focusMode, setFocusMode] = useState(false);
   const preFocusStateRef = useRef<{ sidebarCollapsed: boolean; infoPanelOpen: boolean } | null>(null);
@@ -255,6 +354,8 @@ export default function App() {
         horizontalRule: false
       }),
       HrVariantExtension,
+      PageBreakExtension,
+      BlockGroupExtension,
       CodeBlockExtension.configure({ lowlight, defaultLanguage: null }),
       BlockFormatExtension,
       FindHighlightExtension,
@@ -823,6 +924,22 @@ export default function App() {
         toggleFocusMode();
         return;
       }
+      if (event.key === "/") {
+        event.preventDefault();
+        setShortcutsOpen((current) => !current);
+      }
+      if (event.key.toLowerCase() === "t" && !event.shiftKey) {
+        event.preventDefault();
+        void openNewTab();
+      }
+      if (event.key.toLowerCase() === "w") {
+        event.preventDefault();
+        closeTab(activeTabIndex);
+      }
+      if (event.key === "Tab") {
+        event.preventDefault();
+        if (tabs.length > 1) selectTab((activeTabIndex + 1) % tabs.length);
+      }
       if (event.key.toLowerCase() === "f") {
         event.preventDefault();
         openFindPanel(false);
@@ -875,6 +992,10 @@ export default function App() {
       }
       if (settingsOpen) {
         closeSettings();
+        return;
+      }
+      if (shortcutsOpen) {
+        setShortcutsOpen(false);
         return;
       }
       if (findOpen) {
@@ -1040,7 +1161,7 @@ export default function App() {
     const source = timeField
       ? [...notes].sort((a, b) => Date.parse(b[timeField] ?? "") - Date.parse(a[timeField] ?? ""))
       : notes;
-    return source.filter((note) => {
+    const filtered = source.filter((note) => {
       if (searchSyntax.trash) {
         if (!note.trashedAt) return false;
       } else {
@@ -1070,7 +1191,18 @@ export default function App() {
       const matchesKeyword = !keyword || localMatchesKeyword || Boolean(ftsMatchedIdSet?.has(note.id));
       return matchesTag && matchesFolder && matchesKeyword;
     });
-  }, [ftsMatchedIdSet, notes, searchSyntax, selectedFolder, selectedTag, viewMode]);
+    // 用户显式选择的排序优先于视图默认排序（置顶始终最前）
+    if (listSort === "created") {
+      return [...filtered].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+    }
+    if (listSort === "title") {
+      return [...filtered].sort((a, b) => (a.title || "未命名记录").localeCompare(b.title || "未命名记录", "zh-CN"));
+    }
+    if (listSort === "updated") {
+      return [...filtered].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+    }
+    return filtered;
+  }, [ftsMatchedIdSet, listSort, notes, searchSyntax, selectedFolder, selectedTag, viewMode]);
 
   const allTags = useMemo(() => {
     return Array.from(new Set(notes.filter((note) => !note.trashedAt).flatMap((note) => note.tags))).sort((a, b) =>
@@ -1299,21 +1431,36 @@ export default function App() {
         ...stack,
         { view: centerView, noteId: activeId }
       ]);
+      // 新跳转清空前进栈（浏览器语义）
+      setNavForwardStack([]);
     }
     void handleSelectNote(id);
     setCenterView("reader");
+  }
+
+  function applyNavState(target: { view: "home" | "list" | "reader"; noteId: string }) {
+    if (target.view === "reader" && target.noteId) {
+      if (target.noteId !== activeId) void handleSelectNote(target.noteId);
+      setCenterView("reader");
+    } else {
+      setCenterView(target.view);
+    }
   }
 
   function goBackNote() {
     const prev = navBackStack[navBackStack.length - 1];
     if (!prev) return;
     setNavBackStack((stack) => stack.slice(0, -1));
-    if (prev.view === "reader" && prev.noteId) {
-      if (prev.noteId !== activeId) void handleSelectNote(prev.noteId);
-      setCenterView("reader");
-    } else {
-      setCenterView(prev.view);
-    }
+    setNavForwardStack((stack) => [...stack, { view: centerView, noteId: activeId }]);
+    applyNavState(prev);
+  }
+
+  function goForwardNote() {
+    const next = navForwardStack[navForwardStack.length - 1];
+    if (!next) return;
+    setNavForwardStack((stack) => stack.slice(0, -1));
+    setNavBackStack((stack) => [...stack, { view: centerView, noteId: activeId }]);
+    applyNavState(next);
   }
 
   async function handleDeleteNote(id: string) {
@@ -1645,6 +1792,7 @@ export default function App() {
       { id: "history", kind: "command", label: "当前记录的历史版本", run: () => void handleOpenHistory() },
       { id: "settings", kind: "command", label: "打开设置", run: () => openSettings() },
       { id: "focus", kind: "command", label: focusMode ? "退出专注模式" : "进入专注模式（Ctrl+Shift+F）", run: () => toggleFocusMode() },
+      { id: "shortcuts", kind: "command", label: "快捷键总览（Ctrl+/）", run: () => setShortcutsOpen(true) },
       { id: "daily", kind: "command", label: "每日笔记（打开/创建今日）", run: () => void openDailyNote() }
     ];
     const views: CommandPaletteItem[] = (
@@ -2172,6 +2320,12 @@ export default function App() {
       run: () => editor?.chain().focus().setHorizontalRule().run()
     },
     {
+      id: "page-break",
+      label: "分页符",
+      hint: "打印 / 导出 PDF 时分页",
+      run: () => editor?.chain().focus().insertContent({ type: "pageBreak" }).run()
+    },
+    {
       id: "callout",
       label: "提示块",
       hint: "信息/提示/警告",
@@ -2233,13 +2387,22 @@ export default function App() {
       ? FONT_PRESETS.find((preset) => preset.id === activeNote.bodyFont)?.family
       : undefined;
 
-  // 页面背景：color:#hex → 纯色；grad:#a,#b → 渐变
+  // 页面背景：color:#hex → 纯色；grad:#a,#b → 渐变；pattern:* → 主题适配图案
   function pageBgCss(value: string | null | undefined) {
     if (!value) return undefined;
     if (value.startsWith("color:")) return value.slice(6);
     if (value.startsWith("grad:")) {
       const [from, to] = value.slice(5).split(",");
       return `linear-gradient(160deg, ${from}, ${to ?? from})`;
+    }
+    if (value === "pattern:dots") {
+      return "radial-gradient(circle at 1px 1px, var(--line-strong) 1px, transparent 0) 0 0/22px 22px, var(--app-bg)";
+    }
+    if (value === "pattern:grid") {
+      return "linear-gradient(var(--line-soft) 1px, transparent 1px) 0 0/28px 28px, linear-gradient(90deg, var(--line-soft) 1px, transparent 1px) 0 0/28px 28px, var(--app-bg)";
+    }
+    if (value === "pattern:paper") {
+      return "repeating-linear-gradient(0deg, transparent 0 3px, color-mix(in srgb, var(--line-soft) 34%, transparent) 3px 4px), var(--app-bg)";
     }
     return undefined;
   }
@@ -2263,6 +2426,8 @@ export default function App() {
           lastEditedText={activeNote ? docDateFormat.format(new Date(activeNote.updatedAt)) : ""}
           canGoBack={navBackStack.length > 0}
           onGoBack={goBackNote}
+          canGoForward={navForwardStack.length > 0}
+          onGoForward={goForwardNote}
           showSidebarToggle={isCompactViewport && sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed(false)}
           formatOpen={formatPopoverOpen}
@@ -2312,6 +2477,13 @@ export default function App() {
             ) : null}
           </nav>
         </TopBar>
+        <TabBar
+          tabs={tabItems}
+          activeIndex={activeTabIndex}
+          onSelect={selectTab}
+          onClose={closeTab}
+          onNew={() => void openNewTab()}
+        />
 
       <Sidebar
         sidebarCollapsed={sidebarCollapsed}
@@ -2394,6 +2566,9 @@ export default function App() {
                 hasFilter={Boolean(query || selectedFolder || selectedTag)}
                 filterLabel={selectedTag ? `#${selectedTag}` : selectedFolder || undefined}
                 openTasks={openTasks}
+                onOpenNoteNewTab={openInNewTab}
+                listSort={listSort}
+                onListSortChange={changeListSort}
                 onOpenNote={openNoteInReader}
                 onOpenTaskNote={(id) => {
                   handleOpenTaskNote(id);
@@ -2577,6 +2752,8 @@ export default function App() {
           onClose={() => setPalette(null)}
         />
       ) : null}
+
+      {shortcutsOpen ? <ShortcutsModal onClose={() => setShortcutsOpen(false)} /> : null}
 
       {imageUrlDialog ? (
         <PromptDialog

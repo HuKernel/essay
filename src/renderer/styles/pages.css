@@ -418,3 +418,31 @@
   object-fit: cover;
   user-select: none;
 }
+
+/* ---------- 列表排序选择 ---------- */
+
+.doc-list-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+  color: var(--subtle-text);
+  font-size: 12px;
+}
+
+.doc-list-sort select {
+  height: 28px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted-text);
+  font-size: 12px;
+  outline: 0;
+  padding: 0 8px;
+  cursor: pointer;
+}
+
+.doc-list-sort select:hover {
+  border-color: var(--line-strong);
+  color: var(--text-color);
+}

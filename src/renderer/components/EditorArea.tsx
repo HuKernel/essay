@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { BubbleMenu, EditorContent } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
 import { TextSelection } from "@tiptap/pm/state";
-import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
+import { NodeRange, type Node as ProseMirrorNode } from "@tiptap/pm/model";
 import {
   ArrowDown,
   ArrowUp,
   Bold,
+  Boxes,
   ChevronsDown,
   ChevronsUp,
   Code,
@@ -245,6 +246,57 @@ export function EditorArea(props: EditorAreaProps) {
     setCtxMenu(null);
   }
 
+  /** 把选区覆盖的顶级块包进组合容器 */
+  function runGroupSelection() {
+    if (!editor) return;
+    const range = selectionBlockRange();
+    if (!range) return;
+    editor
+      .chain()
+      .focus()
+      .command(({ tr, state }) => {
+        const $from = state.doc.resolve(range.from);
+        const $to = state.doc.resolve(range.to);
+        tr.wrap(new NodeRange($from, $to, 0), [{ type: state.schema.nodes.blockGroup }]);
+        return true;
+      })
+      .run();
+  }
+
+  /** 取消组合：选区覆盖组内全部块后 lift 出容器 */
+  function runUngroup() {
+    if (!editor || !ctxMenu) return;
+    const { start, node } = ctxMenu;
+    editor
+      .chain()
+      .focus()
+      .command(({ tr, state }) => {
+        const innerFrom = start + 1;
+        const innerTo = start + node.nodeSize - 1;
+        if (innerTo <= innerFrom) return false;
+        tr.setSelection(TextSelection.create(state.doc, innerFrom, innerTo));
+        return true;
+      })
+      .lift("blockGroup")
+      .run();
+    setCtxMenu(null);
+  }
+
+  /** 切换子页面卡片布局 */
+  function runSetPageLinkLayout(layout: "default" | "compact") {
+    if (!editor || !ctxMenu) return;
+    const { start, node } = ctxMenu;
+    editor
+      .chain()
+      .focus()
+      .command(({ tr }) => {
+        tr.setNodeMarkup(start, undefined, { ...node.attrs, layout });
+        return true;
+      })
+      .run();
+    setCtxMenu(null);
+  }
+
   async function runCopyBlockText() {
     if (!ctxMenu) return;
     try {
@@ -443,6 +495,16 @@ export function EditorArea(props: EditorAreaProps) {
             >
               <FileOutput size={15} />
             </button>
+            <button
+              type="button"
+              className="selection-toolbar-button"
+              onMouseDown={keepEditorFocus}
+              onClick={runGroupSelection}
+              title="把选中的块组合成整体"
+              aria-label="组合块"
+            >
+              <Boxes size={15} />
+            </button>
           </div>
         </BubbleMenu>
       ) : null}
@@ -509,6 +571,36 @@ export function EditorArea(props: EditorAreaProps) {
                 ))}
                 <span className="block-ctx-divider" aria-hidden="true" />
               </>
+            ) : null}
+            {ctxMenu.node.type.name === "pageLink" ? (
+              <>
+                <span className="block-ctx-label">卡片样式</span>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={(ctxMenu.node.attrs.layout || "default") === "default" ? "block-ctx-item is-active" : "block-ctx-item"}
+                  onMouseDown={keepEditorFocus}
+                  onClick={() => runSetPageLinkLayout("default")}
+                >
+                  <span>标准卡片</span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={ctxMenu.node.attrs.layout === "compact" ? "block-ctx-item is-active" : "block-ctx-item"}
+                  onMouseDown={keepEditorFocus}
+                  onClick={() => runSetPageLinkLayout("compact")}
+                >
+                  <span>紧凑行内</span>
+                </button>
+                <span className="block-ctx-divider" aria-hidden="true" />
+              </>
+            ) : null}
+            {ctxMenu.node.type.name === "blockGroup" ? (
+              <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={runUngroup}>
+                <Boxes size={13} />
+                <span>取消组合</span>
+              </button>
             ) : null}
             <span className="block-ctx-move" role="group" aria-label="移动区块">
               <button type="button" title="移到顶部" aria-label="移到顶部" onMouseDown={keepEditorFocus} onClick={() => runMoveBlock("top")}>

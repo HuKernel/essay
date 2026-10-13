@@ -11,16 +11,22 @@ export function requestOpenNote(noteId: string, blockText?: string) {
 function PageLinkView({ node }: NodeViewProps) {
   const noteId = String(node.attrs.noteId ?? "");
   const title = String(node.attrs.title || "未命名子页面");
+  const layout = String(node.attrs.layout || "default");
+  const emoji = String(node.attrs.emoji || "");
   return (
     <NodeViewWrapper className="page-link-wrap">
       <button
         type="button"
-        className="page-link-card"
+        className={layout === "compact" ? "page-link-card is-compact" : "page-link-card"}
         data-page-link={noteId}
         onClick={() => requestOpenNote(noteId)}
         title="打开子页面"
       >
-        <FileText size={16} />
+        {emoji ? (
+          <span className="page-link-emoji" aria-hidden="true">{emoji}</span>
+        ) : (
+          <FileText size={16} />
+        )}
         <span className="page-link-title">{title}</span>
         <span className="page-link-hint">子页面</span>
       </button>
@@ -36,7 +42,17 @@ export const PageLinkBlock = Node.create({
   addAttributes() {
     return {
       noteId: { default: "" },
-      title: { default: "" }
+      title: { default: "" },
+      layout: {
+        default: "default",
+        parseHTML: (element) => element.getAttribute("data-layout") || "default",
+        renderHTML: (attributes) => (attributes.layout && attributes.layout !== "default" ? { "data-layout": attributes.layout } : {})
+      },
+      emoji: {
+        default: "",
+        parseHTML: (element) => element.getAttribute("data-emoji") || "",
+        renderHTML: (attributes) => (attributes.emoji ? { "data-emoji": attributes.emoji } : {})
+      }
     };
   },
   parseHTML() {

@@ -99,3 +99,106 @@
 .topbar input {
   -webkit-app-region: no-drag;
 }
+
+/* ---------- 多标签条 ---------- */
+
+.tabbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--panel-bg);
+  padding: 4px 10px;
+  scrollbar-width: thin;
+}
+
+.app-shell.focus-mode .tabbar {
+  display: none;
+}
+
+.tabbar-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  max-width: 200px;
+}
+
+.tabbar-tab.is-active {
+  border-color: var(--line-soft);
+  background: var(--surface-raised);
+}
+
+.tabbar-tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted-text);
+  font-size: 12px;
+  padding: 5px 4px 5px 10px;
+  cursor: pointer;
+}
+
+.tabbar-tab.is-active .tabbar-tab-label {
+  color: var(--text-color);
+}
+
+.tabbar-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabbar-tab-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--warning-color);
+}
+
+.tabbar-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--subtle-text);
+  padding: 0;
+  cursor: pointer;
+}
+
+.tabbar-tab-close:hover {
+  background: var(--surface-hover);
+  color: var(--danger-color);
+}
+
+.tabbar-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted-text);
+  padding: 0;
+  cursor: pointer;
+}
+
+.tabbar-new:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-strong);
+}

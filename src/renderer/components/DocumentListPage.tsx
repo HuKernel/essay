@@ -25,6 +25,9 @@ type DocumentListPageProps = {
   hasFilter: boolean;
   filterLabel?: string;
   openTasks: OpenTask[];
+  onOpenNoteNewTab: (id: string) => void;
+  listSort: "default" | "updated" | "created" | "title";
+  onListSortChange: (sort: "default" | "updated" | "created" | "title") => void;
   onOpenNote: (id: string) => void;
   onOpenTaskNote: (id: string) => void;
   onToggleTask: (task: OpenTask) => void;
@@ -64,6 +67,9 @@ export function DocumentListPage(props: DocumentListPageProps) {
     hasFilter,
     filterLabel,
     openTasks,
+    onOpenNoteNewTab,
+    listSort,
+    onListSortChange,
     onOpenNote,
     onOpenTaskNote,
     onToggleTask,
@@ -116,6 +122,21 @@ export function DocumentListPage(props: DocumentListPageProps) {
           {viewMode === "tasks" ? <ListTodo size={18} /> : null}
           {filterLabel || (VIEW_TITLES[viewMode] ?? "全部记录")}
         </h2>
+        {viewMode !== "tasks" && viewMode !== "calendar" ? (
+          <label className="doc-list-sort">
+            <span>排序</span>
+            <select
+              value={listSort}
+              onChange={(event) => onListSortChange(event.target.value as "default" | "updated" | "created" | "title")}
+              aria-label="列表排序"
+            >
+              <option value="default">默认</option>
+              <option value="updated">最近编辑</option>
+              <option value="created">创建时间</option>
+              <option value="title">标题</option>
+            </select>
+          </label>
+        ) : null}
         <span>{viewMode === "tasks" ? openTasks.length : filteredNotes.length} 篇</span>
       </div>
 
@@ -246,7 +267,10 @@ export function DocumentListPage(props: DocumentListPageProps) {
                 tabIndex={0}
                 draggable
                 onDragStart={(event) => noteDragStart(event, note.id)}
-                onClick={() => onOpenNote(note.id)}
+                onClick={(event) => {
+                  if (event.ctrlKey || event.metaKey) onOpenNoteNewTab(note.id);
+                  else onOpenNote(note.id);
+                }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();

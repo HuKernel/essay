@@ -1528,3 +1528,122 @@
   color: var(--subtle-text);
   font-size: 12px;
 }
+
+/* ---------- 分页符 ---------- */
+
+.editor-surface div[data-type="page-break"] {
+  position: relative;
+  margin: 26px 0;
+  border-top: 2px dashed var(--line-strong);
+  user-select: none;
+}
+
+.editor-surface div[data-type="page-break"]::after {
+  content: "分页";
+  position: absolute;
+  right: 0;
+  top: -10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--subtle-text);
+  font-size: 10.5px;
+  line-height: 1;
+  padding: 4px 10px;
+}
+
+.ProseMirror-selectednode > div[data-type="page-break"],
+.editor-surface .ProseMirror-selectednode[data-type="page-break"] {
+  border-top-color: var(--accent-color);
+}
+
+@media print {
+  .editor-surface div[data-type="page-break"] {
+    border: 0;
+    margin: 0;
+    page-break-after: always;
+    break-after: page;
+  }
+  .editor-surface div[data-type="page-break"]::after {
+    display: none;
+  }
+}
+
+/* ---------- 涂鸦装饰（手绘风边框） ---------- */
+
+.editor-surface [data-doodle-mode="true"] {
+  border: 2px solid var(--node-accent, var(--accent-color));
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  padding: 14px 18px;
+  transform: rotate(-0.3deg);
+}
+
+.editor-surface [data-doodle-mode="true"][data-card-mode="true"] {
+  background: color-mix(in srgb, var(--node-accent, var(--accent-color)) 8%, transparent);
+}
+
+.editor-surface [data-doodle-mode="true"][data-focus-mode="true"] {
+  padding-left: 22px;
+}
+
+.task-due-popover-label {
+  color: var(--subtle-text);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 5px 4px 2px;
+}
+
+.task-due-badge.task-scheduled {
+  border-style: dashed;
+  color: var(--muted-text);
+}
+
+.task-due-badge.task-remind {
+  color: var(--warning-color);
+  border-color: color-mix(in srgb, var(--warning-color) 30%, transparent);
+}
+
+/* ---------- 块组合容器 ---------- */
+
+.editor-surface div[data-type="block-group"] {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  margin: 18px 0;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 18px;
+  padding: 18px 18px 12px;
+}
+
+.editor-surface div[data-type="block-group"]::before {
+  content: "组合";
+  position: absolute;
+  top: -9px;
+  left: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--subtle-text);
+  font-size: 10.5px;
+  line-height: 1;
+  padding: 4px 10px;
+}
+
+/* ---------- 子页面卡片紧凑模式 / 图标 ---------- */
+
+.page-link-card.is-compact {
+  display: inline-flex;
+  min-height: 26px;
+  border-radius: 999px;
+  padding: 0 12px;
+}
+
+.page-link-card.is-compact .page-link-hint {
+  display: none;
+}
+
+.page-link-emoji {
+  font-size: 15px;
+  line-height: 1;
+}

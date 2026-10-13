@@ -113,7 +113,8 @@ export function FormatPanel(props: FormatPanelProps) {
       colorToken: currentBlockFormat.colorToken,
       customColor: currentBlockFormat.customColor,
       focusMode: currentBlockFormat.focusMode,
-      cardMode: currentBlockFormat.cardMode
+      cardMode: currentBlockFormat.cardMode,
+      doodleMode: currentBlockFormat.doodleMode
     };
     setCustomStyles((current) => [...current, { id: `${Date.now()}-${name}`, name, attrs }].slice(-24));
   }
@@ -422,6 +423,22 @@ export function FormatPanel(props: FormatPanelProps) {
           >
             <span className="format-decor-chip format-decor-chip-card" aria-hidden="true">
               <span>块</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            className={
+              currentBlockFormat.doodleMode
+                ? "format-button format-decor-button is-active"
+                : "format-button format-decor-button"
+            }
+            onMouseDown={keepEditorFocus}
+            onClick={() => onApplyBlockFormat({ doodleMode: !currentBlockFormat.doodleMode })}
+            disabled={disabled}
+            title="手绘涂鸦边框"
+          >
+            <span className="format-decor-chip format-decor-chip-doodle" aria-hidden="true">
+              <span>涂鸦</span>
             </span>
           </button>
         </div>

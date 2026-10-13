@@ -6,6 +6,7 @@ export type BlockFormat = {
   textRole: TextRole;
   focusMode: boolean;
   cardMode: boolean;
+  doodleMode: boolean;
   colorToken: ColorToken;
   customColor: string;
 };
@@ -32,6 +33,11 @@ export const BlockFormatExtension = Extension.create({
             default: false,
             parseHTML: (element) => element.getAttribute("data-card-mode") === "true",
             renderHTML: (attributes) => (attributes.cardMode ? { "data-card-mode": "true" } : {})
+          },
+          doodleMode: {
+            default: false,
+            parseHTML: (element) => element.getAttribute("data-doodle-mode") === "true",
+            renderHTML: (attributes) => (attributes.doodleMode ? { "data-doodle-mode": "true" } : {})
           },
           colorToken: {
             default: "default",
@@ -64,6 +70,7 @@ export function getCurrentBlockFormat(editor: Editor | null): BlockFormat {
       textRole: "body",
       focusMode: false,
       cardMode: false,
+      doodleMode: false,
       colorToken: "default",
       customColor: ""
     };
@@ -73,6 +80,7 @@ export function getCurrentBlockFormat(editor: Editor | null): BlockFormat {
     textRole: (attrs.textRole as TextRole | undefined) ?? "body",
     focusMode: Boolean(attrs.focusMode),
     cardMode: Boolean(attrs.cardMode),
+    doodleMode: Boolean(attrs.doodleMode),
     colorToken: (attrs.colorToken as ColorToken | undefined) ?? "default",
     customColor: typeof attrs.customColor === "string" ? attrs.customColor : ""
   };
