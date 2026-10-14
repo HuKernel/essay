@@ -68,40 +68,31 @@
 .app-breadcrumb strong {
   color: var(--text-color);
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-/* ---------- 文档头：大标题（衬线）+ 元信息行 + 标签 ---------- */
-
-.doc-head {
-  width: min(100%, var(--editor-width, 900px));
-  margin: 0 auto;
-  padding: 8px 0 0;
+/* 当前笔记名：点击就地编辑标题 */
+.app-breadcrumb .app-breadcrumb-title {
+  color: var(--text-color);
+  font-weight: 600;
+  max-width: 260px;
 }
 
-.doc-title-input {
-  width: 100%;
+.app-breadcrumb .app-breadcrumb-title:hover {
+  color: var(--text-color);
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.app-breadcrumb-edit {
+  width: 200px;
   border: 0;
+  border-bottom: 1.5px solid var(--accent-color);
   outline: 0;
   background: transparent;
   color: var(--text-color);
-  font-family: var(--font-serif);
-  font-size: var(--editor-font-size, 16px);
+  font-size: 12.5px;
   font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: 0.005em;
-  padding: 0;
-}
-
-.doc-title-input::placeholder {
-  color: var(--line-strong);
-}
-
-.doc-title-input:disabled {
-  color: var(--muted-text);
-  cursor: default;
-  opacity: 1;
+  padding: 0 0 1px;
 }
 
 /* 正文首个 H1 与文档标题重复时只在显示层隐藏（数据不动） */

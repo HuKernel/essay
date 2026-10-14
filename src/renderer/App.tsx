@@ -121,6 +121,8 @@ export default function App() {
   const [notes, setNotes] = useState<NoteRecord[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const [title, setTitle] = useState("");
+  const [titleEditing, setTitleEditing] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
   const [tagsDraft, setTagsDraft] = useState("");
   const [folderDraft, setFolderDraft] = useState("");
   const [query, setQuery] = useState("");
@@ -732,6 +734,7 @@ export default function App() {
   useEffect(() => {
     if (!editor || !activeNote) return;
     setTitle(activeNote.title);
+    setTitleEditing(false);
     setTagsDraft(activeNote.tags.join(", "));
     setFolderDraft(activeNote.folder);
     setMetaEditorOpen(false);
@@ -2444,7 +2447,44 @@ export default function App() {
                   </>
                 ) : null}
                 <span className="app-breadcrumb-sep" aria-hidden="true">/</span>
-                <strong>{title.trim() || activeNote?.title || "未命名记录"}</strong>
+                {titleEditing ? (
+                  <input
+                    className="app-breadcrumb-edit"
+                    value={titleDraft}
+                    autoFocus
+                    aria-label="编辑记录标题"
+                    onChange={(event) => setTitleDraft(event.target.value)}
+                    onBlur={() => {
+                      setTitle(titleDraft);
+                      markDirty();
+                      setTitleEditing(false);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        setTitle(titleDraft);
+                        markDirty();
+                        setTitleEditing(false);
+                      } else if (event.key === "Escape") {
+                        event.preventDefault();
+                        setTitleEditing(false);
+                      }
+                    }}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className="app-breadcrumb-title"
+                    title="点击修改标题"
+                    onClick={() => {
+                      setTitleDraft(title);
+                      setTitleEditing(true);
+                    }}
+                    disabled={editorDisabled}
+                  >
+                    {title.trim() || activeNote?.title || "未命名记录"}
+                  </button>
+                )}
               </>
             ) : null}
           </nav>
@@ -2599,19 +2639,6 @@ export default function App() {
                   )}
                 </div>
               ) : null}
-              <div className="doc-head">
-                <input
-                  className="doc-title-input"
-                  value={title}
-                  onChange={(event) => {
-                    setTitle(event.target.value);
-                    markDirty();
-                  }}
-                  placeholder="未命名记录"
-                  disabled={editorDisabled}
-                  aria-label="记录标题"
-                />
-              </div>
             {findOpen ? (
               <FindPanel
                 readOnly={editorDisabled}

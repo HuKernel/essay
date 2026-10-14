@@ -1,3 +1,7 @@
+## 0.9.96 - 2026-10-14
+
+- Moved the note title out of the editor: the big title input above the text is gone; the title now lives in the top breadcrumb only. Click the note name in the breadcrumb to rename it in place (Enter or click-away saves, Esc cancels, switching notes exits editing). The reading area starts directly with your content.
+
 ## 0.9.95 - 2026-10-14
 
 - Table merge/split via right-click: shift-click cells to select them, right-click the table and hit 合并选中单元格; right-click inside a merged cell and hit 拆分当前单元格. The right-click itself no longer destroys the cell selection (the selection is snapshotted and restored after the click pipeline).
