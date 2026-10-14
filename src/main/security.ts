@@ -7,6 +7,12 @@ export const MAX_PIN_LENGTH = 128;
 export const DEFAULT_BACKUP_HISTORY_LIMIT = 80;
 export const MAX_BACKUP_HISTORY_LIMIT = 200;
 
+const THEME_PRESETS = new Set<string>(["paper", "pure", "amber", "forest", "ocean"]);
+
+function normalizeThemePreset(value: unknown): AppSettings["themePreset"] {
+  return typeof value === "string" && THEME_PRESETS.has(value) ? (value as AppSettings["themePreset"]) : "paper";
+}
+
 type ScryptKdfParams = {
   name: "scrypt";
   N: number;
@@ -137,7 +143,7 @@ export function publicSettings(settings: StoredSettings, activePrivacyPin: strin
     launchAtLogin: settings.launchAtLogin,
     alwaysOnTop: settings.alwaysOnTop,
     theme: settings.theme,
-    themePreset: settings.themePreset === "pure" ? "pure" : "paper",
+    themePreset: normalizeThemePreset(settings.themePreset),
     fontFamily: settings.fontFamily,
     fontSize: settings.fontSize,
     lineWidth: settings.lineWidth,
@@ -192,7 +198,7 @@ export function sanitizeStoredSettings(raw: Partial<StoredSettings>): StoredSett
     launchAtLogin: Boolean(raw.launchAtLogin),
     alwaysOnTop: Boolean(raw.alwaysOnTop),
     theme: raw.theme === "dark" ? "dark" : "light",
-    themePreset: raw.themePreset === "pure" ? "pure" : "paper",
+    themePreset: normalizeThemePreset(raw.themePreset),
     fontFamily: coerceString(raw.fontFamily, "", 120),
     fontSize: Math.min(Math.max(Number(raw.fontSize) || 16, 13), 24),
     lineWidth: Math.min(Math.max(Number(raw.lineWidth) || 900, 640), 1600),
