@@ -1,3 +1,7 @@
+## 0.9.95 - 2026-10-14
+
+- The in-app sidebar logo now uses the new note-and-pen icon as well (previously a separate legacy image), and the installer filename moves to 0.9.95 so Windows Explorer shows the new icon instead of its cached one for the earlier same-name build.
+
 ## 0.9.94 - 2026-10-14
 
 - Reworked the theme system: both stock presets now use a real accent color instead of slate gray — 纸感 pairs its cream paper with warm ochre (matching the amber selection tint), and 纯白 pairs white with a system blue; hover highlights, the current-block outline, selections and links all follow the accent now, fixing the flat all-gray look. Secondary text contrast on light paper was also nudged up.
