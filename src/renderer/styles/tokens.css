@@ -32,19 +32,19 @@
 
   /* 文字 */
   --text-color: #222222;
-  --muted-text: #6b7280;
-  --subtle-text: #9ca3af;
+  --muted-text: #5c6370;
+  --subtle-text: #8d94a1;
 
-  /* 语义色：强调为石板灰，克制安静 */
-  --accent-color: #64748b;
-  --accent-strong: #475569;
-  --accent-soft: rgba(100, 116, 139, 0.1);
-  --accent-soft-strong: rgba(100, 116, 139, 0.18);
+  /* 语义色：强调为暖赭，与奶油底/暖黄选中同一色温 */
+  --accent-color: #a16207;
+  --accent-strong: #854d0e;
+  --accent-soft: rgba(161, 98, 7, 0.1);
+  --accent-soft-strong: rgba(161, 98, 7, 0.2);
   --warning-color: #8a6a3b;
   --danger-color: #b4483f;
   --danger-strong: #a03e36;
   --danger-soft: rgba(180, 72, 63, 0.12);
-  --link-color: #475569;
+  --link-color: #854d0e;
 
   /* 线条 */
   --line-soft: #ece7db;
@@ -95,10 +95,10 @@
   --panel-border: rgba(233, 232, 228, 0.08);
   --surface-soft: rgba(233, 232, 228, 0.05);
   --surface-muted: rgba(233, 232, 228, 0.04);
-  --surface-hover: rgba(148, 163, 184, 0.14);
-  --surface-hover-soft: rgba(148, 163, 184, 0.09);
+  --surface-hover: rgba(217, 167, 90, 0.13);
+  --surface-hover-soft: rgba(217, 167, 90, 0.08);
   --surface-press: rgba(233, 232, 228, 0.08);
-  --surface-active: rgba(148, 163, 184, 0.22);
+  --surface-active: rgba(217, 167, 90, 0.22);
   --surface-raised: #26292f;
   --paper-bg: #22252a;
   --paper-border: rgba(233, 232, 228, 0.08);
@@ -107,20 +107,20 @@
   --muted-text: #a7adb8;
   --subtle-text: #8b919c;
 
-  --accent-color: #94a3b8;
-  --accent-strong: #b5c2d4;
-  --accent-soft: rgba(148, 163, 184, 0.14);
-  --accent-soft-strong: rgba(148, 163, 184, 0.24);
+  --accent-color: #d9a75a;
+  --accent-strong: #e8bf7d;
+  --accent-soft: rgba(217, 167, 90, 0.14);
+  --accent-soft-strong: rgba(217, 167, 90, 0.24);
   --warning-color: #c9a86a;
   --danger-color: #e88a7d;
   --danger-strong: #f0a094;
   --danger-soft: rgba(232, 138, 125, 0.14);
-  --link-color: #a8b8ce;
+  --link-color: #d9b57e;
 
   --line-soft: rgba(233, 232, 228, 0.08);
   --line-strong: rgba(233, 232, 228, 0.14);
 
-  --selection-bg: rgba(148, 163, 184, 0.32);
+  --selection-bg: rgba(217, 167, 90, 0.3);
   --highlight-bg: #6b5518;
   --code-bg: #2a2d33;
   --pre-bg: #14161a;
@@ -158,18 +158,24 @@
   --panel-border: #e6e6e8;
   --surface-soft: #f8f8f9;
   --surface-muted: #f2f2f4;
-  --surface-hover: #ececef;
-  --surface-hover-soft: #f4f4f6;
-  --surface-press: #e4e4e8;
-  --surface-active: #dfe3ea;
+  --surface-hover: #edf2fd;
+  --surface-hover-soft: #f3f6fd;
+  --surface-press: #e4eaf8;
+  --surface-active: #d8e3fb;
   --surface-raised: #ffffff;
   --paper-bg: #ffffff;
   --paper-border: #ebebed;
 
+  --accent-color: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.1);
+  --accent-soft-strong: rgba(37, 99, 235, 0.2);
+  --link-color: #1d4ed8;
+
   --line-soft: #ededf0;
   --line-strong: #dcdce0;
 
-  --selection-bg: #d8e2f0;
+  --selection-bg: #cfe0f7;
   --highlight-bg: #fdf3b8;
   --code-bg: #f1f1f4;
   --table-cell-bg: rgba(255, 255, 255, 0.6);
@@ -189,13 +195,21 @@
   --panel-border: rgba(235, 235, 240, 0.08);
   --surface-soft: rgba(235, 235, 240, 0.05);
   --surface-muted: rgba(235, 235, 240, 0.04);
-  --surface-hover: rgba(160, 170, 190, 0.13);
-  --surface-hover-soft: rgba(160, 170, 190, 0.08);
+  --surface-hover: rgba(96, 165, 250, 0.13);
+  --surface-hover-soft: rgba(96, 165, 250, 0.08);
   --surface-press: rgba(235, 235, 240, 0.08);
-  --surface-active: rgba(160, 170, 190, 0.2);
+  --surface-active: rgba(96, 165, 250, 0.22);
   --surface-raised: #1b1c21;
   --paper-bg: #16171b;
   --paper-border: rgba(235, 235, 240, 0.08);
+
+  --accent-color: #60a5fa;
+  --accent-strong: #93c5fd;
+  --accent-soft: rgba(96, 165, 250, 0.14);
+  --accent-soft-strong: rgba(96, 165, 250, 0.24);
+  --link-color: #7fb0ee;
+
+  --selection-bg: rgba(96, 165, 250, 0.28);
 
   --code-bg: #1e1f24;
   --pre-bg: #0b0c0e;
@@ -211,4 +225,277 @@
   --shadow-floating: 0 28px 62px rgba(0, 0, 0, 0.5);
   --shadow-paper: 0 24px 62px rgba(0, 0, 0, 0.4);
   --lock-backdrop: rgba(10, 10, 12, 0.78);
+}
+
+/* ============================================================
+   主题预设「amber」：暖米底 + 琥珀点缀（温润书卷气）
+   ============================================================ */
+
+.app-shell[data-theme-preset="amber"]:not(.theme-dark) {
+  --app-bg: #faf7f0;
+  --panel-bg: #f3eee3;
+  --panel-border: #e6ddca;
+  --surface-soft: #f7f3ea;
+  --surface-muted: #f2ecdf;
+  --surface-hover: #ece4d3;
+  --surface-hover-soft: #f3eee2;
+  --surface-press: #e4dac5;
+  --surface-active: #eed9b0;
+  --surface-raised: #fffdf7;
+  --paper-bg: #fffdf6;
+  --paper-border: #ebe2cf;
+
+  --text-color: #3f3527;
+  --muted-text: #6f6353;
+  --subtle-text: #9c8f7c;
+
+  --accent-color: #b45309;
+  --accent-strong: #92400e;
+  --accent-soft: rgba(180, 83, 9, 0.1);
+  --accent-soft-strong: rgba(180, 83, 9, 0.2);
+  --link-color: #92400e;
+
+  --line-soft: #ece4d3;
+  --line-strong: #ddd2bb;
+
+  --selection-bg: #f0d9a8;
+  --highlight-bg: #fbe8a6;
+  --code-bg: #f3eee1;
+  --table-cell-bg: rgba(255, 253, 246, 0.5);
+  --collapsible-line: #d8cdb5;
+
+  --layer-surface-top: #fffdf7;
+  --layer-surface-bottom: #fbf7ec;
+  --layer-section-top: #f5f0e2;
+  --layer-section-bottom: #efe8d6;
+
+  --lock-backdrop: rgba(250, 247, 240, 0.8);
+}
+
+.app-shell.theme-dark[data-theme-preset="amber"] {
+  --app-bg: #16130f;
+  --panel-bg: #1e1a14;
+  --panel-border: rgba(236, 229, 216, 0.08);
+  --surface-soft: rgba(236, 229, 216, 0.05);
+  --surface-muted: rgba(236, 229, 216, 0.04);
+  --surface-hover: rgba(224, 164, 88, 0.13);
+  --surface-hover-soft: rgba(224, 164, 88, 0.08);
+  --surface-press: rgba(236, 229, 216, 0.08);
+  --surface-active: rgba(224, 164, 88, 0.22);
+  --surface-raised: #23201a;
+  --paper-bg: #1e1a14;
+  --paper-border: rgba(236, 229, 216, 0.08);
+
+  --text-color: #ece5d8;
+  --muted-text: #b0a693;
+  --subtle-text: #8f8675;
+
+  --accent-color: #e0a458;
+  --accent-strong: #f0bc7c;
+  --accent-soft: rgba(224, 164, 88, 0.14);
+  --accent-soft-strong: rgba(224, 164, 88, 0.24);
+  --link-color: #e0b57e;
+
+  --line-soft: rgba(236, 229, 216, 0.08);
+  --line-strong: rgba(236, 229, 216, 0.14);
+
+  --selection-bg: rgba(224, 164, 88, 0.3);
+  --highlight-bg: #6b5518;
+  --code-bg: #26221b;
+  --pre-bg: #100e0b;
+  --table-cell-bg: rgba(236, 229, 216, 0.03);
+  --collapsible-line: rgba(236, 229, 216, 0.15);
+
+  --layer-surface-top: #23201a;
+  --layer-surface-bottom: #201c16;
+  --layer-section-top: rgba(236, 229, 216, 0.05);
+  --layer-section-bottom: rgba(236, 229, 216, 0.03);
+  --layer-outline: rgba(236, 229, 216, 0.07);
+
+  --shadow-floating: 0 28px 62px rgba(0, 0, 0, 0.42);
+  --shadow-paper: 0 24px 62px rgba(0, 0, 0, 0.34);
+  --backdrop: rgba(10, 8, 6, 0.55);
+  --lock-backdrop: rgba(12, 10, 8, 0.78);
+}
+
+/* ============================================================
+   主题预设「forest」：象牙底 + 森林绿（沉静自然）
+   ============================================================ */
+
+.app-shell[data-theme-preset="forest"]:not(.theme-dark) {
+  --app-bg: #f8f8f3;
+  --panel-bg: #eff1e9;
+  --panel-border: #e0e3d6;
+  --surface-soft: #f5f6ef;
+  --surface-muted: #eff1e7;
+  --surface-hover: #e8ebde;
+  --surface-hover-soft: #f1f3e9;
+  --surface-press: #e0e4d3;
+  --surface-active: #d5e0cd;
+  --surface-raised: #fefefa;
+  --paper-bg: #fdfdf9;
+  --paper-border: #e7ead9;
+
+  --text-color: #26302a;
+  --muted-text: #5d6a5e;
+  --subtle-text: #8b988c;
+
+  --accent-color: #3f6c46;
+  --accent-strong: #2f5538;
+  --accent-soft: rgba(63, 108, 70, 0.1);
+  --accent-soft-strong: rgba(63, 108, 70, 0.2);
+  --link-color: #2f5538;
+
+  --line-soft: #eaeedd;
+  --line-strong: #d8dcc9;
+
+  --selection-bg: #cfe3d0;
+  --highlight-bg: #e4efcf;
+  --code-bg: #eef0e5;
+  --table-cell-bg: rgba(253, 253, 249, 0.5);
+  --collapsible-line: #d5dac4;
+
+  --layer-surface-top: #fefefa;
+  --layer-surface-bottom: #fafbf4;
+  --layer-section-top: #f2f4e9;
+  --layer-section-bottom: #ecefdd;
+
+  --lock-backdrop: rgba(248, 248, 243, 0.8);
+}
+
+.app-shell.theme-dark[data-theme-preset="forest"] {
+  --app-bg: #111511;
+  --panel-bg: #181e18;
+  --panel-border: rgba(226, 231, 222, 0.08);
+  --surface-soft: rgba(226, 231, 222, 0.05);
+  --surface-muted: rgba(226, 231, 222, 0.04);
+  --surface-hover: rgba(157, 187, 152, 0.13);
+  --surface-hover-soft: rgba(157, 187, 152, 0.08);
+  --surface-press: rgba(226, 231, 222, 0.08);
+  --surface-active: rgba(157, 187, 152, 0.22);
+  --surface-raised: #1d241d;
+  --paper-bg: #181e18;
+  --paper-border: rgba(226, 231, 222, 0.08);
+
+  --text-color: #e2e7de;
+  --muted-text: #a5b1a3;
+  --subtle-text: #87937f;
+
+  --accent-color: #9dbb98;
+  --accent-strong: #b7d0b2;
+  --accent-soft: rgba(157, 187, 152, 0.14);
+  --accent-soft-strong: rgba(157, 187, 152, 0.24);
+  --link-color: #a9c8a5;
+
+  --line-soft: rgba(226, 231, 222, 0.08);
+  --line-strong: rgba(226, 231, 222, 0.14);
+
+  --selection-bg: rgba(157, 187, 152, 0.28);
+  --highlight-bg: #4d5c33;
+  --code-bg: #1c221b;
+  --pre-bg: #0b0e0b;
+  --table-cell-bg: rgba(226, 231, 222, 0.03);
+  --collapsible-line: rgba(226, 231, 222, 0.15);
+
+  --layer-surface-top: #1d241d;
+  --layer-surface-bottom: #1a201a;
+  --layer-section-top: rgba(226, 231, 222, 0.05);
+  --layer-section-bottom: rgba(226, 231, 222, 0.03);
+  --layer-outline: rgba(226, 231, 222, 0.07);
+
+  --shadow-floating: 0 28px 62px rgba(0, 0, 0, 0.42);
+  --shadow-paper: 0 24px 62px rgba(0, 0, 0, 0.34);
+  --backdrop: rgba(6, 9, 6, 0.55);
+  --lock-backdrop: rgba(9, 12, 9, 0.78);
+}
+
+/* ============================================================
+   主题预设「ocean」：冷白底 + 雾蓝（清爽专注）
+   ============================================================ */
+
+.app-shell[data-theme-preset="ocean"]:not(.theme-dark) {
+  --app-bg: #f7fafc;
+  --panel-bg: #edf1f6;
+  --panel-border: #dde4ec;
+  --surface-soft: #f5f8fb;
+  --surface-muted: #eff3f8;
+  --surface-hover: #e7edf4;
+  --surface-hover-soft: #f1f5f9;
+  --surface-press: #dfe7f0;
+  --surface-active: #d3e0ee;
+  --surface-raised: #ffffff;
+  --paper-bg: #fdfeff;
+  --paper-border: #e4eaf1;
+
+  --text-color: #1d2b3a;
+  --muted-text: #5a6b7d;
+  --subtle-text: #8a99a9;
+
+  --accent-color: #3d6b9e;
+  --accent-strong: #2f5684;
+  --accent-soft: rgba(61, 107, 158, 0.1);
+  --accent-soft-strong: rgba(61, 107, 158, 0.2);
+  --link-color: #2f5684;
+
+  --line-soft: #e8edf3;
+  --line-strong: #d6dee8;
+
+  --selection-bg: #cfe0ef;
+  --highlight-bg: #d3e9f2;
+  --code-bg: #eef2f7;
+  --table-cell-bg: rgba(253, 254, 255, 0.5);
+  --collapsible-line: #d3dce6;
+
+  --layer-surface-top: #ffffff;
+  --layer-surface-bottom: #f9fbfd;
+  --layer-section-top: #f1f5f9;
+  --layer-section-bottom: #eaeff5;
+
+  --lock-backdrop: rgba(247, 250, 252, 0.8);
+}
+
+.app-shell.theme-dark[data-theme-preset="ocean"] {
+  --app-bg: #0e141b;
+  --panel-bg: #151d26;
+  --panel-border: rgba(221, 230, 238, 0.08);
+  --surface-soft: rgba(221, 230, 238, 0.05);
+  --surface-muted: rgba(221, 230, 238, 0.04);
+  --surface-hover: rgba(127, 179, 213, 0.13);
+  --surface-hover-soft: rgba(127, 179, 213, 0.08);
+  --surface-press: rgba(221, 230, 238, 0.08);
+  --surface-active: rgba(127, 179, 213, 0.22);
+  --surface-raised: #1a232d;
+  --paper-bg: #151d26;
+  --paper-border: rgba(221, 230, 238, 0.08);
+
+  --text-color: #dde6ee;
+  --muted-text: #9dabba;
+  --subtle-text: #7f8d9c;
+
+  --accent-color: #7fb3d5;
+  --accent-strong: #9cc6e2;
+  --accent-soft: rgba(127, 179, 213, 0.14);
+  --accent-soft-strong: rgba(127, 179, 213, 0.24);
+  --link-color: #8fbedd;
+
+  --line-soft: rgba(221, 230, 238, 0.08);
+  --line-strong: rgba(221, 230, 238, 0.14);
+
+  --selection-bg: rgba(127, 179, 213, 0.28);
+  --highlight-bg: #2c5872;
+  --code-bg: #19212b;
+  --pre-bg: #090d12;
+  --table-cell-bg: rgba(221, 230, 238, 0.03);
+  --collapsible-line: rgba(221, 230, 238, 0.15);
+
+  --layer-surface-top: #1a232d;
+  --layer-surface-bottom: #172029;
+  --layer-section-top: rgba(221, 230, 238, 0.05);
+  --layer-section-bottom: rgba(221, 230, 238, 0.03);
+  --layer-outline: rgba(221, 230, 238, 0.07);
+
+  --shadow-floating: 0 28px 62px rgba(0, 0, 0, 0.45);
+  --shadow-paper: 0 24px 62px rgba(0, 0, 0, 0.36);
+  --backdrop: rgba(5, 8, 11, 0.55);
+  --lock-backdrop: rgba(8, 12, 16, 0.78);
 }

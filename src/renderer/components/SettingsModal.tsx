@@ -127,9 +127,12 @@ export function SettingsModal(props: SettingsModalProps) {
                 <div className="settings-preset-row" role="group" aria-label="主题预设">
                   {(
                     [
-                      ["paper", "纸感", "奶油纸底 + 墨色文字，适合长时间阅读"],
-                      ["pure", "纯白", "纯白冷灰，界面更接近系统原生"]
-                    ] as Array<["paper" | "pure", string, string]>
+                      ["paper", "纸感", "奶油纸底 + 暖赭点缀，适合长时间阅读"],
+                      ["pure", "纯白", "纯白底 + 系统蓝，界面干净利落"],
+                      ["amber", "琥珀", "暖米底 + 琥珀点缀，温润书卷气"],
+                      ["forest", "林间", "象牙底 + 森林绿，沉静自然"],
+                      ["ocean", "海雾", "冷白底 + 雾蓝，清爽专注"]
+                    ] as Array<["paper" | "pure" | "amber" | "forest" | "ocean", string, string]>
                   ).map(([id, label, hint]) => (
                     <button
                       key={id}

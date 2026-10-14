@@ -145,6 +145,8 @@ if (process.env.SUIJI_DEV_USER_DATA) {
   app.setPath("userData", process.env.SUIJI_DEV_USER_DATA);
 }
 
+const THEME_PRESETS = new Set<string>(["paper", "pure", "amber", "forest", "ocean"]);
+
 const gotTheLock = app.requestSingleInstanceLock();
 writeDebugLog(`startup gotTheLock=${gotTheLock} argv=${process.argv.join(" ")}`);
 
@@ -470,6 +472,10 @@ function isExportFormat(value: unknown): value is ExportPayload["format"] {
   return typeof value === "string" && ALLOWED_EXPORT_FORMATS.has(value);
 }
 
+function normalizeThemePreset(value: unknown): AppSettings["themePreset"] {
+  return typeof value === "string" && THEME_PRESETS.has(value) ? (value as AppSettings["themePreset"]) : "paper";
+}
+
 function sanitizeSettingsPayload(raw: unknown): SettingsUpdatePayload {
   if (!raw || typeof raw !== "object") {
     throw new Error("Invalid settings payload");
@@ -489,7 +495,7 @@ function sanitizeSettingsPayload(raw: unknown): SettingsUpdatePayload {
     launchAtLogin: Boolean(payload.launchAtLogin),
     alwaysOnTop: Boolean(payload.alwaysOnTop),
     theme: payload.theme === "dark" ? "dark" : "light",
-    themePreset: payload.themePreset === "pure" ? "pure" : "paper",
+    themePreset: normalizeThemePreset(payload.themePreset),
     fontFamily: coerceString(payload.fontFamily, "", 120),
     fontSize: Math.min(Math.max(Number(payload.fontSize) || 16, 13), 24),
     lineWidth: Math.min(Math.max(Number(payload.lineWidth) || 850, 640), 1600),
@@ -1196,7 +1202,7 @@ async function updateStoredSettings(payload: SettingsUpdatePayload): Promise<App
     launchAtLogin: Boolean(payload.launchAtLogin),
     alwaysOnTop: Boolean(payload.alwaysOnTop),
     theme: payload.theme === "dark" ? "dark" : "light",
-    themePreset: payload.themePreset === "pure" ? "pure" : "paper",
+    themePreset: normalizeThemePreset(payload.themePreset),
     fontFamily: payload.fontFamily,
     fontSize: payload.fontSize,
     lineWidth: payload.lineWidth,

@@ -2391,7 +2391,7 @@ export default function App() {
     <main
       className={appClassName}
       style={appStyle}
-      data-theme-preset={settings?.themePreset === "pure" ? "pure" : "paper"}
+      data-theme-preset={settings?.themePreset ?? "paper"}
     >
       <TopBar
           saveState={saveState}

@@ -258,7 +258,7 @@ export function settingsPayload(settings: AppSettings, hotkey: string): Settings
     launchAtLogin: settings.launchAtLogin,
     alwaysOnTop: settings.alwaysOnTop,
     theme: settings.theme,
-    themePreset: settings.themePreset === "pure" ? "pure" : "paper",
+    themePreset: settings.themePreset,
     fontFamily: settings.fontFamily,
     fontSize: settings.fontSize,
     lineWidth: settings.lineWidth,

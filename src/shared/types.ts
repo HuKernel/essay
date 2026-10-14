@@ -40,8 +40,8 @@ export type AppSettings = {
   launchAtLogin: boolean;
   alwaysOnTop: boolean;
   theme: "light" | "dark";
-  /** 主题预设：paper 纸感（默认）/ pure 纯白冷灰 */
-  themePreset: "paper" | "pure";
+  /** 主题预设：paper 纸感 / pure 纯白 / amber 琥珀 / forest 林间 / ocean 海雾 */
+  themePreset: "paper" | "pure" | "amber" | "forest" | "ocean";
   fontFamily: string;
   fontSize: number;
   lineWidth: number;
@@ -62,7 +62,7 @@ export type SettingsUpdatePayload = {
   alwaysOnTop: boolean;
   theme: "light" | "dark";
   /** 主题预设：paper 纸感（默认）/ pure 纯白冷灰 */
-  themePreset: "paper" | "pure";
+  themePreset: "paper" | "pure" | "amber" | "forest" | "ocean";
   fontFamily: string;
   fontSize: number;
   lineWidth: number;

@@ -1,3 +1,8 @@
+## 0.9.94 - 2026-10-14
+
+- Reworked the theme system: both stock presets now use a real accent color instead of slate gray — 纸感 pairs its cream paper with warm ochre (matching the amber selection tint), and 纯白 pairs white with a system blue; hover highlights, the current-block outline, selections and links all follow the accent now, fixing the flat all-gray look. Secondary text contrast on light paper was also nudged up.
+- Added three new theme presets (each with a dark variant), selectable in 设置 → 主题预设: 琥珀 (warm beige + amber, bookish), 林间 (ivory + forest green, calm natural) and 海雾 (cool white + misty blue, crisp focus). All ten light/dark combinations pass WCAG AA (body text ≥ 11:1, accent ≥ 4.6:1).
+
 ## 0.9.93 - 2026-10-13
 
 - Expanded the doodle decoration into a style group: the format panel's 涂鸦 button now opens a picker with five hand-drawn styles — 手绘框 (sketch border), 荧光笔 (marker highlight band), 波浪线 (wavy underline), 圈选 (loose ellipse), 双线框 (double sketch border) — plus "无" to clear. All styles follow the block's accent color and compose with card/focus modes; existing doodle blocks migrate to the sketch style automatically.
