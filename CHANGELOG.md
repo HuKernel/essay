@@ -1,6 +1,6 @@
 ## 0.9.95 - 2026-10-14
 
-- The in-app sidebar logo now uses the new note-and-pen icon as well (previously a separate legacy image), and the installer filename moves to 0.9.95 so Windows Explorer shows the new icon instead of its cached one for the earlier same-name build.
+- The in-app sidebar rail logo (top-left) now uses the new note-and-pen icon as well — it previously loaded a small legacy png from the renderer assets, which was missed in the first icon pass; that file now renders from the same SVG source.
 
 ## 0.9.94 - 2026-10-14
 
