@@ -1,5 +1,7 @@
 ## 0.9.95 - 2026-10-14
 
+- Right-clicking a table now opens a table section in the block menu: insert/delete rows and columns, whole-table text alignment (left/center/right), and delete-table — no need to hunt for the floating toolbar while inside the table.
+
 - Restyled math blocks: rendered formulas now sit on a quiet rounded card (muted surface, hairline border, accent hint on hover/select), and the LaTeX editor panel follows the app's floating-panel look — softer border, roomier padding, focused textarea outline, dashed live-preview area. All colors follow theme tokens.
 - Fixed math blocks vanishing as soon as you typed in them: keystrokes in the formula editor panel were leaking into ProseMirror's input pipeline, which tried to edit the document at the atom's boundary position (throwing "Position out of range" or replacing the block away). The panel's NodeView now stops all input-related events. Renderer-side uncaught errors are also logged (forwarded to SUIJI_DEBUG_LOG) for future diagnosis.
 

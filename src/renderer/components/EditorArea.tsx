@@ -4,6 +4,9 @@ import type { Editor } from "@tiptap/react";
 import { TextSelection } from "@tiptap/pm/state";
 import { NodeRange, type Node as ProseMirrorNode } from "@tiptap/pm/model";
 import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   ArrowDown,
   ArrowUp,
   Bold,
@@ -184,10 +187,48 @@ export function EditorArea(props: EditorAreaProps) {
     event.preventDefault();
     setCtxMenu({
       x: Math.min(event.clientX, window.innerWidth - 264),
-      y: Math.min(event.clientY, window.innerHeight - 396),
+      y: Math.min(event.clientY, window.innerHeight - 560),
       node: targetNode,
       start: targetStart
     });
+  }
+
+  /** 右键表格的操作先把光标落回表格内，再执行 tiptap 表格命令 */
+  function runTableCommand(run: (chain: ReturnType<NonNullable<typeof editor>["chain"]>) => void) {
+    if (!editor || !ctxMenu) return;
+    const tableStart = ctxMenu.start;
+    const chain = editor
+      .chain()
+      .focus()
+      .command(({ tr, state }) => {
+        const resolved = state.doc.resolve(Math.min(tableStart + 3, state.doc.content.size));
+        tr.setSelection(TextSelection.near(resolved, 1));
+        return true;
+      });
+    run(chain);
+    chain.run();
+    setCtxMenu(null);
+  }
+
+  /** 整表对齐：右键菜单是表格级操作，一次设置所有单元格文字对齐 */
+  function runSetTableAlign(align: "left" | "center" | "right") {
+    if (!editor || !ctxMenu) return;
+    const from = ctxMenu.start;
+    const to = from + ctxMenu.node.nodeSize;
+    editor
+      .chain()
+      .focus()
+      .command(({ tr, state }) => {
+        state.doc.nodesBetween(from, to, (node, pos) => {
+          if (node.type.name === "paragraph" || node.type.name === "heading") {
+            tr.setNodeMarkup(pos, undefined, { ...node.attrs, textAlign: align });
+          }
+          return true;
+        });
+        return true;
+      })
+      .run();
+    setCtxMenu(null);
   }
 
   function runTurnInto(target: string) {
@@ -541,6 +582,48 @@ export function EditorArea(props: EditorAreaProps) {
             aria-label="块操作"
             onMouseDown={(event) => event.stopPropagation()}
           >
+            {ctxMenu.node.type.name === "table" ? (
+              <>
+                <span className="block-ctx-label">表格 · 行</span>
+                <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.addRowBefore())}>
+                  <span>上方插入行</span>
+                </button>
+                <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.addRowAfter())}>
+                  <span>下方插入行</span>
+                </button>
+                <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.deleteRow())}>
+                  <span>删除本行</span>
+                </button>
+                <span className="block-ctx-label">表格 · 列</span>
+                <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.addColumnBefore())}>
+                  <span>左侧插入列</span>
+                </button>
+                <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.addColumnAfter())}>
+                  <span>右侧插入列</span>
+                </button>
+                <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.deleteColumn())}>
+                  <span>删除本列</span>
+                </button>
+                <span className="block-ctx-label">单元格文字对齐</span>
+                <span className="block-ctx-move" role="group" aria-label="单元格对齐">
+                  <button type="button" title="左对齐" aria-label="左对齐" onMouseDown={keepEditorFocus} onClick={() => runSetTableAlign("left")}>
+                    <AlignLeft size={14} />
+                  </button>
+                  <button type="button" title="居中" aria-label="居中" onMouseDown={keepEditorFocus} onClick={() => runSetTableAlign("center")}>
+                    <AlignCenter size={14} />
+                  </button>
+                  <button type="button" title="右对齐" aria-label="右对齐" onMouseDown={keepEditorFocus} onClick={() => runSetTableAlign("right")}>
+                    <AlignRight size={14} />
+                  </button>
+                </span>
+                <span className="block-ctx-divider" aria-hidden="true" />
+                <button type="button" role="menuitem" className="block-ctx-danger" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.deleteTable())}>
+                  <Trash2 size={13} />
+                  <span>删除整个表格</span>
+                </button>
+                <span className="block-ctx-divider" aria-hidden="true" />
+              </>
+            ) : null}
             {TURNABLE_BLOCKS.has(ctxMenu.node.type.name)
               ? TURN_TARGETS.filter((target) => target.id !== blockTypeKey(ctxMenu.node)).map((target) => (
                   <button key={target.id} type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTurnInto(target.id)}>
