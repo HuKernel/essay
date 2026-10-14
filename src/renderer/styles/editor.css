@@ -151,7 +151,7 @@
 
 .editor-surface .editor-interactive-block {
   position: relative;
-  border-radius: 18px;
+  border-radius: 4px;
   transition:
     background-color var(--motion-base) var(--ease-smooth),
     box-shadow var(--motion-base) var(--ease-smooth),

@@ -2,7 +2,7 @@
 
 - Expanded the doodle decoration into a style group: the format panel's 涂鸦 button now opens a picker with five hand-drawn styles — 手绘框 (sketch border), 荧光笔 (marker highlight band), 波浪线 (wavy underline), 圈选 (loose ellipse), 双线框 (double sketch border) — plus "无" to clear. All styles follow the block's accent color and compose with card/focus modes; existing doodle blocks migrate to the sketch style automatically.
 - Fixed mouse text selection flickering and failing across blocks (over ~2 lines): the hover/current block highlight used to toggle classes directly on ProseMirror-owned DOM, which its MutationObserver treated as external tampering — every highlight re-dirtied and rebuilt the block, and the accompanying selection write-back fought the native drag selection (selection visibly shrank back and ended up collapsed, so copying copied nothing). Highlights are now applied through a ProseMirror decoration plugin, which stays on the official update path with no DOM rebuild loop.
-- The grouped-block container now uses square (4px) corners instead of the previous large radius, so it reads as a structural frame rather than a card.
+- Squared off block frames: the hover/current block highlight and the grouped-block container now use square (4px) corners instead of the previous large radius, so they read as structural frames rather than cards.
 
 ## 0.9.92 - 2026-10-13
 
