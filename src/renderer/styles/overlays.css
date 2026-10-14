@@ -324,6 +324,16 @@ input[type="range"] {
   gap: 16px;
 }
 
+/* 取消/保存吸底：滚动设置内容时按钮始终可见 */
+.settings-modal .modal-actions {
+  position: sticky;
+  bottom: -18px;
+  margin-top: 12px;
+  padding: 16px 0 18px;
+  background: linear-gradient(180deg, transparent 0%, var(--layer-surface-bottom) 34%, var(--layer-surface-bottom) 100%);
+  z-index: 1;
+}
+
 .settings-layout {
   display: grid;
   gap: 14px;
