@@ -7,9 +7,31 @@ function escapeHtml(value: string) {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function stopMathPanelMouseDown({ event }: { event: Event }) {
+// 公式编辑面板是纯 React 受控 textarea；它的键盘/输入事件绝不能落进
+// ProseMirror 的输入管线（会被当正文编辑去 resolve atom 边界，轻则抛
+// Position out of range，重则直接把公式块替换删除）。
+const MATH_PANEL_INTERCEPT_EVENTS = new Set([
+  "mousedown",
+  "beforeinput",
+  "input",
+  "keydown",
+  "keyup",
+  "keypress",
+  "compositionstart",
+  "compositionupdate",
+  "compositionend",
+  "paste",
+  "copy",
+  "cut",
+  "drop",
+  "dragover"
+]);
+
+function stopMathPanelEvents({ event }: { event: Event }) {
   return (
-    event.type === "mousedown" && event.target instanceof Element && Boolean(event.target.closest(".math-edit-panel"))
+    MATH_PANEL_INTERCEPT_EVENTS.has(event.type) &&
+    event.target instanceof Element &&
+    Boolean(event.target.closest(".math-edit-panel"))
   );
 }
 
@@ -179,7 +201,7 @@ const MathInline = Node.create({
     return ["span", mergeAttributes({ "data-type": "math-inline" }, HTMLAttributes)];
   },
   addNodeView() {
-    return ReactNodeViewRenderer(MathView, { stopEvent: stopMathPanelMouseDown });
+    return ReactNodeViewRenderer(MathView, { stopEvent: stopMathPanelEvents });
   },
   addInputRules() {
     return [
@@ -217,7 +239,7 @@ const MathBlock = Node.create({
     return ["div", mergeAttributes({ "data-type": "math-block" }, HTMLAttributes)];
   },
   addNodeView() {
-    return ReactNodeViewRenderer(MathView, { stopEvent: stopMathPanelMouseDown });
+    return ReactNodeViewRenderer(MathView, { stopEvent: stopMathPanelEvents });
   },
   addInputRules() {
     return [

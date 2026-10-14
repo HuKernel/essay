@@ -1,5 +1,7 @@
 ## 0.9.95 - 2026-10-14
 
+- Fixed math blocks vanishing as soon as you typed in them: keystrokes in the formula editor panel were leaking into ProseMirror's input pipeline, which tried to edit the document at the atom's boundary position (throwing "Position out of range" or replacing the block away). The panel's NodeView now stops all input-related events. Renderer-side uncaught errors are also logged (forwarded to SUIJI_DEBUG_LOG) for future diagnosis.
+
 - The in-app sidebar rail logo (top-left) now uses the new note-and-pen icon as well — it previously loaded a small legacy png from the renderer assets, which was missed in the first icon pass; that file now renders from the same SVG source.
 
 ## 0.9.94 - 2026-10-14
