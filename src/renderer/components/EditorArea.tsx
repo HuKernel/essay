@@ -510,7 +510,7 @@ export function EditorArea(props: EditorAreaProps) {
       ) : null}
       {editor ? (
         <EditorErrorBoundary>
-          <EditorContent editor={editor} />
+          <EditorContent editor={editor} className="editor-content" />
         </EditorErrorBoundary>
       ) : null}
       {!trashed && subPages.length > 0 ? (

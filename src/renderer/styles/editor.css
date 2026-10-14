@@ -109,11 +109,17 @@
   display: none;
 }
 
+/* 撑满滚动容器：短文档不产生多余滚动，长文档内容自然滚动 */
+.editor-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
 .editor-surface {
   flex: 1 0 auto;
   /* 宽容器：给代码/表格/图片留出比正文更宽的空间 */
   width: min(100%, calc(var(--editor-width, 900px) + 180px));
-  min-height: max(640px, calc(100dvh - 220px));
   margin: 0 auto;
   border: 0;
   background: transparent;
