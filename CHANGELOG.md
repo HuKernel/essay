@@ -4,6 +4,7 @@
 - Added three new theme presets (each with a dark variant), selectable in 设置 → 主题预设: 琥珀 (warm beige + amber, bookish), 林间 (ivory + forest green, calm natural) and 海雾 (cool white + misty blue, crisp focus). All ten light/dark combinations pass WCAG AA (body text ≥ 11:1, accent ≥ 4.6:1).
 - Fixed switching to a new theme preset not surviving save: a second validation site in the settings storage layer only accepted the original two presets, silently rewriting 琥珀/林间/海雾 back to 纸感 on read-back and persist. Both the read-back and stored-settings validators now share the full preset whitelist.
 - The settings dialog's 取消/保存 bar now sticks to the bottom of the dialog while scrolling, so the buttons stay visible at any scroll position.
+- New app icon: a deep-teal rounded tile with a cream note sheet and an amber pen (replaces the previous icon across the window, taskbar, tray and installer). The icon source is now a single SVG (`assets/icon-source.svg`) that `npm run icons` rasterizes into the full size set.
 
 ## 0.9.93 - 2026-10-13
 

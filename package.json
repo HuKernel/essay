@@ -22,7 +22,7 @@
   "type": "commonjs",
   "main": "dist/main/main.js",
   "scripts": {
-    "icons": "node tools/generate-icons.cjs \"assets/icon-source.png\"",
+    "icons": "node tools/generate-icons.cjs \"assets/icon-source.svg\"",
     "dev": "concurrently -k \"vite\" \"tsc -p tsconfig.main.json --watch --preserveWatchOutput\" \"wait-on tcp:5173 dist/main/main.js && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
     "build": "npm run icons && vite build && tsc -p tsconfig.main.json",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.main.json --noEmit",
