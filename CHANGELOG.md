@@ -2,12 +2,12 @@
 
 - Expanded the doodle decoration into a style group: the format panel's 涂鸦 button now opens a picker with five hand-drawn styles — 手绘框 (sketch border), 荧光笔 (marker highlight band), 波浪线 (wavy underline), 圈选 (loose ellipse), 双线框 (double sketch border) — plus "无" to clear. All styles follow the block's accent color and compose with card/focus modes; existing doodle blocks migrate to the sketch style automatically.
 - Fixed mouse text selection flickering and failing across blocks (over ~2 lines): the hover/current block highlight used to toggle classes directly on ProseMirror-owned DOM, which its MutationObserver treated as external tampering — every highlight re-dirtied and rebuilt the block, and the accompanying selection write-back fought the native drag selection (selection visibly shrank back and ended up collapsed, so copying copied nothing). Highlights are now applied through a ProseMirror decoration plugin, which stays on the official update path with no DOM rebuild loop.
+- The grouped-block container now uses square (4px) corners instead of the previous large radius, so it reads as a structural frame rather than a card.
 
 ## 0.9.92 - 2026-10-13
 
 - Added browser-style tabs: a tab bar appears under the top bar when more than one note is open. Ctrl+T opens a new tab (new note), Ctrl+W closes the current one, Ctrl+Tab cycles, Ctrl+click a list card opens it in a new tab; tabs persist across restarts and the active tab follows any navigation.
-- Added block grouping: select across blocks and hit the new "组合" toolbar button to wrap them in a movable dashed container; right-click the group to ungroup.
-- Added a keyboard-shortcuts overview (Ctrl+/ or command palette) grouped by general/editing/find/tabs.
+- Added block grouping: select across blocks and hit the new "组合" toolbar button to wrap them in a movable dashed container; right-click the group to ungroup.- Added a keyboard-shortcuts overview (Ctrl+/ or command palette) grouped by general/editing/find/tabs.
 - Added forward navigation: the top bar now has a forward arrow alongside back, with browser semantics (new jumps clear the forward stack).
 - Added page breaks: a "分页符" slash-menu item inserts a divider that breaks pages when printing / exporting to PDF.
 - Added a "涂鸦" hand-drawn border decoration in the format panel (composes with card/focus modes and colors).

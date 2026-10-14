@@ -1646,7 +1646,7 @@
   gap: 4px;
   margin: 18px 0;
   border: 1.5px dashed var(--line-strong);
-  border-radius: 18px;
+  border-radius: 4px;
   padding: 18px 18px 12px;
 }
 
