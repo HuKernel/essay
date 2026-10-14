@@ -67,7 +67,12 @@ import { BlockFormatExtension, getCurrentBlockFormat } from "./editor/block-form
 import { CollapsibleBlockExtensions } from "./editor/collapsible-block";
 import { CalloutExtension } from "./editor/callout";
 import { FindHighlightExtension, clearFindHighlights, setFindHighlights } from "./editor/find-highlight";
-import { findInteractiveEditorBlock } from "./editor/interactive-blocks";
+import {
+  InteractiveBlocksExtension,
+  interactiveBlockPosAt,
+  interactiveBlockPosFromDom,
+  setInteractiveBlocks
+} from "./editor/interactive-blocks";
 import { NoteLinkSuggestionExtension } from "./editor/note-link-suggestion";
 import { SlashMenuExtension } from "./editor/slash-menu";
 import { Sidebar } from "./components/Sidebar";
@@ -290,8 +295,8 @@ export default function App() {
   const findInputRef = useRef<HTMLInputElement | null>(null);
   const customColorInputRef = useRef<HTMLInputElement | null>(null);
   const editorWrapRef = useRef<HTMLDivElement | null>(null);
-  const hoveredBlockRef = useRef<HTMLElement | null>(null);
-  const currentBlockRef = useRef<HTMLElement | null>(null);
+  const hoverPosRef = useRef(-1);
+  const anchorPosRef = useRef(-1);
   const outlineTimerRef = useRef<number | null>(null);
   const settingsSnapshotRef = useRef<AppSettings | null>(null);
   const settingsRef = useRef<AppSettings | null>(null);
@@ -358,6 +363,7 @@ export default function App() {
       BlockGroupExtension,
       CodeBlockExtension.configure({ lowlight, defaultLanguage: null }),
       BlockFormatExtension,
+      InteractiveBlocksExtension,
       FindHighlightExtension,
       ...CollapsibleBlockExtensions,
       CalloutExtension,
@@ -514,30 +520,22 @@ export default function App() {
     FORMAT_COLORS.find((color) => color.id === currentBlockFormat.colorToken)?.swatch ||
     "#316ee8";
 
-  function syncInteractiveBlockElement(element: HTMLElement | null) {
-    if (!element) return;
-    const active = element === hoveredBlockRef.current || element === currentBlockRef.current;
-    element.classList.toggle("editor-interactive-block", active);
-    element.classList.toggle("is-hovered-block", element === hoveredBlockRef.current);
-    element.classList.toggle("is-current-block", element === currentBlockRef.current);
+  function syncCurrentEditorBlock() {
+    if (!editor) return;
+    const next = interactiveBlockPosAt(editor.state, editor.state.selection.from);
+    if (anchorPosRef.current === next) return;
+    anchorPosRef.current = next;
+    setInteractiveBlocks(editor, hoverPosRef.current, next);
   }
 
-  function setHoveredEditorBlock(next: HTMLElement | null) {
-    const previous = hoveredBlockRef.current;
-    if (previous === next) return;
-    hoveredBlockRef.current = next;
-    if (next) next.classList.add("editor-interactive-block");
-    syncInteractiveBlockElement(previous);
-    syncInteractiveBlockElement(next);
-  }
-
-  function setCurrentEditorBlock(next: HTMLElement | null) {
-    const previous = currentBlockRef.current;
-    if (previous === next) return;
-    currentBlockRef.current = next;
-    if (next) next.classList.add("editor-interactive-block");
-    syncInteractiveBlockElement(previous);
-    syncInteractiveBlockElement(next);
+  function updateHoveredEditorBlock(target: EventTarget | null) {
+    if (!editor) return;
+    const excluded =
+      target instanceof HTMLElement && target.closest(".block-insert-anchor, .block-insert-menu, .table-toolbar");
+    const next = excluded ? -1 : interactiveBlockPosFromDom(editor.view, target instanceof globalThis.Node ? target : null);
+    if (hoverPosRef.current === next) return;
+    hoverPosRef.current = next;
+    setInteractiveBlocks(editor, next, anchorPosRef.current);
   }
 
   // 汇总会影响 UI（格式按钮高亮、块格式面板）的编辑器状态签名，变化才触发重渲染
@@ -572,25 +570,6 @@ export default function App() {
       editorUiSigRef.current = signature;
       setEditorUiTick((tick) => tick + 1);
     }
-  }
-
-  function syncCurrentEditorBlock() {
-    if (!editor) return;
-    const root = editor.view.dom as HTMLElement | null;
-    const anchorNode = editor.view.domAtPos(editor.state.selection.from).node;
-    const next = findInteractiveEditorBlock(anchorNode, root);
-    setCurrentEditorBlock(next);
-  }
-
-  function updateHoveredEditorBlock(target: EventTarget | null) {
-    if (!editor) return;
-    if (target instanceof HTMLElement && target.closest(".block-insert-anchor, .block-insert-menu, .table-toolbar")) {
-      setHoveredEditorBlock(null);
-      return;
-    }
-    const root = editor.view.dom as HTMLElement | null;
-    const next = target instanceof globalThis.Node ? findInteractiveEditorBlock(target, root) : null;
-    setHoveredEditorBlock(next);
   }
 
   function applyBlockFormat(attributes: Partial<ReturnType<typeof getCurrentBlockFormat>>) {
@@ -749,13 +728,6 @@ export default function App() {
     if (!editor) return;
     window.requestAnimationFrame(syncCurrentEditorBlock);
   }, [activeNote?.id, editor]);
-
-  useEffect(() => {
-    return () => {
-      setHoveredEditorBlock(null);
-      setCurrentEditorBlock(null);
-    };
-  }, []);
 
   useEffect(() => {
     if (!editor || !activeNote) return;
@@ -2666,7 +2638,7 @@ export default function App() {
               imageInputRef={imageInputRef}
               trashed={Boolean(activeNote?.trashedAt)}
               onHoverBlock={updateHoveredEditorBlock}
-              onLeave={() => setHoveredEditorBlock(null)}
+              onLeave={() => updateHoveredEditorBlock(null)}
               onFocusEnd={() => editor?.commands.focus("end")}
               onFocus={() => editor?.commands.focus()}
               onImageChosen={(file) => void handleInsertImage(file)}

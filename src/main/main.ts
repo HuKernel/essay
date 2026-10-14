@@ -140,6 +140,11 @@ function registerAssetProtocol() {
   });
 }
 
+// 调试用：独立 userData 并行跑第二个实例（绕过单实例锁）
+if (process.env.SUIJI_DEV_USER_DATA) {
+  app.setPath("userData", process.env.SUIJI_DEV_USER_DATA);
+}
+
 const gotTheLock = app.requestSingleInstanceLock();
 writeDebugLog(`startup gotTheLock=${gotTheLock} argv=${process.argv.join(" ")}`);
 
