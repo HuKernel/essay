@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BubbleMenu, EditorContent } from "@tiptap/react";
 import type { Editor } from "@tiptap/react";
-import { TextSelection } from "@tiptap/pm/state";
+import { TextSelection, type Selection } from "@tiptap/pm/state";
+import { CellSelection } from "@tiptap/pm/tables";
 import { NodeRange, type Node as ProseMirrorNode } from "@tiptap/pm/model";
 import {
   AlignCenter,
@@ -98,6 +99,23 @@ export function EditorArea(props: EditorAreaProps) {
 
   const [ctxMenu, setCtxMenu] = useState<CtxMenuState | null>(null);
   const [subPages, setSubPages] = useState<Array<{ noteId: string; title: string }>>([]);
+  // 右键 mousedown 会改写选区（浏览器右键移动光标、表格插件破坏 CellSelection），
+  // capture 阶段先快照，右键命中表格时恢复，保证右键菜单操作作用于原选区
+  const tableCtxSelectionRef = useRef<Selection | null>(null);
+
+  useEffect(() => {
+    const wrap = typeof editorWrapRef === "object" && editorWrapRef !== null ? editorWrapRef.current : null;
+    if (!wrap) return;
+    const onMouseDownCapture = (event: MouseEvent) => {
+      if (event.button === 2) {
+        tableCtxSelectionRef.current = editor?.state.selection ?? null;
+      } else if (event.button === 0) {
+        tableCtxSelectionRef.current = null;
+      }
+    };
+    wrap.addEventListener("mousedown", onMouseDownCapture, true);
+    return () => wrap.removeEventListener("mousedown", onMouseDownCapture, true);
+  }, [editor, editorWrapRef]);
 
   // 文末子页面网格：跟随编辑实时聚合文档内的 pageLink 块
   useEffect(() => {
@@ -184,6 +202,14 @@ export function EditorArea(props: EditorAreaProps) {
     const targetNode: ProseMirrorNode | null = node;
     const targetStart: number = start;
     if (!targetNode || targetStart < 0) return;
+    if (targetNode.type.name === "table" && tableCtxSelectionRef.current) {
+      // 右键的 click 处理在 contextmenu 之后异步改写选区，恢复必须延后到它之后
+      const snapshot = tableCtxSelectionRef.current;
+      window.setTimeout(() => {
+        if (editor.isDestroyed || editor.state.selection.eq(snapshot)) return;
+        editor.view.dispatch(editor.state.tr.setSelection(snapshot));
+      }, 0);
+    }
     event.preventDefault();
     setCtxMenu({
       x: Math.min(event.clientX, window.innerWidth - 264),
@@ -603,6 +629,31 @@ export function EditorArea(props: EditorAreaProps) {
                 </button>
                 <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.deleteColumn())}>
                   <span>删除本列</span>
+                </button>
+                <span className="block-ctx-label">单元格合并</span>
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={!editor?.can().mergeCells()}
+                  onMouseDown={keepEditorFocus}
+                  onClick={() => {
+                    editor?.chain().mergeCells().run();
+                    setCtxMenu(null);
+                  }}
+                >
+                  <span>合并选中单元格</span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  disabled={!editor?.can().splitCell()}
+                  onMouseDown={keepEditorFocus}
+                  onClick={() => {
+                    editor?.chain().splitCell().run();
+                    setCtxMenu(null);
+                  }}
+                >
+                  <span>拆分当前单元格</span>
                 </button>
                 <span className="block-ctx-label">单元格文字对齐</span>
                 <span className="block-ctx-move" role="group" aria-label="单元格对齐">

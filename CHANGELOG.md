@@ -1,5 +1,6 @@
 ## 0.9.95 - 2026-10-14
 
+- Table merge/split via right-click: shift-click cells to select them, right-click the table and hit 合并选中单元格; right-click inside a merged cell and hit 拆分当前单元格. The right-click itself no longer destroys the cell selection (the selection is snapshotted and restored after the click pipeline).
 - Right-clicking a table now opens a table section in the block menu: insert/delete rows and columns, whole-table text alignment (left/center/right), and delete-table — no need to hunt for the floating toolbar while inside the table.
 
 - Restyled math blocks: rendered formulas now sit on a quiet rounded card (muted surface, hairline border, accent hint on hover/select), and the LaTeX editor panel follows the app's floating-panel look — softer border, roomier padding, focused textarea outline, dashed live-preview area. All colors follow theme tokens.
