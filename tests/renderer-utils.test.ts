@@ -61,6 +61,29 @@ describe("buildPlainTextBlocks", () => {
   it("空白输入返回空数组", () => {
     expect(buildPlainTextBlocks("  \n\n  ")).toEqual([]);
   });
+
+  it("多行文本无条件逐行成块（含无标点、无符号行）", () => {
+    const text = [
+      "## 0. 语言与沟通规范",
+      "- 所有编码任务先调用 ponytail",
+      "没有标点的一行",
+      "Plain line without punctuation"
+    ].join("\n");
+    const blocks = buildPlainTextBlocks(text);
+    expect(blocks.map((block) => block.content?.[0]).map((node) => node && node.type === "text" && node.text)).toEqual([
+      "## 0. 语言与沟通规范",
+      "- 所有编码任务先调用 ponytail",
+      "没有标点的一行",
+      "Plain line without punctuation"
+    ]);
+  });
+
+  it("空行跳过、行内空白压缩", () => {
+    const blocks = buildPlainTextBlocks("第一行\n\n\n  第二   行  ");
+    expect(blocks).toHaveLength(2);
+    expect(blocks[0].content?.[0]).toEqual({ type: "text", text: "第一行" });
+    expect(blocks[1].content?.[0]).toEqual({ type: "text", text: "第二 行" });
+  });
 });
 
 describe("splitPastedMath", () => {

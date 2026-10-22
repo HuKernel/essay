@@ -67,8 +67,8 @@ export function normalizePastedLineBreaks(text: string): string {
 
 export function buildPlainTextBlocks(text: string): JSONContent[] {
   const blocks: JSONContent[] = [];
-  for (const para of text.split(/\n{2,}/)) {
-    const normalized = normalizePastedLineBreaks(para).trim();
+  for (const line of text.split(/\r?\n/)) {
+    const normalized = normalizePastedLineBreaks(line).trim();
     if (normalized) blocks.push({ type: "paragraph", content: [{ type: "text", text: normalized }] });
   }
   return blocks;

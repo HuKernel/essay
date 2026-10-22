@@ -1,3 +1,7 @@
+## 0.9.97 - 2026-10-22
+
+- Fixed multi-line plain-text paste collapsing into a single block: the plain-text paste path used to merge single line breaks (originally meant to rejoin PDF visual wraps), so pasted line-per-line text ended up in one paragraph. Pasted plain text now becomes one block per line, preserving the source's line structure (line-internal whitespace is still squeezed). Note: PDF-copied paragraphs that are hard-wrapped per visual line will now also split per line.
+
 ## 0.9.96 - 2026-10-14
 
 - Moved the note title out of the editor: the big title input above the text is gone; the title now lives in the top breadcrumb only. Click the note name in the breadcrumb to rename it in place (Enter or click-away saves, Esc cancels, switching notes exits editing). The reading area starts directly with your content.

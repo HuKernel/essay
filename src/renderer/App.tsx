@@ -469,7 +469,7 @@ export default function App() {
           view.dispatch(view.state.tr.replaceSelection(new Slice(Fragment.from(segNodes), 0, 0)).scrollIntoView());
           return true;
         }
-        // 剪贴板不是富文本(PDF、纯文本源):按语义合并视觉换行,避免一段被拆成多段
+        // 剪贴板不是富文本(PDF、纯文本源):逐行成块,保留源文本的行结构
         const isRichHtml =
           /<\/?(?:h[1-6]|ul|ol|li|table|tr|td|th|b|strong|i|em|u|a\b|img|blockquote|span|font)\b/i.test(html);
         if (text && !isRichHtml) {
