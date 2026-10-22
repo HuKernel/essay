@@ -1,3 +1,7 @@
+## 0.9.99 - 2026-10-22
+
+- Fixed Ctrl+Z blanking a freshly opened note: loading a note's content went through the undo history, so the first Ctrl+Z undid the load itself and left an empty white page (which could then auto-save the empty doc). Loading a note now rebuilds the editor state instead, so undo history starts from the loaded content — and each note keeps its own undo history instead of leaking edits across notes you switch between.
+
 ## 0.9.98 - 2026-10-22
 
 - Markdown paste auto-detection: pasted markdown source without code fences (e.g. a README/AGENTS.md excerpt) is now parsed into real rich text — `##` lines become headings, `-`/`1.` lines become bullet/ordered lists, `**bold**` and `[links](url)` become formatted runs. The check runs only when the clipboard is not rich HTML (plain text or IDE-highlight shells), so pasting from web pages keeps the original formatting, images and tables. Single `#` lines (common shell/Python comments) are deliberately not treated as headings.

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useEditor } from "@tiptap/react";
+import { useEditor, type Editor } from "@tiptap/react";
 import type { JSONContent } from "@tiptap/react";
-import { TextSelection } from "@tiptap/pm/state";
+import { EditorState, TextSelection } from "@tiptap/pm/state";
 import { Fragment, Slice } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import { HrVariantExtension } from "./editor/hr-variant";
@@ -92,6 +92,19 @@ import { ConfirmDialog, HistoryModal, LinkDialog, PrivacyLock, PromptDialog, Blo
 type ActiveEditor = NonNullable<ReturnType<typeof useEditor>>;
 
 const lowlight = createLowlight(common);
+
+/** 载入笔记内容：重建 EditorState 让撤销历史从载入内容重新开始，
+ *  Ctrl+Z 不会把整篇内容撤没、也不会把上一篇笔记的编辑撤销进来 */
+function loadEditorDoc(editor: Editor, content: JSONContent) {
+  const doc = editor.state.schema.nodeFromJSON(content);
+  editor.view.updateState(
+    EditorState.create({
+      doc,
+      selection: TextSelection.near(doc.resolve(doc.content.size)),
+      plugins: editor.state.plugins
+    })
+  );
+}
 
 const docDateFormat = new Intl.DateTimeFormat("zh-CN", {
   year: "numeric",
@@ -748,7 +761,7 @@ export default function App() {
     setTagsDraft(activeNote.tags.join(", "));
     setFolderDraft(activeNote.folder);
     setMetaEditorOpen(false);
-    editor.commands.setContent(activeNote.content, false);
+    loadEditorDoc(editor, activeNote.content);
     setEditorText(getContentPlainText(activeNote.content));
     setOutlineItems(extractOutline(editor));
     setTableToolbarVisible(editor.isActive("table") && !activeNote.trashedAt);
@@ -1707,7 +1720,7 @@ export default function App() {
     const saved = await window.suiji.saveNote({ ...note, content, plainText: getContentPlainText(content) });
     setNotes((current) => current.map((item) => (item.id === saved.id ? saved : item)));
     if (activeIdRef.current === saved.id && editor) {
-      editor.commands.setContent(saved.content, false);
+      loadEditorDoc(editor, saved.content);
       setEditorText(getContentPlainText(saved.content));
       setOutlineItems(extractOutline(editor));
     }
@@ -2014,7 +2027,7 @@ export default function App() {
       setTitle(nextActive.title);
       setTagsDraft(nextActive.tags.join(", "));
       setFolderDraft(nextActive.folder);
-      editor.commands.setContent(nextActive.content, false);
+      loadEditorDoc(editor, nextActive.content);
       setEditorText(getContentPlainText(nextActive.content));
       setOutlineItems(extractOutline(editor));
       revisionRef.current = 0;
@@ -2131,11 +2144,11 @@ export default function App() {
         setTitle(restored.title);
         setTagsDraft(restored.tags.join(", "));
         setFolderDraft(restored.folder);
-        editor?.commands.setContent(restored.content, false);
-        if (editor) {
-          setEditorText(getContentPlainText(restored.content));
-          setOutlineItems(extractOutline(editor));
-        }
+      if (editor) {
+        loadEditorDoc(editor, restored.content);
+        setEditorText(getContentPlainText(restored.content));
+        setOutlineItems(extractOutline(editor));
+      }
         revisionRef.current = 0;
         setSaveState("saved");
         setHistoryOpen(false);
