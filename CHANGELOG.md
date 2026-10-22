@@ -1,3 +1,7 @@
+## 0.9.98 - 2026-10-22
+
+- Markdown paste auto-detection: pasted markdown source without code fences (e.g. a README/AGENTS.md excerpt) is now parsed into real rich text — `##` lines become headings, `-`/`1.` lines become bullet/ordered lists, `**bold**` and `[links](url)` become formatted runs. The check runs only when the clipboard is not rich HTML (plain text or IDE-highlight shells), so pasting from web pages keeps the original formatting, images and tables. Single `#` lines (common shell/Python comments) are deliberately not treated as headings.
+
 ## 0.9.97 - 2026-10-22
 
 - Fixed multi-line plain-text paste collapsing into a single block: the plain-text paste path used to merge single line breaks (originally meant to rejoin PDF visual wraps), so pasted line-per-line text ended up in one paragraph. Pasted plain text now becomes one block per line, preserving the source's line structure (line-internal whitespace is still squeezed). Note: PDF-copied paragraphs that are hard-wrapped per visual line will now also split per line.

@@ -369,7 +369,18 @@ export function markdownToDoc(markdown: string): NoteRecord["content"] {
   };
 }
 
-/** 含 ``` / ~~~ 围栏即判定为 Markdown 源码；标题/表格等弱特征误伤普通文本，不作为判定依据 */
-export function looksLikeMarkdown(text: string) {
+/** 含 ``` / ~~~ 围栏：最强 Markdown 信号，即便剪贴板带富文本 HTML 也按源码解析 */
+export function hasMarkdownFence(text: string) {
   return /^[ \t]{0,3}(?:```|~~~)/m.test(text);
+}
+
+/** Markdown 结构特征：围栏、##+ 标题行、列表标记行、**加粗**、[链接](url) 任一命中即按源码解析（单 # 常见于脚本注释，不作依据） */
+export function looksLikeMarkdown(text: string) {
+  return (
+    hasMarkdownFence(text) ||
+    /^ {0,3}#{2,6} \S/m.test(text) ||
+    /^ {0,3}(?:[-*+] |\d{1,3}[.)] )\S/m.test(text) ||
+    /\*\*[^*\n]+\*\*/.test(text) ||
+    /\[[^\]\n]+\]\([^)\n]+\)/.test(text)
+  );
 }

@@ -9,10 +9,34 @@ describe("looksLikeMarkdown", () => {
     expect(looksLikeMarkdown("说明\n~~~\ncode\n~~~")).toBe(true);
   });
 
-  it("普通文本、无围栏 markdown、脚本注释不误判", () => {
-    expect(looksLikeMarkdown("# 标题\n\n- 列表项")).toBe(false);
+  it("结构特征判定：##+ 标题、列表行、加粗、链接", () => {
+    expect(looksLikeMarkdown("## 0. 语言与沟通规范\n- 第一项\n- 第二项")).toBe(true);
+    expect(looksLikeMarkdown("# 标题\n\n- 列表项")).toBe(true);
+    expect(looksLikeMarkdown("1. 第一步\n2. 第二步")).toBe(true);
+    expect(looksLikeMarkdown("普通句子带 **加粗** 收尾")).toBe(true);
+    expect(looksLikeMarkdown("见 [文档](https://example.com) 说明")).toBe(true);
+  });
+
+  it("普通文本、单 # 脚本注释不误判", () => {
     expect(looksLikeMarkdown("# 注释\nprint(1)")).toBe(false);
     expect(looksLikeMarkdown("普通段落文本")).toBe(false);
+    expect(looksLikeMarkdown("-没有空格的破折号行")).toBe(false);
+  });
+});
+
+describe("markdown 粘贴解析（AGENTS.md 风格）", () => {
+  it("## 变标题、- 变列表、** 变加粗", () => {
+    const md = ["## 0. 语言与沟通规范", "- **强制简体中文**：所有对话使用简体中文。", "- **术语保留英文**：变量名保留英文原文。"].join("\n");
+    const doc = markdownToDoc(md);
+    const blocks = doc.content ?? [];
+    expect(blocks[0]).toMatchObject({ type: "heading", attrs: { level: 2 } });
+    expect(blocks[1]).toMatchObject({ type: "bulletList" });
+    const itemParagraph = blocks[1]?.content?.[0]?.content?.[0]?.content?.[0];
+    expect(itemParagraph).toMatchObject({
+      type: "text",
+      text: "强制简体中文",
+      marks: [{ type: "bold" }]
+    });
   });
 });
 

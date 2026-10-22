@@ -26,7 +26,7 @@ import { common, createLowlight } from "lowlight";
 import { SafeAutolink } from "./safe-link";
 import { MathExtensions } from "./math-extension";
 import { removeNoteMetadata, type NoteMetadataKind } from "../shared/note-metadata";
-import { looksLikeMarkdown, markdownToDoc } from "../shared/markdown-doc";
+import { hasMarkdownFence, looksLikeMarkdown, markdownToDoc } from "../shared/markdown-doc";
 import type { AppSettings, BackupEntry, BatchExportFormat, NoteRecord } from "../shared/types";
 import {
   DEFAULT_APP_SETTINGS,
@@ -444,7 +444,7 @@ export default function App() {
         const text = clipboardData.getData("text/plain") ?? "";
         const html = clipboardData.getData("text/html") ?? "";
         // Markdown 源码粘贴（以 ``` 围栏判定）：走 markdown 解析，代码块等结构不再丢失
-        if (text && looksLikeMarkdown(text)) {
+        if (text && hasMarkdownFence(text)) {
           event.preventDefault();
           const doc = markdownToDoc(text);
           const mdNodes = (doc.content ?? []).map((block) => view.state.schema.nodeFromJSON(block));
@@ -469,10 +469,20 @@ export default function App() {
           view.dispatch(view.state.tr.replaceSelection(new Slice(Fragment.from(segNodes), 0, 0)).scrollIntoView());
           return true;
         }
-        // 剪贴板不是富文本(PDF、纯文本源):逐行成块,保留源文本的行结构
+        // 剪贴板不是富文本(PDF、纯文本源、IDE 高亮壳):span/font 只是 IDE 粘贴板的着色标签不算富文本,
+        // 真富文本(标题/加粗/链接/表格/图片)交给默认解析,保留原格式与图片
         const isRichHtml =
-          /<\/?(?:h[1-6]|ul|ol|li|table|tr|td|th|b|strong|i|em|u|a\b|img|blockquote|span|font)\b/i.test(html);
+          /<\/?(?:h[1-6]|ul|ol|li|table|tr|td|th|b|strong|i|em|u|a\b|img|blockquote)\b/i.test(html);
         if (text && !isRichHtml) {
+          // Markdown 源码特征(##+ 标题/列表/加粗/链接):解析为对应富文本结构
+          if (looksLikeMarkdown(text)) {
+            event.preventDefault();
+            const doc = markdownToDoc(text);
+            const mdNodes = (doc.content ?? []).map((block) => view.state.schema.nodeFromJSON(block));
+            view.dispatch(view.state.tr.replaceSelection(new Slice(Fragment.from(mdNodes), 0, 0)).scrollIntoView());
+            return true;
+          }
+          // 逐行成块,保留源文本的行结构
           const blocks = buildPlainTextBlocks(text);
           if (blocks.length) {
             event.preventDefault();
