@@ -1,3 +1,7 @@
+## 0.9.101 - 2026-11-09
+
+- Fixed the blank-note cleanup from 0.9.100 not actually firing while the app was running: the discard guard treated the note as "still open" at the exact moment it was being left, so switching away or creating yet another note never removed it (only an app restart did). Cleanup is now driven by the active-note switch itself — any way you leave a note (clicking another note, creating a new one, closing its tab) drops the blank note immediately, and notes you merely pin/favorite/export/backup without leaving are untouched.
+
 ## 0.9.100 - 2026-11-09
 
 - Blank notes are no longer kept: a freshly created note that never got any input, or one whose content was typed and then fully deleted, is now discarded instead of being saved. Discarding happens the moment the note is left (switching away or closing its tab) and physically removes it — it does not go to trash. Notes that only look empty because they produce no plain text (pure-image notes, formula-only notes) are never treated as blank; notes with a real title (e.g. today's journal, sub-pages) are kept. Leftover blank records already in the database are purged on the next list load, and the tray "保存剪贴板为记录" action no longer creates an empty record when the clipboard is empty.
