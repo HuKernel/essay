@@ -5,6 +5,7 @@ import {extractNoteBlocks,
   formatHotkeyEvent,
   getContentPlainText,
   getCurrentFontPresetId,
+  isBlankNote,
   normalizeFolderInput,
   normalizeLinkUrl,
   normalizePastedLineBreaks,
@@ -279,5 +280,54 @@ describe("extractNoteBlocks", () => {
       }
     } as unknown as Parameters<typeof extractNoteBlocks>[0];
     expect(extractNoteBlocks(note)).toEqual(["第一段", "列表项 第二行"]);
+  });
+});
+
+describe("isBlankNote", () => {
+  const blankNote = {
+    id: "n1",
+    title: "未命名记录",
+    plainText: "",
+    content: { type: "doc", content: [{ type: "paragraph" }] }
+  } as unknown as NoteRecord;
+
+  it("新建未输入的占位记录为空", () => {
+    expect(isBlankNote(blankNote)).toBe(true);
+  });
+
+  it("有正文文本则不为空", () => {
+    expect(
+      isBlankNote({
+        ...blankNote,
+        plainText: "hello",
+        content: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "hello" }] }] }
+      })
+    ).toBe(false);
+  });
+
+  it("纯图片笔记（plainText 为空）不为空", () => {
+    expect(
+      isBlankNote({
+        ...blankNote,
+        content: { type: "doc", content: [{ type: "image", attrs: { src: "a.png", alt: "" } }] }
+      })
+    ).toBe(false);
+  });
+
+  it("只含公式的笔记不为空", () => {
+    expect(
+      isBlankNote({
+        ...blankNote,
+        content: { type: "doc", content: [{ type: "mathBlock", attrs: { latex: "E=mc^2" } }] }
+      })
+    ).toBe(false);
+  });
+
+  it("标题被改过（如日记、子页面）则不为空", () => {
+    expect(isBlankNote({ ...blankNote, title: "2026-11-09" })).toBe(false);
+  });
+
+  it("回收站中的记录不参与判定", () => {
+    expect(isBlankNote({ ...blankNote, trashedAt: "2026-11-09T00:00:00Z" })).toBe(false);
   });
 });

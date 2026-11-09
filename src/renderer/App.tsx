@@ -53,6 +53,7 @@ import {
   formatHotkeyEvent,
   getContentPlainText,
   getCurrentFontPresetId,
+  isBlankNote,
   normalizeFolderInput,
   normalizeLinkUrl,
   parseSearchSyntax,
@@ -257,6 +258,8 @@ export default function App() {
 
   function closeTab(index: number) {
     if (tabs.length <= 1) return;
+    const closing = notes.find((note) => note.id === tabs[index]);
+    if (closing) discardBlankNote(closing);
     const next = tabs.filter((_, i) => i !== index);
     setTabs(next);
     if (index === activeTabIndex) {
@@ -328,6 +331,17 @@ export default function App() {
   const pendingBlockScrollRef = useRef<{ text: string } | null>(null);
 
   const activeNote = useMemo(() => notes.find((note) => note.id === activeId) ?? null, [activeId, notes]);
+
+  // 空占位记录（新建未输入，或正文被删光）：离开时（切换/保存/关标签）直接物理清除，
+  // 不进回收站、不留在列表。仍在编辑（activeId）的记录不动，避免编辑中途消失
+  const discardBlankNote = useCallback(
+    (note: NoteRecord) => {
+      if (!isBlankNote(note) || note.id === activeIdRef.current) return;
+      setNotes((current) => current.filter((item) => item.id !== note.id));
+      void window.suiji.purgeNote(note.id);
+    },
+    []
+  );
 
   const markDirty = useCallback(() => {
     revisionRef.current += 1;
@@ -1045,6 +1059,8 @@ export default function App() {
         parseTagsInput(tagsDraft).join(",") === activeNote.tags.join(",") &&
         normalizeFolderInput(folderDraft) === activeNote.folder
       ) {
+        // 新建后一直没输入就离开：空占位记录直接清除，不留库
+        discardBlankNote(activeNote);
         return activeNote;
       }
 
@@ -1068,6 +1084,8 @@ export default function App() {
           const saved = await window.suiji.saveNote(snapshot);
           // 原位替换，避免自动保存 updatedAt 变化导致编辑中的笔记在列表里跳位
           setNotes((current) => current.map((note) => (note.id === saved.id ? saved : note)));
+          // 正文被删光的占位记录（输入后又全部清空）同样不保留
+          discardBlankNote(saved);
           if (activeIdRef.current === saved.id) {
             setSaveState(revisionRef.current === revisionAtStart ? "saved" : "dirty");
           }
@@ -1087,7 +1105,7 @@ export default function App() {
 
       return saveTask;
     },
-    [activeNote, editor, folderDraft, tagsDraft, title]
+    [activeNote, discardBlankNote, editor, folderDraft, tagsDraft, title]
   );
 
   useEffect(() => {

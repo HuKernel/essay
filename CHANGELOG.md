@@ -1,3 +1,7 @@
+## 0.9.100 - 2026-11-09
+
+- Blank notes are no longer kept: a freshly created note that never got any input, or one whose content was typed and then fully deleted, is now discarded instead of being saved. Discarding happens the moment the note is left (switching away or closing its tab) and physically removes it — it does not go to trash. Notes that only look empty because they produce no plain text (pure-image notes, formula-only notes) are never treated as blank; notes with a real title (e.g. today's journal, sub-pages) are kept. Leftover blank records already in the database are purged on the next list load, and the tray "保存剪贴板为记录" action no longer creates an empty record when the clipboard is empty.
+
 ## 0.9.99 - 2026-10-22
 
 - Fixed Ctrl+Z blanking a freshly opened note: loading a note's content went through the undo history, so the first Ctrl+Z undid the load itself and left an empty white page (which could then auto-save the empty doc). Loading a note now rebuilds the editor state instead, so undo history starts from the loaded content — and each note keeps its own undo history instead of leaking edits across notes you switch between.

@@ -195,6 +195,33 @@ export function getContentPlainText(content: JSONContent | undefined) {
     .trim();
 }
 
+/** 图片、公式这类不产出 plainText 的内容节点——存在即说明笔记并非"空" */
+function hasNonTextContent(content: JSONContent | undefined): boolean {
+  let found = false;
+  const walk = (node: JSONContent | undefined) => {
+    if (!node || found) return;
+    if (node.type === "image") {
+      found = true;
+      return;
+    }
+    if ((node.type === "mathBlock" || node.type === "mathInline") && String(node.attrs?.latex ?? "").trim()) {
+      found = true;
+      return;
+    }
+    node.content?.forEach(walk);
+  };
+  walk(content);
+  return found;
+}
+
+/** 空占位笔记：标题仍是默认占位、没有任何文本/图片/公式内容——不应被保存或保留 */
+export function isBlankNote(note: NoteRecord): boolean {
+  if (note.trashedAt) return false;
+  if (note.title.trim() && note.title !== "未命名记录") return false;
+  if (note.plainText.trim()) return false;
+  return !hasNonTextContent(note.content);
+}
+
 export function sortNotes(notes: NoteRecord[]) {
   return [...notes].sort((a, b) => {
     if (a.pinnedAt && !b.pinnedAt) return -1;

@@ -1257,8 +1257,31 @@ async function updateStoredSettings(payload: SettingsUpdatePayload): Promise<App
   return publicSettings(next, activePrivacyPin);
 }
 
+/** 清理空占位记录（新建后从未输入、或正文被删光后遗留的"未命名记录"），
+ *  与渲染端 isBlankNote 同一判定；图片/公式笔记（plainText 为空但有内容）排除 */
+async function purgeBlankNotes() {
+  const rows = dbRows<{ id: string }>(
+    `SELECT id FROM notes
+     WHERE trashed_at IS NULL
+       AND title IN ('', '未命名记录')
+       AND TRIM(COALESCE(plain_text, '')) = ''
+       AND html NOT LIKE '%<img%'
+       AND content_json NOT LIKE '%mathBlock%'
+       AND content_json NOT LIKE '%mathInline%'`
+  );
+  if (rows.length === 0) return;
+  for (const row of rows) {
+    dbExec("DELETE FROM notes_fts WHERE id = ?", [row.id]);
+    dbExec("DELETE FROM notes WHERE id = ?", [row.id]);
+    await fs.rm(notePath(row.id), { force: true }).catch(() => undefined);
+  }
+  notesDbDirty = true;
+  await persistNotesDatabase();
+}
+
 async function listNotes(): Promise<NoteRecord[]> {
   await ensureNotesDatabaseReady();
+  await purgeBlankNotes();
   const metaMap = loadAllNoteMeta();
   const notes = dbRows<NoteDbRow>(
     `SELECT
@@ -1886,7 +1909,7 @@ async function batchExportNotes(
 
   return { directory, count: notes.length };
 }
-async function createClipboardNote() {
+async function createClipboardNote(): Promise<NoteRecord | null> {
   const image = clipboard.readImage();
   if (!image.isEmpty()) {
     const dataUrl = image.toDataURL();
@@ -1898,7 +1921,8 @@ async function createClipboardNote() {
   }
 
   const text = clipboard.readText().trim();
-  if (!text) return createNote();
+  // 剪贴板为空时不新建，避免留下没有任何内容的空记录
+  if (!text) return null;
   return createNoteFromContent(text.split(/\r?\n/)[0].slice(0, 80), text, plainDoc(text));
 }
 

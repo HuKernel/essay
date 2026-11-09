@@ -16,7 +16,7 @@ type ShellCallbacks = {
   appQuit: () => void;
   hideWindow: () => void;
   onAbout: () => void;
-  onClipboardNote: () => Promise<NoteRecord>;
+  onClipboardNote: () => Promise<NoteRecord | null>;
   sendMenu: (channel: MenuChannel, payload?: ExportPayload["format"] | BatchExportFormat | string) => void;
   showWindow: () => void;
 };
@@ -150,7 +150,8 @@ export function buildTrayMenuTemplate(settings: AppSettings, callbacks: ShellCal
       click: async () => {
         const note = await callbacks.onClipboardNote();
         callbacks.showWindow();
-        callbacks.sendMenu("notes:reload", note.id);
+        // 剪贴板为空时不新建，也就没有可跳转的记录
+        if (note) callbacks.sendMenu("notes:reload", note.id);
       }
     },
     { type: "separator" },
