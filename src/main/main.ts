@@ -11,12 +11,13 @@ import {
   Notification,
   powerMonitor,
   protocol,
+  screen,
   shell,
   Tray
 } from "electron";
 import type { MessageBoxOptions } from "electron";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { constants as fsConstants } from "node:fs";
+import { constants as fsConstants, readFileSync, writeFileSync } from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -187,6 +188,10 @@ function defaultDataRoot() {
 
 function storageConfigPath() {
   return path.join(defaultDataRoot(), "storage.json");
+}
+
+function windowStatePath() {
+  return path.join(defaultDataRoot(), "window-state.json");
 }
 
 async function readStorageConfig(): Promise<StorageConfig> {
@@ -2175,10 +2180,65 @@ function applyTitleBarOverlay(theme: "light" | "dark") {
   mainWindow?.setTitleBarOverlay(titleBarOverlayOptions(theme));
 }
 
+interface PersistedWindowState {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  maximized: boolean;
+}
+
+// 读取上次窗口位置；与任一显示器可见工作区交集不小于 100x100 才采用，否则回退默认值
+function readWindowState(): PersistedWindowState | null {
+  try {
+    const state = JSON.parse(readFileSync(windowStatePath(), "utf8")) as Partial<PersistedWindowState>;
+    const { x, y, width, height } = state;
+    if (
+      typeof x !== "number" || typeof y !== "number" ||
+      typeof width !== "number" || typeof height !== "number"
+    ) {
+      return null;
+    }
+    for (const display of screen.getAllDisplays()) {
+      const area = display.workArea;
+      if (
+        Math.min(x + width, area.x + area.width) - Math.max(x, area.x) >= 100 &&
+        Math.min(y + height, area.y + area.height) - Math.max(y, area.y) >= 100
+      ) {
+        return {
+          x,
+          y,
+          // 宽高钳制到当前屏可见工作区，防止分辨率/缩放变化后超出屏幕
+          width: Math.min(width, area.width),
+          height: Math.min(height, area.height),
+          maximized: state.maximized === true
+        };
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function saveWindowState() {
+  if (!mainWindow || mainWindow.isMinimized()) return;
+  const bounds = mainWindow.getNormalBounds();
+  // Win32 最小化时坐标在 -32000 附近，异常坐标不落盘
+  if (bounds.x <= -30000 || bounds.y <= -30000) return;
+  try {
+    writeFileSync(windowStatePath(), JSON.stringify({ ...bounds, maximized: mainWindow.isMaximized() }), "utf8");
+  } catch (error) {
+    writeDebugLog(`window-state 写入失败: ${String(error)}`);
+  }
+}
+
 function createWindow() {
+  const restored = readWindowState();
   mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 720,
+    width: restored?.width ?? 1080,
+    height: restored?.height ?? 720,
+    ...(restored ? { x: restored.x, y: restored.y } : {}),
     minWidth: 820,
     minHeight: 520,
     show: false,
@@ -2199,6 +2259,9 @@ function createWindow() {
       backgroundThrottling: true
     }
   });
+
+  // 上次退出时是最大化状态，则创建后立即恢复
+  if (restored?.maximized) mainWindow.maximize();
 
   setupWebContentsGuards(mainWindow);
   // 渲染进程 console 转发到调试日志（dev 下 DEBUG_LOG_PATH 默认开启）
@@ -2313,6 +2376,7 @@ function showWindow() {
 }
 
 function hideWindow() {
+  saveWindowState();
   void lockContentForPrivacy();
   mainWindow?.hide();
 }
@@ -2663,6 +2727,7 @@ if (gotTheLock) {
   });
 
   app.on("before-quit", (event) => {
+    saveWindowState();
     if (!notesDbDirty || isFlushingBeforeQuit) return;
     event.preventDefault();
     isFlushingBeforeQuit = true;

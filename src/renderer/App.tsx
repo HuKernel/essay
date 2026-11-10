@@ -185,7 +185,12 @@ export default function App() {
   const [linkDraft, setLinkDraft] = useState("");
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
-  const [toast, setToast] = useState<{ message: string; action?: () => void } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    action?: () => void;
+    actionLabel?: string;
+    kind?: "save-error";
+  } | null>(null);
   const [blockRefPicker, setBlockRefPicker] = useState<{ pos: number } | null>(null);
   const [imageUrlDialog, setImageUrlDialog] = useState<{ draft: string } | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -979,9 +984,17 @@ export default function App() {
         event.preventDefault();
         setPalette((current) => (current ? null : "all"));
       }
+      if (event.key.toLowerCase() === "p") {
+        event.preventDefault();
+        setPalette((current) => (current ? null : "all"));
+      }
       if (event.key.toLowerCase() === "o") {
         event.preventDefault();
         setPalette("notes");
+      }
+      if (event.key === ",") {
+        event.preventDefault();
+        openSettings();
       }
     }
 
@@ -1054,12 +1067,54 @@ export default function App() {
     };
   }, [query]);
 
+  // 队列内落库：saveActive 与保存失败后的“重试”共用；重试复用原 snapshot，不重读编辑器
+  function commitNote(snapshot: NoteRecord, revisionAtStart: number) {
+    const saveTask = saveQueueRef.current.then(async () => {
+      if (activeIdRef.current === snapshot.id) {
+        setSaveState("saving");
+      }
+
+      try {
+        const saved = await window.suiji.saveNote(snapshot);
+        // 原位替换，避免自动保存 updatedAt 变化导致编辑中的笔记在列表里跳位
+        setNotes((current) => current.map((note) => (note.id === saved.id ? saved : note)));
+        if (activeIdRef.current === saved.id) {
+          setSaveState(revisionRef.current === revisionAtStart ? "saved" : "dirty");
+        }
+        // 保存成功后清掉挂着的保存失败提示，不误清其他 toast（如删除撤销条）
+        setToast((current) => (current?.kind === "save-error" ? null : current));
+        return saved;
+      } catch (error) {
+        console.error("[save] 保存失败:", error);
+        if (activeIdRef.current === snapshot.id) {
+          setSaveState("error");
+        }
+        // 单槽 toast：连续失败只替换不叠加；重试把同一 snapshot 重新入队
+        showToast(
+          String(error).includes("Storage locked") ? "保存失败：本地存储已锁定，请重新解锁" : "保存失败，请重试",
+          () => commitNote(snapshot, revisionAtStart),
+          "重试",
+          "save-error"
+        );
+        return null;
+      }
+    });
+
+    saveQueueRef.current = saveTask.then(
+      () => undefined,
+      () => undefined
+    );
+
+    return saveTask;
+  }
+
   const saveActive = useCallback(
     async (options?: { skipClean?: boolean }) => {
       if (!editor || !activeNote) return;
       // 回收站笔记是只读的，任何对它的保存都是错误路径
       if (activeNote.trashedAt) return activeNote;
-      if (options?.skipClean && saveStateRef.current !== "dirty") {
+      // error 状态也要放行：上次保存失败的内容不能因切换笔记被静默丢弃
+      if (options?.skipClean && saveStateRef.current !== "dirty" && saveStateRef.current !== "error") {
         return activeNote;
       }
       // 守卫：自加载以来没有任何编辑（正文未改且标题/标签/文件夹未变）时不写库，
@@ -1084,33 +1139,7 @@ export default function App() {
         plainText: getContentPlainText(editor.getJSON())
       };
 
-      const saveTask = saveQueueRef.current.then(async () => {
-        if (activeIdRef.current === snapshot.id) {
-          setSaveState("saving");
-        }
-
-        try {
-          const saved = await window.suiji.saveNote(snapshot);
-          // 原位替换，避免自动保存 updatedAt 变化导致编辑中的笔记在列表里跳位
-          setNotes((current) => current.map((note) => (note.id === saved.id ? saved : note)));
-          if (activeIdRef.current === saved.id) {
-            setSaveState(revisionRef.current === revisionAtStart ? "saved" : "dirty");
-          }
-          return saved;
-        } catch {
-          if (activeIdRef.current === snapshot.id) {
-            setSaveState("error");
-          }
-          return null;
-        }
-      });
-
-      saveQueueRef.current = saveTask.then(
-        () => undefined,
-        () => undefined
-      );
-
-      return saveTask;
+      return commitNote(snapshot, revisionAtStart);
     },
     [activeNote, editor, folderDraft, tagsDraft, title]
   );
@@ -1495,8 +1524,8 @@ export default function App() {
     showToast(`已将「${note.title || "未命名记录"}」移到回收站`, () => void handleRestoreNote(id));
   }
 
-  function showToast(message: string, action?: () => void) {
-    setToast({ message, action });
+  function showToast(message: string, action?: () => void, actionLabel?: string, kind?: "save-error") {
+    setToast({ message, action, actionLabel, kind });
     if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
     toastTimerRef.current = window.setTimeout(() => setToast(null), 5000);
   }
@@ -1949,6 +1978,8 @@ export default function App() {
   }
 
   function openSettings() {
+    // 已有快照说明设置已在打开流程中，重复进入会覆盖快照，Esc/取消就无法回滚了
+    if (settingsSnapshotRef.current) return;
     settingsSnapshotRef.current = settingsRef.current;
     setSettingsOpen(true);
   }
@@ -2915,7 +2946,7 @@ export default function App() {
                 setToast(null);
               }}
             >
-              撤销
+              {toast.actionLabel ?? "撤销"}
             </button>
           ) : null}
         </div>

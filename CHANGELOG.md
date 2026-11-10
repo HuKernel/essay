@@ -1,3 +1,10 @@
+## 0.9.102 - 2026-11-09
+
+- Quick-wins round, built by multi-model collaboration (spec negotiated by deepseek-flash + qwen3.8-flash, frontend glm-5.3-flash, backend glm-5.3, acceptance glm-5.3):
+- Shortcuts the help modal promised but were never registered now work: Ctrl+P opens the command palette (alias of Ctrl+K) and Ctrl+, opens Settings.
+- Save failures now surface a bottom toast with a 重试 (retry) button instead of a silent top-bar caption. Consecutive failures replace the toast instead of stacking, a successful save dismisses it, storage-locked failures get a targeted message, and switching away from a note whose last save failed no longer abandons the unsaved content (the error state now also triggers a re-save).
+- The window now remembers its position, size and maximized state across restarts: bounds are saved on hide-to-tray and on quit, and restored bounds are validated against the current display layout (falling back to defaults if the monitors changed, with clamping for resolution/DPI changes).
+
 ## 0.9.101 - 2026-11-09
 
 - Fixed the blank-note cleanup from 0.9.100 not actually firing while the app was running: the discard guard treated the note as "still open" at the exact moment it was being left, so switching away or creating yet another note never removed it (only an app restart did). Cleanup is now driven by the active-note switch itself — any way you leave a note (clicking another note, creating a new one, closing its tab) drops the blank note immediately, and notes you merely pin/favorite/export/backup without leaving are untouched.
