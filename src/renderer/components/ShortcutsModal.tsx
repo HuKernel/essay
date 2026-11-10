@@ -15,6 +15,7 @@ const GROUPS: ShortcutGroup[] = [
       ["Ctrl + P 同 Ctrl + K", "命令面板别名"],
       ["Ctrl + Shift + F", "专注模式开 / 关"],
       ["Ctrl + ,", "打开设置"],
+      ["Ctrl + /", "打开快捷键总览"],
       ["Esc", "按层级关闭弹窗 / 退出专注模式"]
     ]
   },

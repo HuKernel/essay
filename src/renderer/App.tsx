@@ -938,9 +938,12 @@ export default function App() {
   useEffect(() => {
     const disposeFind = window.suiji.onOpenFind(() => openFindPanel(false));
     const disposeReplace = window.suiji.onOpenReplace(() => openFindPanel(true));
+    // Ctrl+/ 归应用菜单 accelerator（见 app-shell.ts），此处只负责收到 IPC 后幂等打开
+    const disposeShortcuts = window.suiji.onOpenShortcuts(() => setShortcutsOpen(true));
     return () => {
       disposeFind();
       disposeReplace();
+      disposeShortcuts();
     };
   }, []);
 
@@ -951,10 +954,6 @@ export default function App() {
         event.preventDefault();
         toggleFocusMode();
         return;
-      }
-      if (event.key === "/") {
-        event.preventDefault();
-        setShortcutsOpen((current) => !current);
       }
       if (event.key.toLowerCase() === "t" && !event.shiftKey) {
         event.preventDefault();
@@ -1006,6 +1005,11 @@ export default function App() {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
+      // 快捷键面板恒在最上层，Esc 先关它
+      if (shortcutsOpen) {
+        setShortcutsOpen(false);
+        return;
+      }
       if (palette) {
         setPalette(null);
         return;
@@ -1028,10 +1032,6 @@ export default function App() {
       }
       if (settingsOpen) {
         closeSettings();
-        return;
-      }
-      if (shortcutsOpen) {
-        setShortcutsOpen(false);
         return;
       }
       if (findOpen) {
@@ -1838,13 +1838,13 @@ export default function App() {
 
   const paletteItems = useMemo<CommandPaletteItem[]>(() => {
     const commands: CommandPaletteItem[] = [
-      { id: "new", kind: "command", label: "新建记录", run: () => void handleCreate() },
-      { id: "find", kind: "command", label: "文档内查找", run: () => openFindPanel(false) },
+      { id: "new", kind: "command", label: "新建记录", hint: "Ctrl+N", run: () => void handleCreate() },
+      { id: "find", kind: "command", label: "文档内查找", hint: "Ctrl+F", run: () => openFindPanel(false) },
       { id: "theme", kind: "command", label: settings?.theme === "dark" ? "切换到浅色模式" : "切换到深色模式", run: () => void toggleTheme() },
       { id: "history", kind: "command", label: "当前记录的历史版本", run: () => void handleOpenHistory() },
-      { id: "settings", kind: "command", label: "打开设置", run: () => openSettings() },
-      { id: "focus", kind: "command", label: focusMode ? "退出专注模式" : "进入专注模式（Ctrl+Shift+F）", run: () => toggleFocusMode() },
-      { id: "shortcuts", kind: "command", label: "快捷键总览（Ctrl+/）", run: () => setShortcutsOpen(true) },
+      { id: "settings", kind: "command", label: "打开设置", hint: "Ctrl+,", run: () => openSettings() },
+      { id: "focus", kind: "command", label: focusMode ? "退出专注模式" : "进入专注模式", hint: "Ctrl+Shift+F", run: () => toggleFocusMode() },
+      { id: "shortcuts", kind: "command", label: "快捷键总览", hint: "Ctrl+/", run: () => setShortcutsOpen(true) },
       { id: "daily", kind: "command", label: "每日笔记（打开/创建今日）", run: () => void openDailyNote() }
     ];
     const views: CommandPaletteItem[] = (
@@ -2594,6 +2594,7 @@ export default function App() {
         }}
         onHideWindow={() => void window.suiji.hideWindow()}
         onOpenSettings={openSettings}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
         alwaysOnTop={settings?.alwaysOnTop ?? false}
         onToggleAlwaysOnTop={() => void toggleAlwaysOnTop()}
         query={query}
@@ -2831,8 +2832,6 @@ export default function App() {
         />
       ) : null}
 
-      {shortcutsOpen ? <ShortcutsModal onClose={() => setShortcutsOpen(false)} /> : null}
-
       {imageUrlDialog ? (
         <PromptDialog
           title="插入网络图片"
@@ -2934,6 +2933,7 @@ export default function App() {
           onClose={() => setBlockRefPicker(null)}
         />
       ) : null}
+      {shortcutsOpen ? <ShortcutsModal onClose={() => setShortcutsOpen(false)} /> : null}
       {toast ? (
         <div className="toast-bar" role="status">
           <span className="toast-message">{toast.message}</span>

@@ -38,6 +38,7 @@ type SidebarProps = {
   onBatchExport: (format: BatchExportFormat) => void;
   onHideWindow: () => void;
   onOpenSettings: () => void;
+  onOpenShortcuts: () => void;
   onAbout: () => void;
   onQuit: () => void;
   alwaysOnTop: boolean;
@@ -97,6 +98,7 @@ export function Sidebar(props: SidebarProps) {
     onBatchExport,
     onHideWindow,
     onOpenSettings,
+    onOpenShortcuts,
     onAbout,
     onQuit,
     alwaysOnTop,
@@ -200,6 +202,9 @@ export function Sidebar(props: SidebarProps) {
       <button type="button" role="menuitem" onClick={act(onOpenFind)}>
         查找
       </button>
+      <button type="button" role="menuitem" onClick={act(onOpenShortcuts)}>
+        快捷键总览（Ctrl + /）
+      </button>
       <button type="button" role="menuitem" onClick={act(onToggleAlwaysOnTop)}>
         {alwaysOnTop ? "✓ " : ""}窗口置顶
       </button>
@@ -273,7 +278,7 @@ export function Sidebar(props: SidebarProps) {
           <span className="sidebar-rail-divider" aria-hidden="true" />
           <button
             className="icon-button primary-icon"
-            title="新记录"
+            title="新记录（Ctrl+N）"
             aria-label="新记录"
             onClick={onCreateNote}
             type="button"
@@ -341,7 +346,7 @@ export function Sidebar(props: SidebarProps) {
           ) : null}
         </div>
 
-        <button className="new-note-button" type="button" onClick={onCreateNote}>
+        <button className="new-note-button" type="button" title="新记录（Ctrl+N）" onClick={onCreateNote}>
           <Plus size={16} />
           新记录
         </button>

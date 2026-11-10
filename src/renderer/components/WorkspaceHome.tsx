@@ -156,6 +156,7 @@ export function WorkspaceHome(props: WorkspaceHomeProps) {
             <FolderOpen size={28} aria-hidden="true" />
             <strong>欢迎来到我的空间</strong>
             <p>左侧「新记录」创建第一篇文档，或直接粘贴 Markdown 开始积累</p>
+            <p>按 Ctrl+/ 查看全部快捷键</p>
           </div>
         </section>
       ) : null}

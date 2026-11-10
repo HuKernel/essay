@@ -6,6 +6,7 @@ type MenuChannel =
   | "menu:save"
   | "menu:history"
   | "menu:settings"
+  | "menu:shortcuts"
   | "menu:find"
   | "menu:replace"
   | "menu:export-note"
@@ -126,6 +127,12 @@ export function buildApplicationMenuTemplate(callbacks: ShellCallbacks): MenuIte
     {
       label: "帮助",
       submenu: [
+        {
+          // 快捷键总览面板的唯一激活源：accelerator 截获 Ctrl+/，渲染层不再自行监听该键
+          label: "快捷键总览",
+          accelerator: "CommandOrControl+/",
+          click: () => callbacks.sendMenu("menu:shortcuts")
+        },
         {
           label: "关于随记",
           click: callbacks.onAbout

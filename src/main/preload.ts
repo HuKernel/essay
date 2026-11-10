@@ -94,6 +94,13 @@ const api = {
       ipcRenderer.removeListener("menu:settings", listener);
     };
   },
+  onOpenShortcuts: (callback: () => void) => {
+    const listener = () => callback();
+    ipcRenderer.on("menu:shortcuts", listener);
+    return () => {
+      ipcRenderer.removeListener("menu:shortcuts", listener);
+    };
+  },
   onOpenHistory: (callback: () => void) => {
     const listener = () => callback();
     ipcRenderer.on("menu:history", listener);

@@ -1,3 +1,7 @@
+## 0.9.103 - 2026-11-09
+
+- Shortcut discoverability round, built by multi-model collaboration (spec negotiated by deepseek-flash + qwen3.8-flash, frontend glm-5.3-flash, backend glm-5.3, acceptance glm-5.3): the shortcuts overview (Ctrl+/) was previously reachable only by already knowing Ctrl+/ — now it has real entry points. The ☰ Help menu gains a "快捷键总览" item showing Ctrl+/ (ownership moved to the menu accelerator; the renderer keydown branch was removed so there is exactly one trigger path), command palette commands display their shortcuts on the right (only ones that actually exist: Ctrl+N, Ctrl+F, Ctrl+,, Ctrl+Shift+F, Ctrl+/), the sidebar new-note buttons' tooltips mention Ctrl+N, the empty-workspace welcome hero points to Ctrl+/, the shortcuts modal itself lists Ctrl+/, and Esc now always closes the shortcuts modal first when it is on top.
+
 ## 0.9.102 - 2026-11-09
 
 - Quick-wins round, built by multi-model collaboration (spec negotiated by deepseek-flash + qwen3.8-flash, frontend glm-5.3-flash, backend glm-5.3, acceptance glm-5.3):
