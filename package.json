@@ -82,12 +82,16 @@
       }
     ],
     "nsis": {
+      "artifactName": "suiji-Setup-${version}.${ext}",
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
+    },
+    "portable": {
+      "artifactName": "suiji-Portable-${version}.${ext}"
     }
   },
   "dependencies": {
