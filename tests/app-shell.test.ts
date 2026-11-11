@@ -35,6 +35,25 @@ describe("app shell templates", () => {
     expect(hideItem?.accelerator).toBeUndefined();
   });
 
+  it("快捷键总览经帮助菜单 accelerator 激活，设置不绑定菜单快捷键", () => {
+    const template = buildApplicationMenuTemplate(callbacks());
+    const helpMenu = template.find((menu) => menu.label === "帮助");
+    expect(helpMenu).toBeTruthy();
+    const shortcutsItem = (helpMenu?.submenu as Array<{ label?: string; accelerator?: string }>).find(
+      (item) => item.label === "快捷键总览"
+    );
+    expect(shortcutsItem).toBeTruthy();
+    expect(shortcutsItem?.accelerator).toBe("CommandOrControl+/");
+
+    const fileMenu = template[0];
+    const settingsItem = (fileMenu.submenu as Array<{ label?: string; accelerator?: string }>).find(
+      (item) => item.label === "设置"
+    );
+    expect(settingsItem).toBeTruthy();
+    // Ctrl+, 由渲染层 keydown 处理（openSettings 幂等早退），菜单不重复登记 accelerator
+    expect(settingsItem?.accelerator).toBeUndefined();
+  });
+
   it("托盘菜单包含快捷键展示和剪贴板入口", () => {
     const template = buildTrayMenuTemplate(
       {

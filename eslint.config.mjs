@@ -12,7 +12,8 @@ export default tseslint.config(
       "node_modules/**",
       "tools/**",
       "runtime_cache/**",
-      "build/**"
+      "build/**",
+      ".zcode/**"
     ]
   },
   js.configs.recommended,

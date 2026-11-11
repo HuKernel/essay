@@ -211,7 +211,7 @@ export default function App() {
   useEffect(() => {
     if (tabs.length > 0 || notes.length === 0) return;
     const current = activeIdRef.current;
-    let saved: string[] = [];
+    let saved: string[];
     try {
       const raw = window.localStorage.getItem("suiji.tabs");
       saved = Array.isArray(JSON.parse(raw ?? "[]")) ? (JSON.parse(raw ?? "[]") as string[]) : [];
@@ -950,48 +950,78 @@ export default function App() {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (!event.ctrlKey && !event.metaKey) return;
-      if (event.key.toLowerCase() === "f" && event.shiftKey) {
+      // 诊断用：记录应用实际收到的 Ctrl 组合键（渲染层 console 会被主进程转写进调试日志），
+      // 若按键被输入法/全局热键吞掉，日志里会直接缺失对应条目
+      console.log(`[keys] code=${event.code} key=${event.key} composing=${event.isComposing} prevented=${event.defaultPrevented}`);
+      // 已被编辑器（如 Ctrl+K 插入链接）处理的按键不再重复响应，避免面板误开
+      if (event.defaultPrevented) return;
+      // 中文输入法（如微软拼音）会把字母键的 key 上报为 "Process"、标点变全角，
+      // 按 event.key 字符匹配的快捷键会全部失灵，因此统一按物理键位（event.code）匹配
+      const code = event.code;
+
+      // TipTap 自带的 Ctrl+B/I/U/E 等快捷键在 IME 下同样收不到合法 key，编辑器内按物理键位兜底
+      if (editor?.isFocused) {
+        let handled = true;
+        if (code === "KeyB" && !event.shiftKey) editor.chain().focus().toggleBold().run();
+        else if (code === "KeyI" && !event.shiftKey) editor.chain().focus().toggleItalic().run();
+        else if (code === "KeyU" && !event.shiftKey) editor.chain().focus().toggleUnderline().run();
+        else if (code === "KeyE" && !event.shiftKey) editor.chain().focus().toggleCode().run();
+        else if (code === "KeyX" && event.shiftKey) editor.chain().focus().toggleStrike().run();
+        else if (code === "KeyH" && event.shiftKey) editor.chain().focus().toggleHighlight().run();
+        else handled = false;
+        if (handled) {
+          event.preventDefault();
+          return;
+        }
+      }
+
+      if (code === "KeyF" && event.shiftKey) {
         event.preventDefault();
         toggleFocusMode();
         return;
       }
-      if (event.key.toLowerCase() === "t" && !event.shiftKey) {
+      if (code === "KeyT" && !event.shiftKey) {
         event.preventDefault();
         void openNewTab();
       }
-      if (event.key.toLowerCase() === "w") {
+      if (code === "KeyW") {
         event.preventDefault();
         closeTab(activeTabIndex);
       }
-      if (event.key === "Tab") {
+      if (code === "Tab") {
         event.preventDefault();
         if (tabs.length > 1) selectTab((activeTabIndex + 1) % tabs.length);
       }
-      if (event.key.toLowerCase() === "f") {
+      if (code === "KeyF") {
         event.preventDefault();
         openFindPanel(false);
       }
-      if (event.key.toLowerCase() === "h") {
+      if (code === "KeyH" && !event.shiftKey) {
         event.preventDefault();
         openFindPanel(true);
       }
-      if (event.key === "e" && event.shiftKey) {
+      if (code === "KeyE" && event.shiftKey) {
         event.preventDefault();
         insertMathBlock();
       }
-      if (event.key.toLowerCase() === "k") {
+      if (code === "KeyK") {
+        event.preventDefault();
+        // 面板文档承诺的「Ctrl+K（选中文字）插入链接」：编辑器内有选区时开链接弹窗，否则开关命令面板
+        if (editor?.isFocused && !editor.state.selection.empty) {
+          handleLink();
+        } else {
+          setPalette((current) => (current ? null : "all"));
+        }
+      }
+      if (code === "KeyP") {
         event.preventDefault();
         setPalette((current) => (current ? null : "all"));
       }
-      if (event.key.toLowerCase() === "p") {
-        event.preventDefault();
-        setPalette((current) => (current ? null : "all"));
-      }
-      if (event.key.toLowerCase() === "o") {
+      if (code === "KeyO") {
         event.preventDefault();
         setPalette("notes");
       }
-      if (event.key === ",") {
+      if (code === "Comma") {
         event.preventDefault();
         openSettings();
       }
@@ -999,7 +1029,7 @@ export default function App() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  });
 
   // Esc 按层级关闭最上层弹窗
   useEffect(() => {

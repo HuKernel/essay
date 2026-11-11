@@ -83,8 +83,10 @@ const ALLOWED_BATCH_EXPORT_FORMATS = new Set(["html", "json", "txt", "md"]);
 const ALLOWED_EXTERNAL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
 const DB_FLUSH_DELAY_MS = 900;
 const IDLE_LOCK_CHECK_INTERVAL_MS = 15_000;
+// 打包版也默认写调试日志到数据目录（可用 SUIJI_DEBUG_LOG="" 关闭），超过 1MB 轮转一份
 const DEBUG_LOG_PATH =
-  process.env.SUIJI_DEBUG_LOG || (app.isPackaged ? "" : "d:\\zhuomian\\essay\\runtime_cache\\suiji-debug.log");
+  process.env.SUIJI_DEBUG_LOG ||
+  (app.isPackaged ? path.join(app.getPath("userData"), "suiji-debug.log") : "d:\\zhuomian\\essay\\runtime_cache\\suiji-debug.log");
 const DEBUG_PORT = process.env.SUIJI_DEBUG_PORT || "";
 
 let mainWindow: BrowserWindow | null = null;
@@ -179,7 +181,17 @@ function assetPath(fileName: string) {
 function writeDebugLog(message: string) {
   if (!DEBUG_LOG_PATH) return;
   const line = `[${new Date().toISOString()}] ${message}\n`;
-  void fs.appendFile(DEBUG_LOG_PATH, line, "utf8").catch(() => {});
+  void (async () => {
+    try {
+      const stat = await fs.stat(DEBUG_LOG_PATH).catch(() => null);
+      if (stat && stat.size > 1024 * 1024) {
+        await fs.rename(DEBUG_LOG_PATH, `${DEBUG_LOG_PATH}.1`).catch(() => undefined);
+      }
+      await fs.appendFile(DEBUG_LOG_PATH, line, "utf8");
+    } catch {
+      // 日志失败不影响主流程
+    }
+  })();
 }
 
 function defaultDataRoot() {
@@ -941,43 +953,6 @@ function upsertNoteInDatabase(note: NoteRecord) {
   ]);
 }
 
-function updateNoteContentFields(note: NoteRecord) {
-  dbExec(
-    `
-      UPDATE notes SET
-        title = ?,
-        excerpt = ?,
-        tags_json = ?,
-        folder = ?,
-        content_json = ?,
-        html = ?,
-        plain_text = ?,
-        updated_at = ?
-      WHERE id = ?
-    `,
-    [
-      note.title,
-      note.excerpt,
-      JSON.stringify(note.tags),
-      note.folder,
-      JSON.stringify(note.content),
-      note.html,
-      note.plainText,
-      note.updatedAt,
-      note.id
-    ]
-  );
-  dbExec("DELETE FROM notes_fts WHERE id = ?", [note.id]);
-  dbExec("INSERT INTO notes_fts(id, title, excerpt, tags, folder, plain_text) VALUES (?, ?, ?, ?, ?, ?)", [
-    note.id,
-    note.title,
-    note.excerpt,
-    note.tags.join(" "),
-    note.folder,
-    note.plainText
-  ]);
-}
-
 function updateNoteMetaFields(
   id: string,
   patch: {
@@ -1265,6 +1240,10 @@ async function updateStoredSettings(payload: SettingsUpdatePayload): Promise<App
 /** 清理空占位记录（新建后从未输入、或正文被删光后遗留的"未命名记录"），
  *  与渲染端 isBlankNote 同一判定；图片/公式笔记（plainText 为空但有内容）排除 */
 async function purgeBlankNotes() {
+  // 只清理「较早遗留」的空占位记录：updatedAt 在 10 分钟内的新建笔记可能是用户刚建、
+  // 还没来得及输入第一个字（60s 任务扫描会轮询 listNotes），此时删除会让后续保存
+  // 抛 Note not found；离开笔记的即时清理由渲染层 activeId 切换路径负责
+  const staleBefore = new Date(Date.now() - 10 * 60_000).toISOString();
   const rows = dbRows<{ id: string }>(
     `SELECT id FROM notes
      WHERE trashed_at IS NULL
@@ -1272,7 +1251,9 @@ async function purgeBlankNotes() {
        AND TRIM(COALESCE(plain_text, '')) = ''
        AND html NOT LIKE '%<img%'
        AND content_json NOT LIKE '%mathBlock%'
-       AND content_json NOT LIKE '%mathInline%'`
+       AND content_json NOT LIKE '%mathInline%'
+       AND updated_at < ?`,
+    [staleBefore]
   );
   if (rows.length === 0) return;
   for (const row of rows) {
@@ -1625,7 +1606,9 @@ async function saveNote(rawNote: NoteRecord): Promise<NoteRecord> {
   });
 
   await backupExistingNoteIfStale(normalized.id);
-  updateNoteContentFields(normalized);
+  // upsert 而非仅 UPDATE：行不存在时（曾被清理误删或库异常）把笔记完整插回，
+  // 自愈"编辑器还开着但库里已没有这行"导致的持续保存失败
+  upsertNoteInDatabase(normalized);
   upsertNoteMeta(normalized);
   notesDbDirty = true;
   const latest = await finalizeNoteWrite(normalized.id);

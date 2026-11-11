@@ -10,7 +10,7 @@ const GROUPS: ShortcutGroup[] = [
     label: "通用",
     items: [
       ["Ctrl + Alt + J", "呼出 / 隐藏窗口（全局，可在设置改）"],
-      ["Ctrl + K", "命令面板（命令 + 笔记）"],
+      ["Ctrl + K", "命令面板（选中文字时则变为插入链接）"],
       ["Ctrl + O", "快速跳转笔记"],
       ["Ctrl + P 同 Ctrl + K", "命令面板别名"],
       ["Ctrl + Shift + F", "专注模式开 / 关"],
@@ -26,7 +26,7 @@ const GROUPS: ShortcutGroup[] = [
       ["Ctrl + Shift + X", "删除线（Word 习惯）"],
       ["Ctrl + Shift + H", "高亮"],
       ["Ctrl + E", "行内代码（选中文本后）"],
-      ["Ctrl + K（选中文字）", "插入链接"],
+      ["Ctrl + K（选中文字）", "插入链接（与命令面板同键，按是否有选区自动区分）"],
       ["Ctrl + Shift + E", "插入 TeX 公式块"],
       ["$公式$", "输入 $x^2$ 自动转行内公式"],
       ["[[", "笔记互链（输入时触发）"],
