@@ -142,8 +142,8 @@ export const SlashMenuExtension = Extension.create<{ getCommands: () => SlashCom
             container.style.top = "0px";
             container.style.visibility = "hidden";
             const menuRect = container.getBoundingClientRect();
-            let menuLeft = Math.max(8, Math.min(coords.left, window.innerWidth - menuRect.width - 8));
-            let menuTop = Math.max(8, Math.min(coords.bottom + 6, window.innerHeight - menuRect.height - 8));
+            const menuLeft = Math.max(8, Math.min(coords.left, window.innerWidth - menuRect.width - 8));
+            const menuTop = Math.max(8, Math.min(coords.bottom + 6, window.innerHeight - menuRect.height - 8));
             container.style.left = `${menuLeft}px`;
             container.style.top = `${menuTop}px`;
             container.style.visibility = "";
