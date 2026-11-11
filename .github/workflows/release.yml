@@ -29,8 +29,11 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Build & package (NSIS + portable)
-        run: npm run build && npx electron-builder --win
+      - name: Build renderer & main
+        run: npm run build
+
+      - name: Package (NSIS + portable, retry once)
+        run: npx electron-builder --win || (sleep 20 && npx electron-builder --win)
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
