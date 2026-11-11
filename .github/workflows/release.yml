@@ -32,8 +32,16 @@ jobs:
       - name: Build renderer & main
         run: npm run build
 
-      - name: Package (NSIS + portable, retry once)
-        run: npx electron-builder --win || (sleep 20 && npx electron-builder --win)
+      # --publish never：CI + tag 场景下 electron-builder 会默认尝试自动发布到 GitHub，
+      # 缺少 GH_TOKEN 直接报错退出；发布交给下方 Upload release assets 步骤
+      - name: Package (NSIS + portable)
+        shell: bash
+        run: |
+          set -o pipefail
+          npx electron-builder --win --publish never 2>&1 | tee builder.log || {
+            grep -aE "⨯|[Ee]rror" builder.log | head -5 | sed 's/^/::error::/' || true
+            exit 1
+          }
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
