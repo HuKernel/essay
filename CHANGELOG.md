@@ -1,3 +1,7 @@
+## 0.9.108 - 2026-11-16
+
+- The sidebar's 最近编辑 (Recent) view is now actually distinct from 全部 (All): it only shows notes edited within the last 7 days, while 全部 keeps showing everything. Previously Recent had no filter of its own and displayed the same list as All, just sorted identically. This is a display-only filter — no note data is ever removed (the 7-day backup cleanup from 0.9.107 operates on background backup files and likewise never touches note content).
+
 ## 0.9.107 - 2026-11-16
 
 - Rolling cleanup for derived data: version-history backups now keep a 7-day window (beyond the existing per-note count cap), interrupted-write `.tmp` leftovers in the backups folder that were never cleaned before are removed after 24h, and a maintenance scheduler now runs expired-trash purge + backup pruning on startup and every 6 hours — previously trash cleanup only ran once at startup, which for a tray-resident app that rarely restarts meant the retention setting almost never took effect. Note content itself is never touched by this cleanup.

@@ -131,6 +131,9 @@ const VIEW_TIME_FIELD: Partial<Record<ViewMode, "trashedAt" | "favoriteAt" | "ar
   recent: "updatedAt"
 };
 
+// 「最近编辑」只显示该窗口内编辑过的记录，与「全部」区分开（纯显示过滤，不删数据）
+const RECENT_VIEW_WINDOW_MS = 7 * 24 * 60 * 60_000;
+
 export default function App() {
   const [notes, setNotes] = useState<NoteRecord[]>([]);
   const [activeId, setActiveId] = useState<string>("");
@@ -1250,6 +1253,7 @@ export default function App() {
         if (viewMode === "trash" && !note.trashedAt) return false;
         if (viewMode !== "trash" && note.trashedAt) return false;
       }
+      if (viewMode === "recent" && Date.parse(note.updatedAt) < Date.now() - RECENT_VIEW_WINDOW_MS) return false;
       if (viewMode === "active" && note.archivedAt && !searchSyntax.archive) return false;
       if (viewMode === "favorites" && !note.favoriteAt) return false;
       if (viewMode === "archive" && !note.archivedAt) return false;
