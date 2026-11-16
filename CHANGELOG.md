@@ -1,3 +1,7 @@
+## 0.9.107 - 2026-11-16
+
+- Rolling cleanup for derived data: version-history backups now keep a 7-day window (beyond the existing per-note count cap), interrupted-write `.tmp` leftovers in the backups folder that were never cleaned before are removed after 24h, and a maintenance scheduler now runs expired-trash purge + backup pruning on startup and every 6 hours — previously trash cleanup only ran once at startup, which for a tray-resident app that rarely restarts meant the retention setting almost never took effect. Note content itself is never touched by this cleanup.
+
 ## 0.9.106 - 2026-11-11
 
 - Critical fix for the "自动保存保存失败 / Note not found" issue reported on other machines: the blank-note cleanup added in 0.9.100 ran inside listNotes(), which the 60-second task-reminder scheduler also calls — so a freshly created note that was still empty (user hadn't typed the first character yet) could be physically deleted from the database about a minute after creation, while the editor kept it open. Every subsequent autosave then failed with "Note not found" and a restart lost the content. Two changes: the database-side blank cleanup now only touches placeholder notes whose updatedAt is older than 10 minutes (leave-a-note cleanup in the renderer remains the immediate path), and saving is now a full upsert — if the row is missing (previously deleted or any other anomaly), the note is re-inserted whole, which also self-heals machines already affected: their stuck "ghost note" recovers on the first save after updating, content intact.

@@ -394,22 +394,30 @@ async function backupExistingNoteIfStale(id: string, prefix = "note", minInterva
   await backupExistingNote(id, prefix);
 }
 
+// 备份滚动保留窗口：超过 7 天的历史版本备份与写入中断的 .tmp 残留一律清理
+const BACKUP_MAX_AGE_MS = 7 * 24 * 60 * 60_000;
+const TMP_MAX_AGE_MS = 24 * 60 * 60_000;
+
 async function pruneBackups() {
   const settings = await readStoredSettings();
   const limit = settings.backupHistoryEnabled ? settings.backupHistoryLimit : 0;
   try {
     const entries = await fs.readdir(backupsDir, { withFileTypes: true });
+    const now = Date.now();
     const files = await Promise.all(
       entries
-        .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+        .filter((entry) => entry.isFile() && (entry.name.endsWith(".json") || entry.name.endsWith(".tmp")))
         .map(async (entry) => {
           const filePath = path.join(backupsDir, entry.name);
           const stat = await fs.stat(filePath);
-          return { filePath, mtime: stat.mtimeMs };
+          return { filePath, mtime: stat.mtimeMs, tmp: entry.name.endsWith(".tmp") };
         })
     );
-    const stale = files.sort((a, b) => b.mtime - a.mtime).slice(limit);
-    await Promise.all(stale.map((file) => fs.rm(file.filePath, { force: true })));
+    // 先按时间清（超期备份、超过一天的写入中断残留），再对剩余的按份数封顶
+    const expired = files.filter((file) => file.mtime < now - BACKUP_MAX_AGE_MS || (file.tmp && file.mtime < now - TMP_MAX_AGE_MS));
+    const kept = files.filter((file) => !expired.includes(file));
+    const stale = kept.sort((a, b) => b.mtime - a.mtime).slice(limit);
+    await Promise.all([...expired, ...stale].map((file) => fs.rm(file.filePath, { force: true })));
   } catch {
     // Backup pruning should never block note saving.
   }
@@ -1323,6 +1331,18 @@ function collectDueTasksForReminder(notes: NoteRecord[]): DueTaskReminder[] {
     walk(note, note.content ?? {});
   }
   return items;
+}
+
+/** 周期维护：回收站过期清理 + 备份滚动修剪（7 天窗口）。应用常驻托盘很少重启，
+ *  仅在启动时清一次等于基本不生效，因此每 6 小时再跑一轮 */
+function startMaintenanceScheduler() {
+  function run() {
+    void purgeExpiredTrash().catch(() => undefined);
+    void pruneBackups().catch(() => undefined);
+  }
+
+  run();
+  setInterval(run, 6 * 60 * 60_000);
 }
 
 /** 周期扫描到期任务并弹系统通知（点击跳转到任务块） */
@@ -2689,7 +2709,7 @@ if (gotTheLock) {
     registerHotkey(settings.hotkey);
     refreshIdleLockMonitor();
     startTaskReminderScheduler();
-    void purgeExpiredTrash().catch(() => undefined);
+    startMaintenanceScheduler();
     powerMonitor.on("suspend", () => {
       void lockContentForPrivacy(true);
     });
