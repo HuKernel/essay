@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { looksLikeMarkdown, markdownToDoc } from "../src/shared/markdown-doc";
+import { buildImportedMarkdownUpdate, looksLikeMarkdown, markdownToDoc } from "../src/shared/markdown-doc";
 import { toMarkdown } from "../src/shared/markdown";
 
 describe("looksLikeMarkdown", () => {
@@ -94,5 +94,47 @@ describe("文件写回 round-trip（saveNote 同步写回原文件）", () => {
     expect(written).toContain("要点一");
     // 换一种方式再打开（重新导入）得到同样内容
     expect(toMarkdown(markdownToDoc(written))).toBe(written);
+  });
+});
+
+describe("已导入文件再次打开时的磁盘更新", () => {
+  const base = {
+    id: "00000000-0000-0000-0000-000000000001",
+    title: "旧标题",
+    excerpt: "旧内容",
+    tags: ["资料"],
+    folder: "外部",
+    favoriteAt: "2026-01-01T00:00:00.000Z",
+    archivedAt: null,
+    trashedAt: null,
+    pinnedAt: null,
+    parentId: null,
+    bodyFont: "serif",
+    coverAsset: null,
+    pageBg: null,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    html: "<p>旧内容</p>"
+  };
+
+  it("外部内容未变化时不产生保存任务", () => {
+    const markdown = "# 旧标题\n\n旧内容\n";
+    const existing = { ...base, content: markdownToDoc(markdown), plainText: markdown };
+    expect(buildImportedMarkdownUpdate(existing, markdown, "文件名", markdown)).toBeNull();
+  });
+
+  it("外部内容变化时替换正文并保留随记内元数据", () => {
+    const oldMarkdown = "# 旧标题\n\n旧内容\n";
+    const newMarkdown = "# 新标题\n\n外部编辑后的内容\n";
+    const existing = { ...base, content: markdownToDoc(oldMarkdown), plainText: oldMarkdown };
+    const updated = buildImportedMarkdownUpdate(existing, newMarkdown, "文件名", oldMarkdown);
+
+    expect(updated?.title).toBe("新标题");
+    expect(updated?.plainText).toBe(newMarkdown);
+    expect(updated?.content).toEqual(markdownToDoc(newMarkdown));
+    expect(updated?.tags).toEqual(["资料"]);
+    expect(updated?.folder).toBe("外部");
+    expect(updated?.bodyFont).toBe("serif");
+    expect(updated?.createdAt).toBe(existing.createdAt);
   });
 });

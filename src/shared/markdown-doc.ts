@@ -369,6 +369,27 @@ export function markdownToDoc(markdown: string): NoteRecord["content"] {
   };
 }
 
+export function importedMarkdownTitle(markdown: string, fallbackTitle: string) {
+  return markdown.match(/^\s*#\s+(.+)$/m)?.[1]?.trim() || fallbackTitle;
+}
+
+export function buildImportedMarkdownUpdate(
+  existing: NoteRecord,
+  markdown: string,
+  fallbackTitle: string,
+  currentMarkdown: string
+): NoteRecord | null {
+  if (markdown === currentMarkdown) return null;
+  return {
+    ...existing,
+    title: importedMarkdownTitle(markdown, fallbackTitle),
+    excerpt: markdown.trim().replace(/\s+/g, " ").slice(0, 120),
+    content: markdownToDoc(markdown),
+    html: "",
+    plainText: markdown
+  };
+}
+
 /** 含 ``` / ~~~ 围栏：最强 Markdown 信号，即便剪贴板带富文本 HTML 也按源码解析 */
 export function hasMarkdownFence(text: string) {
   return /^[ \t]{0,3}(?:```|~~~)/m.test(text);

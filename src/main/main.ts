@@ -49,7 +49,7 @@ import {
   safeExportBaseName,
   safeExportName
 } from "./note-transfer.js";
-import { markdownToDoc } from "../shared/markdown-doc.js";
+import { buildImportedMarkdownUpdate, importedMarkdownTitle, markdownToDoc } from "../shared/markdown-doc.js";
 import { toMarkdown } from "../shared/markdown.js";
 import { upgradeCollapsibleContent } from "../shared/content-upgrade.js";
 import { parseEncryptedExportBundle } from "../shared/encrypted-export.js";
@@ -1787,17 +1787,18 @@ let pendingOpenFiles = importablePathsFromArgv(process.argv);
 async function importMarkdownFile(filePath: string): Promise<NoteRecord> {
   const resolved = path.resolve(filePath);
   const existingId = dbRows<{ id: string }>("SELECT id FROM note_meta WHERE file_path = ?", [resolved])[0]?.id;
+  const raw = await fs.readFile(resolved, "utf8");
+  const fallbackTitle = path.basename(resolved, path.extname(resolved));
   if (existingId) {
-    try {
-      return await readNote(existingId);
-    } catch {
-      // 记录已被删除，走重新导入
+    // 关联记录已被删除时重新导入
+    const existing = await readNote(existingId).catch(() => null);
+    if (existing) {
+      const currentMarkdown = toMarkdown(await inlineAssetImages(existing.content, attachmentsDir));
+      const update = buildImportedMarkdownUpdate(existing, raw, fallbackTitle, currentMarkdown);
+      return update ? await saveNote(update) : existing;
     }
   }
-  const raw = await fs.readFile(resolved, "utf8");
-  const heading = raw.match(/^\s*#\s+(.+)$/m)?.[1]?.trim();
-  const fallbackTitle = path.basename(resolved, path.extname(resolved));
-  const note = await createNoteFromContent(heading || fallbackTitle, raw, markdownToDoc(raw));
+  const note = await createNoteFromContent(importedMarkdownTitle(raw, fallbackTitle), raw, markdownToDoc(raw));
   setNoteFilePath(note.id, resolved);
   return note;
 }

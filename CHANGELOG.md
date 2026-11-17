@@ -1,3 +1,7 @@
+## 0.9.109 - 2026-11-17
+
+- Reopening an imported Markdown/text file now reloads the latest content from disk instead of showing the stale in-app snapshot. Tags, folder, and other app metadata are preserved, and the currently open editor refreshes even when the reopened file maps to the same note. Unchanged files are not rewritten.
+
 ## 0.9.108 - 2026-11-16
 
 - The sidebar's 最近编辑 (Recent) view is now actually distinct from 全部 (All): it only shows notes edited within the last 7 days, while 全部 keeps showing everything. Previously Recent had no filter of its own and displayed the same list as All, just sorted identically. This is a display-only filter — no note data is ever removed (the 7-day backup cleanup from 0.9.107 operates on background backup files and likewise never touches note content).

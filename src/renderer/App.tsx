@@ -209,6 +209,7 @@ export default function App() {
   // ---------- 多标签 ----------
   const [tabs, setTabs] = useState<string[]>([]);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
+  const [editorReloadNonce, setEditorReloadNonce] = useState(0);
 
   // 笔记加载后恢复上次会话的标签（无效 id 过滤）
   useEffect(() => {
@@ -815,7 +816,7 @@ export default function App() {
     }
     revisionRef.current = 0;
     setSaveState("saved");
-  }, [activeNote?.id, editor]);
+  }, [activeNote?.id, editor, editorReloadNonce]);
 
   useEffect(() => {
     if (!editor) return;
@@ -864,6 +865,8 @@ export default function App() {
         const loaded = await window.suiji.listNotes();
         setNotes(loaded);
         if (id) {
+          // 同一条笔记重新加载时 id 不变，显式触发编辑器内容刷新
+          setEditorReloadNonce((nonce) => nonce + 1);
           setActiveId(id);
           return;
         }
@@ -891,6 +894,7 @@ export default function App() {
       if (!ids.length) return;
       const loaded = await window.suiji.listNotes();
       setNotes(loaded);
+      setEditorReloadNonce((nonce) => nonce + 1);
       setActiveId(ids[ids.length - 1]);
     })();
   }, []);
