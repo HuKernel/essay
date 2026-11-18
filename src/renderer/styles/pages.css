@@ -276,6 +276,67 @@
   letter-spacing: 0.08em;
 }
 
+/* 列表页批量选择工具条：只占用标题下方一行，不改变原列表骨架 */
+.doc-list-batchbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -8px 0 14px;
+}
+
+.doc-list-batchbar button {
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--text-color);
+  font-size: 12px;
+  padding: 0 10px;
+}
+
+.doc-list-batchbar button:disabled {
+  color: var(--subtle-text);
+  opacity: 0.6;
+}
+
+.doc-list-batchbar button.is-danger:not(:disabled) {
+  color: var(--danger-color);
+  border-color: color-mix(in srgb, var(--danger-color) 35%, transparent);
+}
+
+.doc-list-batchbar > span {
+  margin-left: auto;
+  color: var(--subtle-text);
+  font-size: 12px;
+}
+
+.doc-list-grid .note-item.is-selected {
+  background: var(--surface-hover-soft);
+}
+
+.note-item-header.has-check {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.note-check {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--subtle-text);
+  padding: 0;
+}
+
+.note-check.is-checked {
+  color: var(--accent-color);
+}
+
 /* 列表页里的笔记卡片沿用 note-item，但作为网格卡片呈现 */
 .doc-list-grid .note-item {
   margin: 0;

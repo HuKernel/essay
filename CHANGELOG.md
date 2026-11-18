@@ -1,3 +1,7 @@
+## 0.9.110 - 2026-11-18
+
+- Added multi-select cleanup to All, Recent, Favorites, and Archive. Selections are limited to the current visible filter results, and the batch action moves notes to Trash without permanent deletion or touching external source files. A single Undo restores the whole batch, while list metadata such as favorites, archive state, tags, and folders is preserved.
+
 ## 0.9.109 - 2026-11-17
 
 - Reopening an imported Markdown/text file now reloads the latest content from disk instead of showing the stale in-app snapshot. Tags, folder, and other app metadata are preserved, and the currently open editor refreshes even when the reopened file maps to the same note. Unchanged files are not rewritten.

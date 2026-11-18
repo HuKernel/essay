@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   Archive,
   ArchiveRestore,
+  CheckSquare,
   Folder,
   ListTodo,
   Pin,
@@ -15,6 +16,7 @@ import type { NoteRecord } from "../../shared/types";
 import type { DragEvent as ReactDragEvent } from "react";
 import type { ViewMode } from "../constants";
 import { HighlightedText } from "./common";
+import { canBatchTrash, getBatchTrashTargets, retainVisibleNoteIds } from "../utils/note-selection";
 import { formatTime, type OpenTask } from "../utils/text";
 
 type DocumentListPageProps = {
@@ -37,6 +39,8 @@ type DocumentListPageProps = {
   onDeleteNote: (id: string) => void;
   onRestoreNote: (id: string) => void;
   onPurgeNote: (id: string) => void;
+  onBatchDelete: (ids: string[]) => void;
+  batchBusy: boolean;
 };
 
 const VIEW_TITLES: Partial<Record<ViewMode, string>> = {
@@ -78,7 +82,9 @@ export function DocumentListPage(props: DocumentListPageProps) {
     onToggleArchive,
     onDeleteNote,
     onRestoreNote,
-    onPurgeNote
+    onPurgeNote,
+    onBatchDelete,
+    batchBusy
   } = props;
 
   const [calendarMonth, setCalendarMonth] = useState(() => {
@@ -86,6 +92,9 @@ export function DocumentListPage(props: DocumentListPageProps) {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [calendarDay, setCalendarDay] = useState<string | null>(() => dayKeyOf(new Date()));
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const visibleSelectedIds = retainVisibleNoteIds(selectedIds, filteredNotes);
 
   const notesByDay = new Map<string, number>();
   for (const note of filteredNotes) {
@@ -109,6 +118,12 @@ export function DocumentListPage(props: DocumentListPageProps) {
     : [];
 
   const emptyText = hasFilter ? "没有匹配的记录" : "这里还没有记录";
+
+  function toggleSelected(noteId: string) {
+    setSelectedIds((current) =>
+      current.includes(noteId) ? current.filter((id) => id !== noteId) : [...retainVisibleNoteIds(current, filteredNotes), noteId]
+    );
+  }
 
   function noteDragStart(event: ReactDragEvent, noteId: string) {
     event.dataTransfer.setData("text/suiji-note", noteId);
@@ -139,6 +154,45 @@ export function DocumentListPage(props: DocumentListPageProps) {
         ) : null}
         <span>{viewMode === "tasks" ? openTasks.length : filteredNotes.length} 篇</span>
       </div>
+
+      {canBatchTrash(viewMode) ? (
+        <div className="doc-list-batchbar">
+          {selectionMode ? (
+            <>
+              <button
+                type="button"
+                onClick={() =>
+                  setSelectedIds(
+                    visibleSelectedIds.length === filteredNotes.length ? [] : filteredNotes.map((note) => note.id)
+                  )
+                }
+              >
+                {visibleSelectedIds.length === filteredNotes.length && filteredNotes.length > 0 ? "取消全选" : "全选当前可见"}
+              </button>
+              <button type="button" onClick={() => setSelectionMode(false)}>
+                取消多选
+              </button>
+              <button
+                type="button"
+                className="is-danger"
+                disabled={batchBusy || visibleSelectedIds.length === 0}
+                onClick={() => {
+                  onBatchDelete(getBatchTrashTargets(visibleSelectedIds, filteredNotes).map((note) => note.id));
+                  setSelectionMode(false);
+                  setSelectedIds([]);
+                }}
+              >
+                移到回收站{visibleSelectedIds.length ? `（${visibleSelectedIds.length}）` : ""}
+              </button>
+              <span>已选 {visibleSelectedIds.length} 篇</span>
+            </>
+          ) : (
+            <button type="button" disabled={batchBusy} onClick={() => setSelectionMode(true)}>
+              多选
+            </button>
+          )}
+        </div>
+      ) : null}
 
       {viewMode === "calendar" ? (
         <div className="calendar-wrap is-page">
@@ -259,26 +313,51 @@ export function DocumentListPage(props: DocumentListPageProps) {
           {filteredNotes.length === 0 ? (
             <p className="doc-list-empty">{emptyText}</p>
           ) : (
-            filteredNotes.map((note) => (
+            filteredNotes.map((note) => {
+              const isSelected = selectionMode && visibleSelectedIds.includes(note.id);
+              return (
               <div
                 key={note.id}
-                className={note.id === activeId ? "note-item is-active" : "note-item"}
+                className={[
+                  note.id === activeId ? "note-item is-active" : "note-item",
+                  isSelected ? "is-selected" : ""
+                ].filter(Boolean).join(" ")}
                 role="button"
                 tabIndex={0}
-                draggable
+                draggable={!selectionMode}
                 onDragStart={(event) => noteDragStart(event, note.id)}
                 onClick={(event) => {
+                  if (selectionMode) {
+                    event.stopPropagation();
+                    toggleSelected(note.id);
+                    return;
+                  }
                   if (event.ctrlKey || event.metaKey) onOpenNoteNewTab(note.id);
                   else onOpenNote(note.id);
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    onOpenNote(note.id);
+                    if (selectionMode) toggleSelected(note.id);
+                    else onOpenNote(note.id);
                   }
                 }}
               >
-                <div className="note-item-header">
+                <div className={selectionMode ? "note-item-header has-check" : "note-item-header"}>
+                  {selectionMode ? (
+                    <button
+                      type="button"
+                      className={isSelected ? "note-check is-checked" : "note-check"}
+                      aria-pressed={isSelected}
+                      aria-label={isSelected ? "取消选择记录" : "选择记录"}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        toggleSelected(note.id);
+                      }}
+                    >
+                      {isSelected ? <CheckSquare size={15} /> : <Square size={15} />}
+                    </button>
+                  ) : null}
                   {note.coverAsset ? (
                     <span className="note-item-cover" aria-hidden="true">
                       <img src={`suiji-asset://${note.coverAsset}`} alt="" draggable={false} />
@@ -290,6 +369,7 @@ export function DocumentListPage(props: DocumentListPageProps) {
                       <HighlightedText text={note.title} keyword={searchKeyword} />
                     </span>
                   </span>
+                  {!selectionMode ? (
                   <div className="note-actions">
                     <button
                       type="button"
@@ -367,6 +447,7 @@ export function DocumentListPage(props: DocumentListPageProps) {
                       </button>
                     ) : null}
                   </div>
+                  ) : null}
                 </div>
                 {note.folder || note.tags.length > 0 ? (
                   <div className="note-meta">
@@ -388,7 +469,8 @@ export function DocumentListPage(props: DocumentListPageProps) {
                 </span>
                 <span className="note-time">{formatTime(note.updatedAt)}</span>
               </div>
-            ))
+              );
+            })
           )}
         </div>
       )}

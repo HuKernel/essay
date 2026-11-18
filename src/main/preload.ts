@@ -29,6 +29,7 @@ const api = {
   setNotePageBg: (id: string, pageBg: string | null) =>
     ipcRenderer.invoke("notes:set-page-bg", id, pageBg) as Promise<NoteRecord>,
   deleteNote: (id: string) => ipcRenderer.invoke("notes:delete", id) as Promise<void>,
+  deleteNotes: (ids: string[]) => ipcRenderer.invoke("notes:delete-batch", ids) as Promise<string[]>,
   restoreNote: (id: string) => ipcRenderer.invoke("notes:restore", id) as Promise<NoteRecord>,
   purgeNote: (id: string) => ipcRenderer.invoke("notes:purge", id) as Promise<void>,
   renameTag: (from: string, to: string) => ipcRenderer.invoke("notes:rename-tag", from, to) as Promise<number>,

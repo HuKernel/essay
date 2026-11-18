@@ -24,6 +24,7 @@ import { CodeBlockExtension } from "./editor/code-block";
 import { BlockRefBlock, PageLinkBlock, requestOpenNote } from "./editor/craft-blocks";
 import { common, createLowlight } from "lowlight";
 import { SafeAutolink } from "./safe-link";
+import { getBatchTrashTargets } from "./utils/note-selection";
 import { MathExtensions } from "./math-extension";
 import { removeNoteMetadata, type NoteMetadataKind } from "../shared/note-metadata";
 import { hasMarkdownFence, looksLikeMarkdown, markdownToDoc } from "../shared/markdown-doc";
@@ -188,6 +189,7 @@ export default function App() {
   const [linkDraft, setLinkDraft] = useState("");
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
+  const [batchBusy, setBatchBusy] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
     action?: () => void;
@@ -1562,6 +1564,48 @@ export default function App() {
     showToast(`已将「${note.title || "未命名记录"}」移到回收站`, () => void handleRestoreNote(id));
   }
 
+  async function refreshNotesPreservingActive() {
+    const loaded = await window.suiji.listNotes();
+    setNotes(loaded);
+    // 只刷新当前列表数据；当前记录被移入回收站时清空 active，不留下可编辑的幽灵记录
+    const current = loaded.find((note) => note.id === activeIdRef.current);
+    if (!current || current.trashedAt) setActiveId("");
+  }
+
+  async function handleBatchDelete(ids: string[]) {
+    const uniqueIds = [...new Set(ids)];
+    if (!uniqueIds.length || batchBusy) return;
+    const savedActive = await saveActive({ skipClean: true });
+    if (savedActive === null) return;
+    const targets = getBatchTrashTargets(uniqueIds, notesRef.current);
+    if (!targets.length) return;
+    setBatchBusy(true);
+    try {
+      const deletedIds = await window.suiji.deleteNotes(targets.map((note) => note.id));
+      const deletedTargets = targets.filter((note) => deletedIds.includes(note.id));
+      await refreshNotesPreservingActive();
+      // 批量删除也走回收站兜底；撤销时整体恢复并刷新当前列表
+      showToast(`已将 ${deletedTargets.length} 篇记录移到回收站`, () => {
+        void (async () => {
+          try {
+            for (const note of deletedTargets) await window.suiji.restoreNote(note.id);
+            await refreshNotesPreservingActive();
+          } catch (error) {
+            console.error("[notes] batch restore failed:", error);
+            await refreshNotesPreservingActive();
+            showToast("批量撤销失败，请到回收站恢复");
+          }
+        })();
+      }, "撤销全部");
+    } catch (error) {
+      console.error("[notes] batch delete failed:", error);
+      await refreshNotesPreservingActive();
+      showToast("批量移到回收站失败，请重试");
+    } finally {
+      setBatchBusy(false);
+    }
+  }
+
   function showToast(message: string, action?: () => void, actionLabel?: string, kind?: "save-error") {
     setToast({ message, action, actionLabel, kind });
     if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
@@ -2689,6 +2733,7 @@ export default function App() {
             ) : null}
             {centerView === "list" ? (
               <DocumentListPage
+                key={`${viewMode}:${query}:${selectedFolder}:${selectedTag}`}
                 viewMode={viewMode}
                 filteredNotes={filteredNotes}
                 activeId={activeId}
@@ -2711,6 +2756,8 @@ export default function App() {
                 onDeleteNote={(id) => void handleDeleteNote(id)}
                 onRestoreNote={(id) => void handleRestoreNote(id)}
                 onPurgeNote={(id) => void handlePurgeNote(id)}
+                onBatchDelete={(ids) => void handleBatchDelete(ids)}
+                batchBusy={batchBusy}
               />
             ) : null}
           <div className={centerView !== "reader" ? "document-stage is-hidden" : "document-stage"}>

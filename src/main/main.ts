@@ -1946,6 +1946,40 @@ async function deleteNote(id: string) {
   void pruneBackups();
 }
 
+async function deleteNotes(ids: string[]): Promise<string[]> {
+  const uniqueIds = Array.from(new Set(ids));
+  const originalNotes = await Promise.all(uniqueIds.map((id) => readNote(id)));
+  const now = new Date().toISOString();
+  for (const id of uniqueIds) await backupExistingNote(id, "deleted");
+
+  dbExec("BEGIN");
+  try {
+    for (const id of uniqueIds) {
+      updateNoteMetaFields(id, { trashedAt: now });
+      await finalizeNoteWrite(id);
+    }
+    dbExec("COMMIT");
+  } catch (error) {
+    try {
+      dbExec("ROLLBACK");
+    } catch (rollbackError) {
+      writeDebugLog(`batch delete rollback failed: ${String(rollbackError)}`);
+    }
+    // SQLite 会回滚，但影子 JSON 已逐条写出；恢复操作前快照，避免下次启动又被影子数据同步成已删除
+    for (const note of originalNotes) {
+      await writeNoteShadowFile(note).catch((shadowError) => {
+        writeDebugLog(`batch delete shadow rollback failed: ${String(shadowError)} file=${notePath(note.id)}`);
+      });
+    }
+    throw error;
+  }
+
+  notesDbDirty = true;
+  await persistNotesDatabase();
+  void pruneBackups();
+  return uniqueIds;
+}
+
 async function restoreNote(id: string): Promise<NoteRecord> {
   await readNote(id);
   await backupExistingNote(id, "restore-trash");
@@ -2465,6 +2499,7 @@ function registerIpc() {
     setNotePageBg(id, pageBg)
   );
   ipcMain.handle("notes:delete", (_event, id: string) => deleteNote(id));
+  ipcMain.handle("notes:delete-batch", (_event, ids: string[]) => deleteNotes(ids));
   ipcMain.handle("notes:restore", (_event, id: string) => restoreNote(id));
   ipcMain.handle("notes:purge", (_event, id: string) => purgeNote(id));
   ipcMain.handle("notes:rename-tag", async (_event, rawFrom: unknown, rawTo: unknown) => {
