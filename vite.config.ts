@@ -18,7 +18,8 @@ export default defineConfig({
           if (id.includes("@tiptap") || id.includes("prosemirror")) return "editor";
           if (id.includes("react")) return "react";
           if (id.includes("lucide-react")) return "icons";
-          return "vendor";
+          // Mermaid 是动态导入；交由 Rollup 保留动态 chunk，避免被 vendor 合并进首屏。
+          return undefined;
         }
       }
     }

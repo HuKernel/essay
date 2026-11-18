@@ -21,8 +21,8 @@ import Highlight from "@tiptap/extension-highlight";
 import TextAlign from "@tiptap/extension-text-align";
 import Typography from "@tiptap/extension-typography";
 import { CodeBlockExtension } from "./editor/code-block";
+import { lowlight } from "./editor/code-highlight";
 import { BlockRefBlock, PageLinkBlock, requestOpenNote } from "./editor/craft-blocks";
-import { common, createLowlight } from "lowlight";
 import { SafeAutolink } from "./safe-link";
 import { getBatchTrashTargets } from "./utils/note-selection";
 import { MathExtensions } from "./math-extension";
@@ -93,7 +93,6 @@ import { ConfirmDialog, HistoryModal, LinkDialog, PrivacyLock, PromptDialog, Blo
 
 type ActiveEditor = NonNullable<ReturnType<typeof useEditor>>;
 
-const lowlight = createLowlight(common);
 
 /** 载入笔记内容：重建 EditorState 让撤销历史从载入内容重新开始，
  *  Ctrl+Z 不会把整篇内容撤没、也不会把上一篇笔记的编辑撤销进来 */
@@ -552,10 +551,11 @@ export default function App() {
       setTableToolbarVisible(editor.isActive("table") && !activeNote?.trashedAt);
       if (outlineTimerRef.current) window.clearTimeout(outlineTimerRef.current);
       outlineTimerRef.current = window.setTimeout(() => {
-        setEditorText(getContentPlainText(editor.getJSON()));
+        const content = editor.getJSON();
+        setEditorText(getContentPlainText(content));
         setOutlineItems(extractOutline(editor));
         outlineTimerRef.current = null;
-      }, 250);
+      }, 500);
       window.requestAnimationFrame(syncCurrentEditorBlock);
     }
   });
@@ -1168,14 +1168,15 @@ export default function App() {
       }
 
       const revisionAtStart = revisionRef.current;
+      const content = editor.getJSON();
       const snapshot: NoteRecord = {
         ...activeNote,
         title,
         tags: parseTagsInput(tagsDraft),
         folder: normalizeFolderInput(folderDraft),
-        content: editor.getJSON(),
+        content,
         html: editor.getHTML(),
-        plainText: getContentPlainText(editor.getJSON())
+        plainText: getContentPlainText(content)
       };
 
       return commitNote(snapshot, revisionAtStart);
@@ -1247,7 +1248,7 @@ export default function App() {
   const editorDisabled = Boolean(activeNote?.trashedAt);
 
   const filteredNotes = useMemo(() => {
-    const keyword = searchSyntax.text;
+    const keyword = searchSyntax.text.toLowerCase();
     const timeField = VIEW_TIME_FIELD[viewMode];
     const source = timeField
       ? [...notes].sort((a, b) => Date.parse(b[timeField] ?? "") - Date.parse(a[timeField] ?? ""))
@@ -1274,13 +1275,14 @@ export default function App() {
       }
       const matchesTag = !selectedTag || note.tags.includes(selectedTag);
       const matchesFolder = !selectedFolder || note.folder === selectedFolder;
-      const localMatchesKeyword =
+      const matchesKeyword =
+        !keyword ||
+        Boolean(ftsMatchedIdSet?.has(note.id)) ||
         note.title.toLowerCase().includes(keyword) ||
         note.excerpt.toLowerCase().includes(keyword) ||
         note.plainText.toLowerCase().includes(keyword) ||
         note.tags.some((tag) => tag.toLowerCase().includes(keyword)) ||
         note.folder.toLowerCase().includes(keyword);
-      const matchesKeyword = !keyword || localMatchesKeyword || Boolean(ftsMatchedIdSet?.has(note.id));
       return matchesTag && matchesFolder && matchesKeyword;
     });
     // 用户显式选择的排序优先于视图默认排序（置顶始终最前）
@@ -1308,7 +1310,7 @@ export default function App() {
     );
   }, [notes]);
 
-  const openTasks = useMemo(() => collectOpenTasks(notes), [notes]);
+  const openTasks = useMemo(() => (viewMode === "tasks" ? collectOpenTasks(notes) : []), [notes, viewMode]);
 
   function focusEditorSoon() {
     window.setTimeout(() => editor?.commands.focus("end"), 0);
@@ -1903,9 +1905,11 @@ export default function App() {
     markDirty();
   }
 
+  const paletteOpen = palette !== null;
   const noteItems = useMemo<CommandPaletteItem[]>(
     () =>
-      notes
+      paletteOpen
+        ? notes
         .filter((note) => !note.trashedAt)
         .map((note) => ({
           id: note.id,
@@ -1913,12 +1917,14 @@ export default function App() {
           label: note.title || "未命名记录",
           hint: note.excerpt.slice(0, 40),
           run: () => void handleSelectNote(note.id)
-        })),
+        }))
+        : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [notes]
+    [notes, paletteOpen]
   );
 
   const paletteItems = useMemo<CommandPaletteItem[]>(() => {
+    if (!paletteOpen) return [];
     const commands: CommandPaletteItem[] = [
       { id: "new", kind: "command", label: "新建记录", hint: "Ctrl+N", run: () => void handleCreate() },
       { id: "find", kind: "command", label: "文档内查找", hint: "Ctrl+F", run: () => openFindPanel(false) },
@@ -1960,10 +1966,10 @@ export default function App() {
       }));
     return [...commands, ...views, ...templateItems, ...noteItems];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notes, settings?.theme, focusMode, noteItems]);
+  }, [paletteOpen, notes, settings?.theme, focusMode, noteItems]);
 
   const backlinks = useMemo(() => {
-    if (!activeNote) return [];
+    if (!infoPanelOpen || !activeNote) return [];
     const target = `suiji-note://${activeNote.id}`;
     const titleKey = (activeNote.title || "").trim();
     const items: Array<{ id: string; title: string; kind: "linked" | "unlinked" }> = [];
@@ -1982,20 +1988,21 @@ export default function App() {
       else if (unlinked) items.push({ id: note.id, title: note.title || "未命名记录", kind: "unlinked" });
     }
     return items;
-  }, [notes, activeNote]);
+  }, [notes, activeNote, infoPanelOpen]);
 
   async function handleExport(format: ExportFormat) {
     await saveActive({ skipClean: true });
     if (!activeNote || !editor) return;
+    const doc = editor.getJSON();
     await window.suiji.exportNote({
       note: {
         ...activeNote,
         title,
         tags: parseTagsInput(tagsDraft),
         folder: normalizeFolderInput(folderDraft),
-        content: editor.getJSON(),
+        content: doc,
         html: editor.getHTML(),
-        plainText: getContentPlainText(editor.getJSON())
+        plainText: getContentPlainText(doc)
       },
       format,
       currentPrivacyPin: currentPrivacyPinDraft.trim() || undefined
@@ -2733,7 +2740,7 @@ export default function App() {
             ) : null}
             {centerView === "list" ? (
               <DocumentListPage
-                key={`${viewMode}:${query}:${selectedFolder}:${selectedTag}`}
+                selectionScope={`${viewMode}:${query}:${selectedFolder}:${selectedTag}`}
                 viewMode={viewMode}
                 filteredNotes={filteredNotes}
                 activeId={activeId}
@@ -2781,6 +2788,8 @@ export default function App() {
                         src={`suiji-asset://${activeNote.coverAsset}`}
                         alt="笔记封面"
                         draggable={false}
+                       loading="lazy"
+                       decoding="async"
                       />
                       {!editorDisabled ? (
                         <div className="doc-cover-actions" contentEditable={false}>

@@ -82,6 +82,7 @@ const ALLOWED_EXPORT_FORMATS = new Set(["html", "json", "txt", "md", "pdf"]);
 const ALLOWED_BATCH_EXPORT_FORMATS = new Set(["html", "json", "txt", "md"]);
 const ALLOWED_EXTERNAL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
 const DB_FLUSH_DELAY_MS = 900;
+const DB_FLUSH_MAX_DELAY_MS = 5 * 1000;
 const IDLE_LOCK_CHECK_INTERVAL_MS = 15_000;
 // 打包版也默认写调试日志到数据目录（可用 SUIJI_DEBUG_LOG="" 关闭），超过 1MB 轮转一份
 const DEBUG_LOG_PATH =
@@ -105,6 +106,7 @@ let sqliteRuntime: any = null;
 let notesDb: any = null;
 let notesDbDirty = false;
 let notesDbFlushTimer: NodeJS.Timeout | null = null;
+let notesDbFlushDeadline = 0;
 let notesDbPersistQueue: Promise<void> = Promise.resolve();
 let settingsCache: StoredSettings | null = null;
 let activePrivacyPin: string | null = null;
@@ -839,13 +841,22 @@ async function persistNotesDatabase(settingsOverride?: StoredSettings) {
     clearTimeout(notesDbFlushTimer);
     notesDbFlushTimer = null;
   }
+  notesDbFlushDeadline = 0;
   if (!notesDbDirty) return notesDbPersistQueue;
   const task = notesDbPersistQueue.then(async () => {
     if (!notesDbDirty || !sqliteRuntime || !notesDb) return;
     notesDbDirty = false;
-    const bytes = sqliteRuntime.capi.sqlite3_js_db_export(notesDb);
-    const settings = settingsOverride ?? (await readStoredSettings());
-    await writeStoredBytesFile(databasePath, bytes, settings);
+    try {
+      const bytes = sqliteRuntime.capi.sqlite3_js_db_export(notesDb);
+      const settings = settingsOverride ?? (await readStoredSettings());
+      await writeStoredBytesFile(databasePath, bytes, settings);
+    } catch (error) {
+      notesDbDirty = true;
+      writeDebugLog(`notes database persist failed: ${String(error)}`);
+      // 影子 JSON 已在 saveNote 内先落盘；数据库失败时保留脏标记并安排重试。
+      scheduleNotesDatabasePersist();
+      throw error;
+    }
   });
   notesDbPersistQueue = task.then(
     () => undefined,
@@ -856,11 +867,15 @@ async function persistNotesDatabase(settingsOverride?: StoredSettings) {
 
 function scheduleNotesDatabasePersist() {
   notesDbDirty = true;
+  const now = Date.now();
+  // 防抖合并连续编辑，但设置最迟落盘时间，避免长时间输入让数据库一直饥饿。
+  if (!notesDbFlushDeadline) notesDbFlushDeadline = now + DB_FLUSH_MAX_DELAY_MS;
+  const delay = Math.min(DB_FLUSH_DELAY_MS, Math.max(0, notesDbFlushDeadline - now));
   if (notesDbFlushTimer) clearTimeout(notesDbFlushTimer);
   notesDbFlushTimer = setTimeout(() => {
     notesDbFlushTimer = null;
     void persistNotesDatabase();
-  }, DB_FLUSH_DELAY_MS);
+  }, delay);
 }
 
 function ensureNotesSchema() {
@@ -1248,6 +1263,7 @@ async function updateStoredSettings(payload: SettingsUpdatePayload): Promise<App
 /** 清理空占位记录（新建后从未输入、或正文被删光后遗留的"未命名记录"），
  *  与渲染端 isBlankNote 同一判定；图片/公式笔记（plainText 为空但有内容）排除 */
 async function purgeBlankNotes() {
+  await ensureNotesDatabaseReady();
   // 只清理「较早遗留」的空占位记录：updatedAt 在 10 分钟内的新建笔记可能是用户刚建、
   // 还没来得及输入第一个字（60s 任务扫描会轮询 listNotes），此时删除会让后续保存
   // 抛 Note not found；离开笔记的即时清理由渲染层 activeId 切换路径负责
@@ -1275,7 +1291,6 @@ async function purgeBlankNotes() {
 
 async function listNotes(): Promise<NoteRecord[]> {
   await ensureNotesDatabaseReady();
-  await purgeBlankNotes();
   const metaMap = loadAllNoteMeta();
   const notes = dbRows<NoteDbRow>(
     `SELECT
@@ -1333,16 +1348,17 @@ function collectDueTasksForReminder(notes: NoteRecord[]): DueTaskReminder[] {
   return items;
 }
 
-/** 周期维护：回收站过期清理 + 备份滚动修剪（7 天窗口）。应用常驻托盘很少重启，
+/** 周期维护：空占位清理 + 回收站过期清理 + 备份滚动修剪（7 天窗口）。应用常驻托盘很少重启，
  *  仅在启动时清一次等于基本不生效，因此每 6 小时再跑一轮 */
 function startMaintenanceScheduler() {
-  function run() {
-    void purgeExpiredTrash().catch(() => undefined);
-    void pruneBackups().catch(() => undefined);
+  async function run() {
+    await purgeBlankNotes().catch(() => undefined);
+    await purgeExpiredTrash().catch(() => undefined);
+    await pruneBackups().catch(() => undefined);
   }
 
-  run();
-  setInterval(run, 6 * 60 * 60_000);
+  void run();
+  setInterval(() => void run(), 6 * 60 * 60_000);
 }
 
 /** 周期扫描到期任务并弹系统通知（点击跳转到任务块） */
@@ -1632,9 +1648,8 @@ async function saveNote(rawNote: NoteRecord): Promise<NoteRecord> {
   upsertNoteMeta(normalized);
   notesDbDirty = true;
   const latest = await finalizeNoteWrite(normalized.id);
-  await persistNotesDatabase();
+  scheduleNotesDatabasePersist();
   await writeBackNoteFile(normalized.id, normalized.content);
-  void pruneBackups();
   return latest;
 }
 
@@ -2415,6 +2430,7 @@ function showWindow() {
 
 function hideWindow() {
   saveWindowState();
+  void persistNotesDatabase();
   void lockContentForPrivacy();
   mainWindow?.hide();
 }

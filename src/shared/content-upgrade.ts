@@ -10,8 +10,38 @@ export function upgradeCollapsibleContent(content: JSONContent): JSONContent {
   return upgradeNode(content);
 }
 
+const INLINE_CELL_NODES = new Set(["text", "hardBreak", "mathInline"]);
+
+function normalizeTableCellContent(children: JSONContent[]) {
+  const blocks: JSONContent[] = [];
+  let inline: JSONContent[] = [];
+
+  const flushInline = () => {
+    if (inline.length) {
+      blocks.push({ type: "paragraph", content: inline });
+      inline = [];
+    }
+  };
+
+  for (const child of children) {
+    if (INLINE_CELL_NODES.has(child.type ?? "")) {
+      inline.push(child);
+    } else {
+      flushInline();
+      blocks.push(child);
+    }
+  }
+  flushInline();
+
+  return blocks.length ? blocks : [{ type: "paragraph" }];
+}
+
 function upgradeNode(node: JSONContent): JSONContent {
   const children = (node.content ?? []).map(upgradeNode);
+
+  if (node.type === "tableCell" || node.type === "tableHeader") {
+    return { ...node, content: normalizeTableCellContent(children) };
+  }
 
   if (node.type !== "collapsibleBlock" || children[0]?.type === "collapsibleTitle") {
     return children.length ? { ...node, content: children } : { ...node };

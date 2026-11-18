@@ -138,3 +138,13 @@ describe("已导入文件再次打开时的磁盘更新", () => {
     expect(updated?.createdAt).toBe(existing.createdAt);
   });
 });
+
+describe("Markdown 表格导入结构", () => {
+  it("单元格内容包裹 paragraph，保证可编辑删除", () => {
+    const doc = markdownToDoc("| 甲 | 乙 |\n| --- | --- |\n| 丙 | 丁 |\n");
+    const rows = doc.content?.[0]?.content ?? [];
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.content?.[0]).toMatchObject({ type: "tableHeader", content: [{ type: "paragraph" }] });
+    expect(rows[1]?.content?.[1]).toMatchObject({ type: "tableCell", content: [{ type: "paragraph" }] });
+  });
+});

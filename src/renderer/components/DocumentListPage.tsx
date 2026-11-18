@@ -40,6 +40,7 @@ type DocumentListPageProps = {
   onRestoreNote: (id: string) => void;
   onPurgeNote: (id: string) => void;
   onBatchDelete: (ids: string[]) => void;
+  selectionScope: string;
   batchBusy: boolean;
 };
 
@@ -84,6 +85,7 @@ export function DocumentListPage(props: DocumentListPageProps) {
     onRestoreNote,
     onPurgeNote,
     onBatchDelete,
+    selectionScope,
     batchBusy
   } = props;
 
@@ -94,6 +96,12 @@ export function DocumentListPage(props: DocumentListPageProps) {
   const [calendarDay, setCalendarDay] = useState<string | null>(() => dayKeyOf(new Date()));
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [lastSelectionScope, setLastSelectionScope] = useState(selectionScope);
+  if (lastSelectionScope !== selectionScope) {
+    setLastSelectionScope(selectionScope);
+    setSelectionMode(false);
+    setSelectedIds([]);
+  }
   const visibleSelectedIds = retainVisibleNoteIds(selectedIds, filteredNotes);
 
   const notesByDay = new Map<string, number>();
@@ -360,7 +368,7 @@ export function DocumentListPage(props: DocumentListPageProps) {
                   ) : null}
                   {note.coverAsset ? (
                     <span className="note-item-cover" aria-hidden="true">
-                      <img src={`suiji-asset://${note.coverAsset}`} alt="" draggable={false} />
+                      <img src={`suiji-asset://${note.coverAsset}`} alt="" draggable={false} loading="lazy" decoding="async" />
                     </span>
                   ) : null}
                   <span className="note-title">

@@ -21,7 +21,7 @@ function DocRow({ note, active, onOpen }: { note: NoteRecord; active: boolean; o
     <button type="button" className={active ? "home-doc-row is-active" : "home-doc-row"} onClick={onOpen}>
       {note.coverAsset ? (
         <span className="home-doc-row-cover" aria-hidden="true">
-          <img src={`suiji-asset://${note.coverAsset}`} alt="" draggable={false} />
+          <img src={`suiji-asset://${note.coverAsset}`} alt="" draggable={false} loading="lazy" decoding="async" />
         </span>
       ) : null}
       <strong>{note.title || "未命名记录"}</strong>

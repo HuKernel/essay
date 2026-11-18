@@ -207,7 +207,8 @@ function parseTable(tokens: MarkdownToken[], startIndex: number) {
       currentRow.content = currentRow.content ?? [];
       currentRow.content.push({
         type: currentCellType,
-        content: filterInlineCellContent(parseInlineTokens(token.children ?? []))
+        // 表格单元格的 schema 要求块内容；inline token 必须包一层 paragraph，否则历史导入表格无法正常编辑。
+        content: [{ type: "paragraph", content: filterInlineCellContent(parseInlineTokens(token.children ?? [])) }]
       });
       index += 1;
       continue;

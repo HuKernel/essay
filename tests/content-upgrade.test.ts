@@ -116,3 +116,48 @@ describe("toMarkdown 折叠块", () => {
     expect(md).toBe("- 空折叠块\n");
   });
 });
+
+describe("旧表格单元格结构升级", () => {
+  it("把直接内联文字包进段落，保留单元格属性与文字 marks", () => {
+    const upgraded = upgradeCollapsibleContent({
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tableRow",
+              content: [
+                {
+                  type: "tableCell",
+                  attrs: { colspan: 2, rowspan: 1 },
+                  content: [{ type: "text", text: "旧内容", marks: [{ type: "bold" }] }]
+                },
+                { type: "tableHeader" }
+              ]
+            }
+          ]
+        }
+      ]
+    });
+
+    const cell = upgraded.content?.[0]?.content?.[0]?.content?.[0];
+    expect(cell).toMatchObject({
+      type: "tableCell",
+      attrs: { colspan: 2, rowspan: 1 },
+      content: [{ type: "paragraph", content: [{ type: "text", text: "旧内容", marks: [{ type: "bold" }] }] }]
+    });
+    expect(upgraded.content?.[0]?.content?.[0]?.content?.[1]).toEqual({
+      type: "tableHeader",
+      content: [{ type: "paragraph" }]
+    });
+  });
+
+  it("升级幂等，不重复包裹合法单元格", () => {
+    const once = upgradeCollapsibleContent({
+      type: "tableCell",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "x" }] }]
+    });
+    expect(upgradeCollapsibleContent(once)).toEqual(once);
+  });
+});

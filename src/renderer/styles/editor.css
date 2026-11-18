@@ -903,6 +903,11 @@
   pointer-events: none;
 }
 
+.editor-surface th,
+.editor-surface td {
+  position: relative;
+}
+
 .editor-surface .selectedCell::after {
   position: absolute;
   inset: 0;

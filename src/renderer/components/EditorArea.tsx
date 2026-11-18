@@ -124,6 +124,7 @@ export function EditorArea(props: EditorAreaProps) {
       return;
     }
     let lastKey = "";
+    let timer: number | null = null;
     const update = () => {
       const items: Array<{ noteId: string; title: string }> = [];
       editor.state.doc.descendants((node) => {
@@ -138,10 +139,21 @@ export function EditorArea(props: EditorAreaProps) {
         setSubPages(items);
       }
     };
+    const scheduleUpdate = () => {
+      if (timer !== null) return;
+      timer = window.setTimeout(() => {
+        timer = null;
+        if (!editor.isDestroyed) update();
+      }, 250);
+    };
     update();
-    editor.on("transaction", update);
+    const onTransaction = ({ transaction }: { transaction: { docChanged: boolean } }) => {
+      if (transaction.docChanged) scheduleUpdate();
+    };
+    editor.on("transaction", onTransaction);
     return () => {
-      editor.off("transaction", update);
+      if (timer !== null) window.clearTimeout(timer);
+      editor.off("transaction", onTransaction);
     };
   }, [editor]);
 
