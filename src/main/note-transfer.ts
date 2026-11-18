@@ -1,5 +1,6 @@
 import { buildHtmlExport } from "./html-export.js";
 import { toMarkdown } from "../shared/markdown.js";
+import { contentWithoutDuplicateTitleHeading, plainTextWithoutDuplicateTitleLine } from "./export-content.js";
 import type { BackupEntry, ExportPayload, NoteRecord, NotesBackup } from "../shared/types.js";
 
 export function safeExportName(name: string, ext: string) {
@@ -74,12 +75,12 @@ export function parseBackupEntryName(
 
 export function buildMarkdownExport(note: NoteRecord) {
   const title = (note.title || "未命名记录").trim() || "未命名记录";
-  const body = toMarkdown(note.content).trim();
+  const body = toMarkdown(contentWithoutDuplicateTitleHeading(note)).trim();
   return body ? `# ${title}\n\n${body}\n` : `# ${title}\n`;
 }
 
 export function buildTextExport(note: NoteRecord) {
   const title = (note.title || "未命名记录").trim() || "未命名记录";
-  const body = note.plainText.trim();
+  const body = plainTextWithoutDuplicateTitleLine(note);
   return body ? `${title}\n\n${body}\n` : `${title}\n`;
 }

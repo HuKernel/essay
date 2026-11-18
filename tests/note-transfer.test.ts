@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseBackupNotes, safeExportName } from "../src/main/note-transfer";
+import { buildMarkdownExport, buildTextExport, parseBackupNotes, safeExportName } from "../src/main/note-transfer";
+import { buildHtmlExport } from "../src/main/html-export";
 import { markdownToDoc } from "../src/shared/markdown-doc";
 import { isStandaloneLatex } from "../src/shared/math-patterns";
 
@@ -89,5 +90,77 @@ describe("note transfer helpers", () => {
   it("可以识别未包裹分隔符的 LaTeX 公式", () => {
     expect(isStandaloneLatex("J(\\theta) = -\\frac{1}{m} \\sum_{i=1}^{m} y^{(i)}")).toBe(true);
     expect(isStandaloneLatex("这是一段普通文本")).toBe(false);
+  });
+});
+
+describe("export title and page background", () => {
+  const base = {
+    id: "00000000-0000-0000-0000-000000000001",
+    title: "项目方案",
+    excerpt: "",
+    tags: [],
+    folder: "",
+    favoriteAt: null,
+    archivedAt: null,
+    trashedAt: null,
+    pinnedAt: null,
+    parentId: null,
+    bodyFont: null,
+    coverAsset: null,
+    pageBg: null,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    html: "",
+    plainText: "项目方案\n\n正文"
+  };
+  const duplicateHeading = {
+    type: "heading",
+    attrs: { level: 1 },
+    content: [{ type: "text", text: "项目方案" }]
+  } as const;
+  const differentHeading = {
+    type: "heading",
+    attrs: { level: 1 },
+    content: [{ type: "text", text: "另一个标题" }]
+  } as const;
+  const paragraph = {
+    type: "paragraph",
+    content: [{ type: "text", text: "正文" }]
+  } as const;
+
+  function note(firstBlock: unknown, pageBg: string | null = null) {
+    return {
+      ...base,
+      pageBg,
+      content: { type: "doc", content: [firstBlock, paragraph] }
+    };
+  }
+
+  it("HTML export removes only a first H1 identical to the note title", () => {
+    const duplicated = buildHtmlExport(note(duplicateHeading));
+    expect(duplicated.match(/<h1>/g)).toHaveLength(1);
+
+    const distinct = buildHtmlExport(note(differentHeading));
+    expect(distinct.match(/<h1>/g)).toHaveLength(2);
+  });
+
+  it("Markdown and TXT exports remove the duplicated title line", () => {
+    const duplicated = note(duplicateHeading);
+    expect(buildMarkdownExport(duplicated)).toBe("# 项目方案\n\n正文\n");
+    expect(buildTextExport(duplicated)).toBe("项目方案\n\n正文\n");
+
+    const distinct = note(differentHeading);
+    expect(buildMarkdownExport(distinct)).toContain("# 项目方案\n\n# 另一个标题");
+  });
+
+  it("HTML export carries the note page background", () => {
+    const solid = buildHtmlExport(note(paragraph, "color:#fdf6e3"));
+    expect(solid).toContain("background: #fdf6e3");
+
+    const gradient = buildHtmlExport(note(paragraph, "grad:#fef3c7,#ecfeff"));
+    expect(gradient).toContain("linear-gradient(160deg, #fef3c7, #ecfeff)");
+
+    const dots = buildHtmlExport(note(paragraph, "pattern:dots"));
+    expect(dots).toContain("radial-gradient(circle at 1px 1px");
   });
 });

@@ -3,6 +3,7 @@ import path from "node:path";
 import katex from "katex";
 import { ASSET_URL_PREFIX } from "../shared/note-assets.js";
 import type { NoteRecord } from "../shared/types.js";
+import { contentWithoutDuplicateTitleHeading } from "./export-content.js";
 
 const ALLOWED_EXTERNAL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
 
@@ -219,12 +220,38 @@ export async function inlineAssetImages(
   return copy;
 }
 
+const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+
+function exportPageBackgroundCss(value: string | null | undefined) {
+  if (!value) return "";
+  if (value.startsWith("color:")) {
+    const color = value.slice(6);
+    return HEX_COLOR_PATTERN.test(color) ? color : "";
+  }
+  if (value.startsWith("grad:")) {
+    const colors = value.slice(5).split(",");
+    if (colors.length !== 2 || !colors.every((color) => HEX_COLOR_PATTERN.test(color))) return "";
+    return `linear-gradient(160deg, ${colors[0]}, ${colors[1]})`;
+  }
+  if (value === "pattern:dots") {
+    return "radial-gradient(circle at 1px 1px, rgba(40,37,31,.18) 1px, transparent 0) 0 0/22px 22px";
+  }
+  if (value === "pattern:grid") {
+    return "linear-gradient(rgba(40,37,31,.13) 1px, transparent 1px) 0 0/28px 28px, linear-gradient(90deg, rgba(40,37,31,.13) 1px, transparent 1px) 0 0/28px 28px";
+  }
+  if (value === "pattern:paper") {
+    return "repeating-linear-gradient(0deg, transparent 0 3px, rgba(40,37,31,.07) 3px 4px)";
+  }
+  return "";
+}
+
 export function buildHtmlExport(note: NoteRecord) {
   const title = escapeHtml(note.title || "未命名记录");
   const createdAt = formatExportDate(note.createdAt);
   const updatedAt = formatExportDate(note.updatedAt);
   const plainText = note.plainText.trim();
   const wordCount = plainText ? Array.from(plainText.replace(/\s+/g, "")).length : 0;
+  const pageBackground = exportPageBackgroundCss(note.pageBg);
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -499,6 +526,7 @@ export function buildHtmlExport(note: NoteRecord) {
       }
     }
 
+    ${pageBackground ? `\n    body,\n    .page {\n      background: ${pageBackground};\n    }\n` : ""}
     @media (max-width: 640px) {
       .page {
         width: 100%;
@@ -523,7 +551,7 @@ export function buildHtmlExport(note: NoteRecord) {
       </div>
     </header>
     <main>
-      ${renderBlockHtml(note.content) || "<p></p>"}
+      ${renderBlockHtml(contentWithoutDuplicateTitleHeading(note)) || "<p></p>"}
     </main>
     <footer>
       Copyright (c) 2026 Suiji. Exported from 随记.
