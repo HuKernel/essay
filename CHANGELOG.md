@@ -1,3 +1,7 @@
+## 0.9.112 - 2026-11-18
+
+- Fixed duplicated titles in exported HTML, PDF, Markdown, and TXT files when the first body heading matched the note title. HTML and PDF exports now also preserve the note page background, including solid colors, gradients, dots, grids, and paper patterns.
+
 ## 0.9.111 - 2026-11-18
 
 - Performance and reliability pass: automatic saves now coalesce SQLite persistence with bounded delay, backup pruning and blank-note cleanup move out of hot read paths, task reminders only parse task-bearing notes, editor/save serialization is reduced, and Mermaid plus selected code-highlighting dependencies load separately from the initial bundle. Markdown table cells are upgraded to a valid editable structure, legacy inline-only cells are repaired on load, list covers render across the card top, and cover changes now update the recent-edit timestamp. Image uploads also transfer binary buffers directly instead of base64 strings.
