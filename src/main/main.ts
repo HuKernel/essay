@@ -1301,6 +1301,21 @@ async function listNotes(): Promise<NoteRecord[]> {
   return sortNotes(notes);
 }
 
+/** 任务提醒只需解析包含 taskItem 的少数笔记；避免 60s 调度器全量反序列化正文。 */
+async function listTaskCandidateNotes(): Promise<NoteRecord[]> {
+  await ensureNotesDatabaseReady();
+  const metaMap = loadAllNoteMeta();
+  return dbRows<NoteDbRow>(
+    `SELECT
+      id, title, excerpt, tags_json, folder, favorite_at, archived_at, trashed_at,
+      pinned_at, content_json, html, plain_text, created_at, updated_at
+    FROM notes
+    WHERE trashed_at IS NULL
+      AND content_json LIKE ?`,
+    ['%"taskItem"%']
+  ).map((row) => applyNoteMeta(noteFromDbRow(row), metaMap.get(row.id)));
+}
+
 /** 已提醒过的任务键（noteId + 文本 + 时间），本次会话内去重 */
 const notifiedTaskKeys = new Set<string>();
 
@@ -1366,7 +1381,7 @@ function startTaskReminderScheduler() {
   async function run() {
     try {
       await ensureNotesDatabaseReady();
-      const notes = await listNotes();
+      const notes = await listTaskCandidateNotes();
       const due = collectDueTasksForReminder(notes);
       if (due.length === 0) return;
       for (const task of due.slice(0, 5)) {
