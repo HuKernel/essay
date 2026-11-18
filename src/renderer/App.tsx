@@ -1479,14 +1479,8 @@ export default function App() {
 
   async function saveImageFileToAsset(file: File) {
     const ext = (file.type.split("/")[1] || "png").replace("jpeg", "jpg");
-    const buffer = await file.arrayBuffer();
-    let binary = "";
-    const bytes = new Uint8Array(buffer);
-    const chunk = 0x8000;
-    for (let i = 0; i < bytes.length; i += chunk) {
-      binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
-    }
-    return window.suiji.saveImageAsset({ base64: window.btoa(binary), ext });
+    const data = await file.arrayBuffer();
+    return window.suiji.saveImageAsset({ data, ext });
   }
 
   function runTableCommand(command: () => boolean) {

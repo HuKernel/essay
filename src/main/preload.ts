@@ -44,7 +44,7 @@ const api = {
     ipcRenderer.invoke("notes:import-encrypted-export", options) as Promise<EncryptedExportImportResult | null>,
   importMarkdownNotes: () => ipcRenderer.invoke("notes:import-markdown") as Promise<NoteRecord[]>,
   consumeOpenFiles: () => ipcRenderer.invoke("app:consume-open-files") as Promise<string[]>,
-  saveImageAsset: (payload: { base64: string; ext: string }) =>
+  saveImageAsset: (payload: { data: ArrayBuffer; ext: string }) =>
     ipcRenderer.invoke("notes:save-asset", payload) as Promise<string>,
   batchExportNotes: (payload: BatchExportRequest) =>
     ipcRenderer.invoke("notes:batch-export", payload) as Promise<string | { directory: string; count: number } | null>,

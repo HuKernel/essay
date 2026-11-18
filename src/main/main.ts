@@ -2720,8 +2720,7 @@ function registerIpc() {
     showAboutDialog();
   });
   ipcMain.handle("notes:save-asset", async (_event, payload: unknown) => {
-    const body = payload as { base64?: unknown; ext?: unknown };
-    const base64 = typeof body.base64 === "string" ? body.base64 : "";
+    const body = payload as { data?: unknown; ext?: unknown };
     const ext =
       typeof body.ext === "string"
         ? body.ext
@@ -2729,8 +2728,14 @@ function registerIpc() {
             .replace(/[^a-z0-9]/g, "")
             .slice(0, 10)
         : "";
-    if (!base64 || !ext) throw new Error("Invalid asset payload");
-    const buffer = Buffer.from(base64, "base64");
+    const data = body.data;
+    const buffer =
+      data instanceof ArrayBuffer
+        ? Buffer.from(data)
+        : ArrayBuffer.isView(data)
+          ? Buffer.from(data.buffer, data.byteOffset, data.byteLength)
+          : null;
+    if (!buffer?.byteLength || !ext) throw new Error("Invalid asset payload");
     if (buffer.byteLength > MAX_ASSET_BYTES) throw new Error("图片超过 20MB 上限");
     await ensureStorage();
     await fs.mkdir(attachmentsDir, { recursive: true });
