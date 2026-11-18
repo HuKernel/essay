@@ -1,3 +1,7 @@
+## 0.9.111 - 2026-11-18
+
+- Performance and reliability pass: automatic saves now coalesce SQLite persistence with bounded delay, backup pruning and blank-note cleanup move out of hot read paths, task reminders only parse task-bearing notes, editor/save serialization is reduced, and Mermaid plus selected code-highlighting dependencies load separately from the initial bundle. Markdown table cells are upgraded to a valid editable structure, legacy inline-only cells are repaired on load, list covers render across the card top, and cover changes now update the recent-edit timestamp. Image uploads also transfer binary buffers directly instead of base64 strings.
+
 ## 0.9.110 - 2026-11-18
 
 - Added multi-select cleanup to All, Recent, Favorites, and Archive. Selections are limited to the current visible filter results, and the batch action moves notes to Trash without permanent deletion or touching external source files. A single Undo restores the whole batch, while list metadata such as favorites, archive state, tags, and folders is preserved.
