@@ -1744,6 +1744,7 @@ async function setNoteBodyFont(id: string, bodyFont: string | null): Promise<Not
 
 async function setNoteCover(id: string, coverAsset: string | null): Promise<NoteRecord> {
   const note = await readNote(id);
+  const now = new Date().toISOString();
   dbExec(`INSERT INTO note_meta (id, parent_id, body_font, cover_asset, page_bg) VALUES (?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET cover_asset = excluded.cover_asset`, [
     note.id,
@@ -1752,6 +1753,8 @@ async function setNoteCover(id: string, coverAsset: string | null): Promise<Note
     normalizeCoverAsset(coverAsset),
     note.pageBg ?? null
   ]);
+  // 封面属于用户可见的记录修改，需驱动“最近编辑”的时间和排序。
+  dbExec("UPDATE notes SET updated_at = ? WHERE id = ?", [now, note.id]);
   notesDbDirty = true;
   const latest = await finalizeNoteWrite(id);
   await persistNotesDatabase();

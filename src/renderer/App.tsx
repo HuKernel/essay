@@ -1692,7 +1692,7 @@ export default function App() {
   async function handleSetCover(id: string, coverAsset: string | null) {
     await saveActive({ skipClean: true });
     const updated = await window.suiji.setNoteCover(id, coverAsset);
-    setNotes((current) => current.map((note) => (note.id === updated.id ? updated : note)));
+    setNotes((current) => sortNotes(current.map((note) => (note.id === updated.id ? updated : note))));
   }
 
   async function handleSetPageBg(id: string, pageBg: string | null) {

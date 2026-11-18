@@ -351,6 +351,11 @@ export function DocumentListPage(props: DocumentListPageProps) {
                   }
                 }}
               >
+                {note.coverAsset ? (
+                  <span className="note-item-cover" aria-hidden="true">
+                    <img src={`suiji-asset://${note.coverAsset}`} alt="" draggable={false} loading="lazy" decoding="async" />
+                  </span>
+                ) : null}
                 <div className={selectionMode ? "note-item-header has-check" : "note-item-header"}>
                   {selectionMode ? (
                     <button
@@ -365,11 +370,6 @@ export function DocumentListPage(props: DocumentListPageProps) {
                     >
                       {isSelected ? <CheckSquare size={15} /> : <Square size={15} />}
                     </button>
-                  ) : null}
-                  {note.coverAsset ? (
-                    <span className="note-item-cover" aria-hidden="true">
-                      <img src={`suiji-asset://${note.coverAsset}`} alt="" draggable={false} loading="lazy" decoding="async" />
-                    </span>
                   ) : null}
                   <span className="note-title">
                     {note.pinnedAt ? <Pin size={13} className="note-pin-mark" /> : null}
