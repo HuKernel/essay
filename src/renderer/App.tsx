@@ -2470,8 +2470,8 @@ export default function App() {
     },
     {
       id: "table",
-      label: "表格",
-      hint: "自定义行列数",
+      label: "自定义表格",
+      hint: "设置行数和列数",
       run: () => {
         setFormatPopoverOpen(true);
         setTableBuilderOpen(true);

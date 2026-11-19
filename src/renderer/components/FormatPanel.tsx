@@ -399,7 +399,7 @@ export function FormatPanel(props: FormatPanelProps) {
             disabled={disabled}
           >
             <Table2 size={16} />
-            表格
+            自定义表格
           </button>
         </div>
         {tableBuilderOpen ? (
@@ -441,9 +441,9 @@ export function FormatPanel(props: FormatPanelProps) {
                 onToggleTableBuilder();
               }}
             >
-              插入 {tableRows} × {tableCols}
+              插入 {tableRows} 行 × {tableCols} 列
             </button>
-            {editor?.isActive("table") ? <span className="table-builder-hint">已位于表格内</span> : null}
+            {editor?.isActive("table") ? <span className="table-builder-hint">已位于表格内；请把光标移到表格外部再插入新表格</span> : null}
           </div>
         ) : null}
       </div>

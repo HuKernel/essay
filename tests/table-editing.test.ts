@@ -163,6 +163,31 @@ describe("table editing", () => {
     editor.destroy();
   });
 
+  it("inserts columns relative to the selected cell", () => {
+    const editor = createEditor();
+    const positions = cellPositions(editor);
+    editor.commands.setCellSelection({ anchorCell: positions[1], headCell: positions[1] });
+    expect(editor.chain().focus().addColumnBefore().run()).toBe(true);
+    let firstRowTexts: string[] = [];
+    editor.state.doc.descendants((node) => {
+      if (node.type.name === "tableRow" && firstRowTexts.length === 0) {
+        firstRowTexts = node.content.content.map((cellNode) => cellNode.textContent);
+      }
+    });
+    expect(firstRowTexts).toEqual(["abcd", "", "efgh"]);
+
+    editor.commands.setCellSelection({ anchorCell: positions[1], headCell: positions[1] });
+    expect(editor.chain().focus().addColumnAfter().run()).toBe(true);
+    firstRowTexts = [];
+    editor.state.doc.descendants((node) => {
+      if (node.type.name === "tableRow" && firstRowTexts.length === 0) {
+        firstRowTexts = node.content.content.map((cellNode) => cellNode.textContent);
+      }
+    });
+    expect(firstRowTexts).toEqual(["abcd", "", "", "efgh"]);
+    editor.destroy();
+  });
+
   it("persists and exports safe cell background colors", () => {
     const editor = createEditor();
     const positions = cellPositions(editor);

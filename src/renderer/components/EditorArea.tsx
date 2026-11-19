@@ -53,6 +53,7 @@ type CtxMenuState = {
   y: number;
   node: ProseMirrorNode;
   start: number;
+  cellPos: number;
 };
 
 /** 支持块类型互转的块（容器类如 callout/表格不做转换） */
@@ -193,6 +194,7 @@ export function EditorArea(props: EditorAreaProps) {
     // 边界归属也不可靠。右键命中 hr 时反向遍历文档，用 view.nodeDOM 精确匹配。
     let node: ProseMirrorNode | null = null;
     let start = -1;
+    let cellPos = -1;
     const hrEl = event.target instanceof Element ? event.target.closest("hr") : null;
     if (hrEl) {
       editor.state.doc.descendants((candidate, pos) => {
@@ -211,6 +213,12 @@ export function EditorArea(props: EditorAreaProps) {
       if ($pos.depth < 1) return;
       node = $pos.node(1);
       start = $pos.before(1);
+      for (let depth = $pos.depth; depth > 0; depth -= 1) {
+        if ($pos.node(depth).type.name === "tableCell" || $pos.node(depth).type.name === "tableHeader") {
+          cellPos = $pos.before(depth);
+          break;
+        }
+      }
     }
     const targetNode: ProseMirrorNode | null = node;
     const targetStart: number = start;
@@ -228,7 +236,8 @@ export function EditorArea(props: EditorAreaProps) {
       x: Math.min(event.clientX, window.innerWidth - 264),
       y: Math.min(event.clientY, window.innerHeight - 560),
       node: targetNode,
-      start: targetStart
+      start: targetStart,
+      cellPos
     });
   }
 
@@ -241,16 +250,17 @@ export function EditorArea(props: EditorAreaProps) {
     setCtxMenu(null);
   }
 
-  /** 右键表格的操作先把光标落回表格内，再执行 tiptap 表格命令 */
+  /** 右键表格操作基于被右键的单元格，避免所有行列操作都落到表格第一格 */
   function runTableCommand(run: (chain: ReturnType<NonNullable<typeof editor>["chain"]>) => void) {
     if (!editor || !ctxMenu) return;
-    const tableStart = ctxMenu.start;
+    const cellPos = ctxMenu.node.type.name === "table" ? ctxMenu.cellPos : -1;
     const chain = editor
       .chain()
       .focus()
       .command(({ tr, state }) => {
-        const resolved = state.doc.resolve(Math.min(tableStart + 3, state.doc.content.size));
-        tr.setSelection(TextSelection.near(resolved, 1));
+        if (cellPos >= 0 && cellPos <= state.doc.content.size) {
+          tr.setSelection(CellSelection.create(state.doc, cellPos));
+        }
         return true;
       });
     run(chain);
