@@ -652,3 +652,81 @@
   opacity: 0.5;
   cursor: default;
 }
+
+/* ---------- 自定义表格尺寸与单元格底色 ---------- */
+
+.table-builder {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  margin-top: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  padding: 9px;
+}
+
+.table-builder label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted-text);
+  font-size: 11px;
+}
+
+.table-builder input {
+  height: 28px;
+  min-width: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 7px;
+  background: var(--surface-raised);
+  color: var(--text-color);
+  font-size: 12px;
+  padding: 0 7px;
+}
+
+.table-builder-insert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  padding: 0 9px;
+}
+
+.table-builder-insert:disabled {
+  color: var(--subtle-text);
+  opacity: 0.55;
+}
+
+.table-builder-hint {
+  grid-column: 1 / -1;
+  color: var(--subtle-text);
+  font-size: 11px;
+}
+
+.format-panel-subgroup {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  border-top: 1px solid var(--line-soft);
+  padding-top: 8px;
+}
+
+.table-color-grid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.table-color-clear {
+  height: 24px;
+  min-width: 0;
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 0 6px;
+}

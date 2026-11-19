@@ -26,6 +26,7 @@ import {
   Type,
   Underline as UnderlineIcon
 } from "lucide-react";
+import { TABLE_CELL_COLORS } from "../../shared/table-cells";
 import { HR_VARIANTS, HR_VARIANT_LABELS, type HRVariant } from "../editor/hr-variant";
 import { keepEditorFocus } from "./common";
 import { EditorErrorBoundary } from "./EditorErrorBoundary";
@@ -229,6 +230,15 @@ export function EditorArea(props: EditorAreaProps) {
       node: targetNode,
       start: targetStart
     });
+  }
+
+  /** 单元格级操作保留当前选区，不把光标重置到表格开头 */
+  function runSelectedCellCommand(run: (chain: ReturnType<NonNullable<typeof editor>["chain"]>) => void) {
+    if (!editor) return;
+    const chain = editor.chain().focus();
+    run(chain);
+    chain.run();
+    setCtxMenu(null);
   }
 
   /** 右键表格的操作先把光标落回表格内，再执行 tiptap 表格命令 */
@@ -639,6 +649,9 @@ export function EditorArea(props: EditorAreaProps) {
                 <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.addColumnAfter())}>
                   <span>右侧插入列</span>
                 </button>
+                <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runSelectedCellCommand((c) => c.toggleHeaderColumn())}>
+                  <span>切换首列表头</span>
+                </button>
                 <button type="button" role="menuitem" onMouseDown={keepEditorFocus} onClick={() => runTableCommand((c) => c.deleteColumn())}>
                   <span>删除本列</span>
                 </button>
@@ -667,6 +680,29 @@ export function EditorArea(props: EditorAreaProps) {
                 >
                   <span>拆分当前单元格</span>
                 </button>
+                <span className="block-ctx-label">单元格底色</span>
+                <span className="block-ctx-color-row" role="group" aria-label="单元格背景色">
+                  {TABLE_CELL_COLORS.map((color) => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      className="block-ctx-swatch"
+                      title={color.label}
+                      aria-label={`单元格背景：${color.label}`}
+                      style={{ backgroundColor: color.value }}
+                      onMouseDown={keepEditorFocus}
+                      onClick={() => runSelectedCellCommand((chain) => chain.setCellAttribute("backgroundColor", color.value))}
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    className="block-ctx-color-clear"
+                    onMouseDown={keepEditorFocus}
+                    onClick={() => runSelectedCellCommand((chain) => chain.setCellAttribute("backgroundColor", null))}
+                  >
+                    清除
+                  </button>
+                </span>
                 <span className="block-ctx-label">单元格文字对齐</span>
                 <span className="block-ctx-move" role="group" aria-label="单元格对齐">
                   <button type="button" title="左对齐" aria-label="左对齐" onMouseDown={keepEditorFocus} onClick={() => runSetTableAlign("left")}>

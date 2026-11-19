@@ -11,10 +11,9 @@ import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import { ResizableImageExtension } from "./editor/image-resize";
 import { ResizableTableRow } from "./editor/table-row-resize";
+import { StyledTableCell, StyledTableHeader } from "./editor/table-cell-styles";
 import { EditorPlaceholder } from "./editor/placeholder";
 import Table from "@tiptap/extension-table";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
 import TaskList from "@tiptap/extension-task-list";
 import { TaskItemDue } from "./editor/task-item-due";
 import Highlight from "@tiptap/extension-highlight";
@@ -155,6 +154,7 @@ export default function App() {
   // 桌面(≥1280) 260px 全侧栏；平板(980-1279) 80px 图标栏；手机(<980) 隐藏浮层
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1280);
   const [formatPopoverOpen, setFormatPopoverOpen] = useState(false);
+  const [tableBuilderOpen, setTableBuilderOpen] = useState(false);
   const [infoPanelOpen, setInfoPanelOpen] = useState(() => window.innerWidth >= 1280);
   // 中心区三态：工作空间主页 / 文档列表 / 阅读器（侧栏只负责导航）
   const [centerView, setCenterView] = useState<"home" | "list" | "reader">("reader");
@@ -418,8 +418,8 @@ export default function App() {
         resizable: true
       }),
       ResizableTableRow,
-      TableHeader,
-      TableCell,
+      StyledTableHeader,
+      StyledTableCell,
       PageLinkBlock,
       BlockRefBlock,
       TextAlign.configure({
@@ -2471,8 +2471,11 @@ export default function App() {
     {
       id: "table",
       label: "表格",
-      hint: "3 x 3 表格",
-      run: () => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+      hint: "自定义行列数",
+      run: () => {
+        setFormatPopoverOpen(true);
+        setTableBuilderOpen(true);
+      }
     },
     {
       id: "image",
@@ -2907,6 +2910,8 @@ export default function App() {
             onInsertMathBlock={insertMathBlock}
             onEditLink={handleLink}
             tableToolbarVisible={tableToolbarVisible}
+            tableBuilderOpen={tableBuilderOpen}
+            onToggleTableBuilder={() => setTableBuilderOpen((current) => !current)}
             onRunTableCommand={runTableCommand}
           />
           </div>

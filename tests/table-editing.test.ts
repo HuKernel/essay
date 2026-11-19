@@ -4,8 +4,7 @@ import { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Table from "@tiptap/extension-table";
 import { ResizableTableRow } from "../src/renderer/editor/table-row-resize";
-import TableHeader from "@tiptap/extension-table-header";
-import TableCell from "@tiptap/extension-table-cell";
+import { StyledTableCell, StyledTableHeader } from "../src/renderer/editor/table-cell-styles";
 import { CellSelection } from "@tiptap/pm/tables";
 import { upgradeCollapsibleContent } from "../src/shared/content-upgrade";
 import { buildHtmlExport } from "../src/main/html-export";
@@ -42,7 +41,7 @@ function tableDoc(before = "前", after = "后") {
 
 function createEditor(content = tableDoc()) {
   return new Editor({
-    extensions: [StarterKit, Table.configure({ resizable: true }), ResizableTableRow, TableHeader, TableCell],
+    extensions: [StarterKit, Table.configure({ resizable: true }), ResizableTableRow, StyledTableHeader, StyledTableCell],
     content
   });
 }
@@ -75,6 +74,29 @@ function cellPositions(editor: Editor) {
   return positions;
 }
 
+function exportNote(content: ReturnType<Editor["getJSON"]>) {
+  return buildHtmlExport({
+    id: "00000000-0000-0000-0000-000000000001",
+    title: "表格",
+    excerpt: "",
+    tags: [],
+    folder: "",
+    favoriteAt: null,
+    archivedAt: null,
+    trashedAt: null,
+    pinnedAt: null,
+    parentId: null,
+    bodyFont: null,
+    coverAsset: null,
+    pageBg: null,
+    content,
+    html: "",
+    plainText: "",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z"
+  });
+}
+
 describe("table editing", () => {
   it("allows arbitrary text deletion inside one cell", () => {
     const editor = createEditor();
@@ -84,6 +106,76 @@ describe("table editing", () => {
     expect(editor.commands.deleteSelection()).toBe(true);
     expect(editor.state.doc.textContent).toContain("ad");
     expect(cellPositions(editor)).toHaveLength(4);
+    editor.destroy();
+  });
+
+  it("inserts custom row and column counts", () => {
+    const editor = createEditor({ type: "doc", content: [{ type: "paragraph" }] });
+    expect(editor.commands.insertTable({ rows: 5, cols: 2, withHeaderRow: true })).toBe(true);
+
+    let tableNode: typeof editor.state.doc.content.firstChild | null = null;
+    editor.view.state.doc.descendants((node) => {
+      if (node.type.name === "table") {
+        tableNode = node;
+        return false;
+      }
+      return true;
+    });
+    expect(tableNode).toBeTruthy();
+    expect(tableNode?.childCount).toBe(5);
+    expect(tableNode?.child(0).childCount).toBe(2);
+    expect(tableNode?.child(4).childCount).toBe(2);
+    expect(tableNode?.child(0).child(0).type.name).toBe("tableHeader");
+    expect(tableNode?.child(4).child(0).type.name).toBe("tableCell");
+    editor.destroy();
+  });
+
+  it("toggles the first column between header and normal cells", () => {
+    const editor = createEditor({
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            { type: "tableRow", content: [cell("a"), cell("b")] },
+            { type: "tableRow", content: [cell("c"), cell("d")] }
+          ]
+        }
+      ]
+    });
+
+    const columnTypes = () => {
+      const types: string[] = [];
+      editor.state.doc.descendants((node) => {
+        if (node.type.name === "tableRow") types.push(node.child(0).type.name);
+      });
+      return types;
+    };
+    let positions = cellPositions(editor);
+    editor.commands.setCellSelection({ anchorCell: positions[0], headCell: positions[0] });
+    expect(editor.chain().focus().toggleHeaderColumn().run()).toBe(true);
+    expect(columnTypes()).toEqual(["tableHeader", "tableHeader"]);
+
+    positions = cellPositions(editor);
+    editor.commands.setCellSelection({ anchorCell: positions[2], headCell: positions[2] });
+    expect(editor.commands.toggleHeaderColumn()).toBe(true);
+    expect(columnTypes()).toEqual(["tableCell", "tableCell"]);
+    editor.destroy();
+  });
+
+  it("persists and exports safe cell background colors", () => {
+    const editor = createEditor();
+    const positions = cellPositions(editor);
+    editor.commands.setTextSelection(positions[1] + 2);
+    editor.commands.setCellAttribute("backgroundColor", "#d0ebff");
+
+    const secondHeader = editor.getJSON().content?.[1]?.content?.[0]?.content?.[1];
+    expect(secondHeader?.attrs?.backgroundColor).toBe("#d0ebff");
+    expect(editor.getHTML()).toContain('data-cell-background="#d0ebff"');
+    expect(exportNote(editor.getJSON())).toContain("background-color: #d0ebff");
+
+    editor.commands.setCellAttribute("backgroundColor", "javascript:alert(1)");
+    expect(exportNote(editor.getJSON())).not.toContain("javascript:alert(1)");
     editor.destroy();
   });
 

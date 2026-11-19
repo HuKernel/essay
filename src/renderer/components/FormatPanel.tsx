@@ -27,6 +27,7 @@ import { useEffect, useState } from "react";
 import type { Editor } from "@tiptap/react";
 import { DOODLE_STYLES, type BlockFormat } from "../editor/block-format";
 import { FORMAT_COLORS, FONT_PRESETS, type FontPresetId } from "../constants";
+import { TABLE_CELL_COLORS } from "../../shared/table-cells";
 import { keepEditorFocus } from "./common";
 
 type FormatPanelProps = {
@@ -48,6 +49,8 @@ type FormatPanelProps = {
   onInsertMathBlock: () => void;
   onEditLink: () => void;
   tableToolbarVisible: boolean;
+  tableBuilderOpen: boolean;
+  onToggleTableBuilder: () => void;
   onRunTableCommand: (command: () => boolean) => void;
 };
 
@@ -92,6 +95,8 @@ export function FormatPanel(props: FormatPanelProps) {
     onInsertMathBlock,
     onEditLink,
     tableToolbarVisible,
+    tableBuilderOpen,
+    onToggleTableBuilder,
     onRunTableCommand
   } = props;
 
@@ -100,6 +105,13 @@ export function FormatPanel(props: FormatPanelProps) {
   const [styleNaming, setStyleNaming] = useState(false);
   const [styleNameDraft, setStyleNameDraft] = useState("");
   const [doodleMenuOpen, setDoodleMenuOpen] = useState(false);
+  const [tableRows, setTableRows] = useState("3");
+  const [tableCols, setTableCols] = useState("3");
+  const tableRowsValue = Number(tableRows);
+  const tableColsValue = Number(tableCols);
+  const validTableSize =
+    Number.isInteger(tableRowsValue) && tableRowsValue >= 1 && tableRowsValue <= 100 &&
+    Number.isInteger(tableColsValue) && tableColsValue >= 1 && tableColsValue <= 20;
 
   useEffect(() => {
     window.localStorage.setItem(CUSTOM_STYLES_KEY, JSON.stringify(customStyles));
@@ -381,15 +393,59 @@ export function FormatPanel(props: FormatPanelProps) {
           </button>
           <button
             type="button"
-            className={tableToolbarVisible ? "format-button is-active" : "format-button"}
+            className={tableBuilderOpen ? "format-button is-active" : "format-button"}
             onMouseDown={keepEditorFocus}
-            onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+            onClick={onToggleTableBuilder}
             disabled={disabled}
           >
             <Table2 size={16} />
             表格
           </button>
         </div>
+        {tableBuilderOpen ? (
+          <div className="table-builder">
+            <label>
+              行数
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={tableRows}
+                aria-label="表格行数"
+                onChange={(event) => setTableRows(event.target.value)}
+              />
+            </label>
+            <label>
+              列数
+              <input
+                type="number"
+                min={1}
+                max={20}
+                value={tableCols}
+                aria-label="表格列数"
+                onChange={(event) => setTableCols(event.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="table-builder-insert"
+              onMouseDown={keepEditorFocus}
+              disabled={disabled || !editor || editor.isActive("table") || !validTableSize}
+              onClick={() => {
+                if (!editor) return;
+                editor
+                  .chain()
+                  .focus()
+                  .insertTable({ rows: Number(tableRows), cols: Number(tableCols), withHeaderRow: true })
+                  .run();
+                onToggleTableBuilder();
+              }}
+            >
+              插入 {tableRows} × {tableCols}
+            </button>
+            {editor?.isActive("table") ? <span className="table-builder-hint">已位于表格内</span> : null}
+          </div>
+        ) : null}
       </div>
 
       <div className="format-panel-group">
@@ -683,12 +739,45 @@ export function FormatPanel(props: FormatPanelProps) {
             </button>
             <button
               type="button"
+              className="format-button"
+              onMouseDown={keepEditorFocus}
+              onClick={() => onRunTableCommand(() => editor.chain().focus().toggleHeaderColumn().run())}
+            >
+              首列表头
+            </button>
+            <button
+              type="button"
               className="format-button danger"
               onMouseDown={keepEditorFocus}
               onClick={() => onRunTableCommand(() => editor.chain().focus().deleteTable().run())}
             >
               删表
             </button>
+          </div>
+          <div className="format-panel-subgroup" aria-label="单元格背景色">
+            <span className="format-panel-label">单元格底色</span>
+            <div className="format-color-grid table-color-grid">
+              {TABLE_CELL_COLORS.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  className="format-color-button"
+                  title={color.label}
+                  aria-label={`单元格背景：${color.label}`}
+                  style={{ "--format-swatch": color.value } as React.CSSProperties}
+                  onMouseDown={keepEditorFocus}
+                  onClick={() => onRunTableCommand(() => editor.chain().focus().setCellAttribute("backgroundColor", color.value).run())}
+                />
+              ))}
+              <button
+                type="button"
+                className="format-button table-color-clear"
+                onMouseDown={keepEditorFocus}
+                onClick={() => onRunTableCommand(() => editor.chain().focus().setCellAttribute("backgroundColor", null).run())}
+              >
+                清除
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

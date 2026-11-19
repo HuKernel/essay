@@ -4,6 +4,7 @@ import katex from "katex";
 import { ASSET_URL_PREFIX } from "../shared/note-assets.js";
 import type { NoteRecord } from "../shared/types.js";
 import { contentWithoutDuplicateTitleHeading } from "./export-content.js";
+import { isTableCellBackgroundColor } from "../shared/table-cells.js";
 
 const ALLOWED_EXTERNAL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
 
@@ -97,11 +98,13 @@ function renderTaskItemHtml(node: JsonNode): string {
 
 function renderTableCellHtml(node: JsonNode) {
   const tag = node.type === "tableHeader" ? "th" : "td";
+  const backgroundColor = isTableCellBackgroundColor(node.attrs?.backgroundColor) ? node.attrs.backgroundColor : "";
+  const style = backgroundColor ? ` style="background-color: ${escapeHtmlAttribute(backgroundColor)}"` : "";
   const align =
     typeof node.attrs?.colspan === "number" && node.attrs.colspan > 1 ? ` colspan="${node.attrs.colspan}"` : "";
   const rowspan =
     typeof node.attrs?.rowspan === "number" && node.attrs.rowspan > 1 ? ` rowspan="${node.attrs.rowspan}"` : "";
-  return `<${tag}${align}${rowspan}>${(node.content ?? []).map(renderBlockHtml).join("") || "<p></p>"}</${tag}>`;
+  return `<${tag}${align}${rowspan}${style}>${(node.content ?? []).map(renderBlockHtml).join("") || "<p></p>"}</${tag}>`;
 }
 
 function renderTableHtml(node: JsonNode) {
