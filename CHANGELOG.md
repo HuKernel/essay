@@ -1,3 +1,7 @@
+## 0.9.114 - 2026-11-19
+
+- Fixed table context-menu row and column operations to act on the cell that was right-clicked instead of always resetting to the table's first cell. The custom table builder entry is now labeled more clearly and explains that a new table can only be inserted when the cursor is outside an existing table.
+
 ## 0.9.113 - 2026-11-19
 
 - Expanded table editing: rows can be resized by dragging their bottom border, new tables support custom row and column counts, the first column can be toggled as a header column, and cells support six safe background colors with a clear action. Cell backgrounds and first-column headers are preserved in JSON, HTML, and PDF exports; Markdown and TXT retain text and basic table structure without visual styling.
