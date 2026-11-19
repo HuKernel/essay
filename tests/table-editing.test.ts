@@ -3,11 +3,12 @@ import { describe, expect, it } from "vitest";
 import { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Table from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
+import { ResizableTableRow } from "../src/renderer/editor/table-row-resize";
 import TableHeader from "@tiptap/extension-table-header";
 import TableCell from "@tiptap/extension-table-cell";
 import { CellSelection } from "@tiptap/pm/tables";
 import { upgradeCollapsibleContent } from "../src/shared/content-upgrade";
+import { buildHtmlExport } from "../src/main/html-export";
 import { markdownToDoc } from "../src/shared/markdown-doc";
 import { toMarkdown } from "../src/shared/markdown";
 
@@ -41,7 +42,7 @@ function tableDoc(before = "前", after = "后") {
 
 function createEditor(content = tableDoc()) {
   return new Editor({
-    extensions: [StarterKit, Table.configure({ resizable: true }), TableRow, TableHeader, TableCell],
+    extensions: [StarterKit, Table.configure({ resizable: true }), ResizableTableRow, TableHeader, TableCell],
     content
   });
 }
@@ -135,6 +136,42 @@ describe("table editing", () => {
 
     expect(press(editor, "Delete")).toBe(true);
     expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["paragraph", "paragraph"]);
+    editor.destroy();
+  });
+
+  it("persists row height for editing and HTML export", () => {
+    const editor = createEditor();
+    let rowPos = -1;
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type.name === "tableRow" && rowPos < 0) rowPos = pos;
+    });
+    editor.view.dispatch(editor.state.tr.setNodeAttribute(rowPos, "rowHeight", 72));
+
+    const row = editor.getJSON().content?.[1]?.content?.[0];
+    expect(row?.attrs?.rowHeight).toBe(72);
+    expect(editor.getHTML()).toContain("height: 72px");
+    expect(
+      buildHtmlExport({
+        id: "00000000-0000-0000-0000-000000000001",
+        title: "表格",
+        excerpt: "",
+        tags: [],
+        folder: "",
+        favoriteAt: null,
+        archivedAt: null,
+        trashedAt: null,
+        pinnedAt: null,
+        parentId: null,
+        bodyFont: null,
+        coverAsset: null,
+        pageBg: null,
+        content: editor.getJSON(),
+        html: editor.getHTML(),
+        plainText: editor.getText(),
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z"
+      })
+    ).toContain("height: 72px");
     editor.destroy();
   });
 

@@ -10,11 +10,11 @@ import { BlockGroupExtension } from "./editor/block-group";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import { ResizableImageExtension } from "./editor/image-resize";
+import { ResizableTableRow } from "./editor/table-row-resize";
 import { EditorPlaceholder } from "./editor/placeholder";
 import Table from "@tiptap/extension-table";
 import TableCell from "@tiptap/extension-table-cell";
 import TableHeader from "@tiptap/extension-table-header";
-import TableRow from "@tiptap/extension-table-row";
 import TaskList from "@tiptap/extension-task-list";
 import { TaskItemDue } from "./editor/task-item-due";
 import Highlight from "@tiptap/extension-highlight";
@@ -417,7 +417,7 @@ export default function App() {
       Table.configure({
         resizable: true
       }),
-      TableRow,
+      ResizableTableRow,
       TableHeader,
       TableCell,
       PageLinkBlock,

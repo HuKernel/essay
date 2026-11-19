@@ -106,9 +106,7 @@ function renderTableCellHtml(node: JsonNode) {
 
 function renderTableHtml(node: JsonNode) {
   const rows = node.content ?? [];
-  return `<table><tbody>${rows
-    .map((row) => `<tr>${(row.content ?? []).map(renderTableCellHtml).join("")}</tr>`)
-    .join("")}</tbody></table>`;
+  return `<table><tbody>${rows.map(renderBlockHtml).join("")}</tbody></table>`;
 }
 
 function renderBlockHtml(node: JsonNode): string {
@@ -149,8 +147,11 @@ function renderBlockHtml(node: JsonNode): string {
     }
     case "table":
       return renderTableHtml(node);
-    case "tableRow":
-      return `<tr>${children.map(renderTableCellHtml).join("")}</tr>`;
+    case "tableRow": {
+      const rowHeight = Number(node.attrs?.rowHeight);
+      const style = Number.isFinite(rowHeight) && rowHeight > 0 ? ` style="height: ${rowHeight}px"` : "";
+      return `<tr${style}>${children.map(renderTableCellHtml).join("")}</tr>`;
+    }
     case "tableHeader":
     case "tableCell":
       return renderTableCellHtml(node);

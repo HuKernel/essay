@@ -634,6 +634,16 @@
   cursor: col-resize;
 }
 
+.editor-surface.can-resize-row,
+.editor-surface.is-resizing-row {
+  cursor: row-resize;
+}
+
+.editor-surface tr[style*="height"] > th,
+.editor-surface tr[style*="height"] > td {
+  height: 100%;
+}
+
 /* ---------- 代码 / 行内元素 ---------- */
 
 .editor-surface pre {
