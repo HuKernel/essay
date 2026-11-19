@@ -1,3 +1,7 @@
+## 0.9.113 - 2026-11-19
+
+- Expanded table editing: rows can be resized by dragging their bottom border, new tables support custom row and column counts, the first column can be toggled as a header column, and cells support six safe background colors with a clear action. Cell backgrounds and first-column headers are preserved in JSON, HTML, and PDF exports; Markdown and TXT retain text and basic table structure without visual styling.
+
 ## 0.9.112 - 2026-11-18
 
 - Fixed duplicated titles in exported HTML, PDF, Markdown, and TXT files when the first body heading matched the note title. HTML and PDF exports now also preserve the note page background, including solid colors, gradients, dots, grids, and paper patterns.
