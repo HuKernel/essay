@@ -5,6 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import { Table } from "@tiptap/extension-table";
 import { ResizableTableRow } from "../src/renderer/editor/table-row-resize";
 import { StyledTableCell, StyledTableHeader } from "../src/renderer/editor/table-cell-styles";
+import { CollapsibleBlockExtensions } from "../src/renderer/editor/collapsible-block";
 import { CellSelection } from "@tiptap/pm/tables";
 import { upgradeCollapsibleContent } from "../src/shared/content-upgrade";
 import { buildHtmlExport } from "../src/main/html-export";
@@ -41,7 +42,14 @@ function tableDoc(before = "前", after = "后") {
 
 function createEditor(content = tableDoc()) {
   return new Editor({
-    extensions: [StarterKit, Table.configure({ resizable: true }), ResizableTableRow, StyledTableHeader, StyledTableCell],
+    extensions: [
+      StarterKit.configure({ trailingNode: false }),
+      Table.configure({ resizable: true }),
+      ResizableTableRow,
+      StyledTableHeader,
+      StyledTableCell,
+      ...CollapsibleBlockExtensions
+    ],
     content
   });
 }
@@ -98,6 +106,37 @@ function exportNote(content: ReturnType<Editor["getJSON"]>) {
 }
 
 describe("table editing", () => {
+  it("keeps loading legacy cells whose only child is a collapsible block", () => {
+    const legacyCell = {
+      type: "tableCell",
+      content: [
+        {
+          type: "collapsibleBlock",
+          attrs: { open: true },
+          content: [{ type: "collapsibleTitle" }, { type: "collapsibleBody" }]
+        }
+      ]
+    };
+    const editor = createEditor({
+      type: "doc",
+      content: [{ type: "table", content: [{ type: "tableRow", content: [legacyCell] }] }]
+    });
+    expect(editor.state.doc.child(0).child(0).child(0).child(0).type.name).toBe("collapsibleBlock");
+    editor.destroy();
+  });
+
+  it("fills inserted cells with paragraphs instead of the highest-priority block", () => {
+    const editor = createEditor();
+    editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: true });
+    const cellContents = editor.state.doc.nodesBetween(0, editor.state.doc.content.size, (node) => {
+      if (node.type.name !== "tableCell" && node.type.name !== "tableHeader") return;
+      expect(node.childCount).toBe(1);
+      expect(node.child(0).type.name).toBe("paragraph");
+    });
+    expect(cellContents).toBeFalsy();
+    editor.destroy();
+  });
+
   it("allows arbitrary text deletion inside one cell", () => {
     const editor = createEditor();
     const target = textPositions(editor, "abcd");

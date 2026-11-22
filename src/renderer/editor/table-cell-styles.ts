@@ -21,6 +21,8 @@ function cellBackgroundColorAttributes() {
 }
 
 export const StyledTableCell = TableCell.extend({
+  // Tiptap 3 createAndFill 会选择 schema 中第一个 block；空单元格必须默认段落。
+  content: "paragraph | block+",
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -30,6 +32,7 @@ export const StyledTableCell = TableCell.extend({
 });
 
 export const StyledTableHeader = TableHeader.extend({
+  content: "paragraph | block+",
   addAttributes() {
     return {
       ...this.parent?.(),
