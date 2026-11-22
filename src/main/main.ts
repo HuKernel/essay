@@ -1353,6 +1353,7 @@ async function purgeBlankNotes() {
   if (rows.length === 0) return;
   for (const row of rows) {
     dbExec("DELETE FROM notes_fts WHERE id = ?", [row.id]);
+    dbExec("DELETE FROM note_meta WHERE id = ?", [row.id]);
     dbExec("DELETE FROM notes WHERE id = ?", [row.id]);
     await fs.rm(notePath(row.id), { force: true }).catch(() => undefined);
   }
@@ -2144,6 +2145,7 @@ async function purgeNote(id: string) {
   const note = await readNote(id).catch(() => null);
   await backupExistingNote(id, "purged");
   dbExec("DELETE FROM notes_fts WHERE id = ?", [id]);
+  dbExec("DELETE FROM note_meta WHERE id = ?", [id]);
   dbExec("DELETE FROM notes WHERE id = ?", [id]);
   await fs.rm(notePath(id), { force: true }).catch(() => undefined);
   notesDbDirty = true;
