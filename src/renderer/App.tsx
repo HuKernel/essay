@@ -27,7 +27,7 @@ import { getBatchTrashTargets } from "./utils/note-selection";
 import { MathExtensions } from "./math-extension";
 import { removeNoteMetadata, type NoteMetadataKind } from "../shared/note-metadata";
 import { hasMarkdownFence, looksLikeMarkdown, markdownToDoc } from "../shared/markdown-doc";
-import type { AppSettings, BackupEntry, BatchExportFormat, NoteRecord } from "../shared/types";
+import type { AppSettings, BackupEntry, BatchExportFormat, NoteRecord, NoteSummary } from "../shared/types";
 import {
   DEFAULT_APP_SETTINGS,
   FONT_PRESETS,
@@ -95,6 +95,15 @@ type ActiveEditor = NonNullable<ReturnType<typeof useEditor>>;
 
 /** 载入笔记内容：重建 EditorState 让撤销历史从载入内容重新开始，
  *  Ctrl+Z 不会把整篇内容撤没、也不会把上一篇笔记的编辑撤销进来 */
+function noteRecordFromSummary(summary: NoteSummary): NoteRecord {
+  return {
+    ...summary,
+    content: { type: "doc", content: [{ type: "paragraph" }] },
+    html: "",
+    plainText: ""
+  };
+}
+
 function loadEditorDoc(editor: Editor, content: JSONContent) {
   const doc = editor.state.schema.nodeFromJSON(content);
   editor.view.updateState(
@@ -135,6 +144,7 @@ const RECENT_VIEW_WINDOW_MS = 7 * 24 * 60 * 60_000;
 
 export default function App() {
   const [notes, setNotes] = useState<NoteRecord[]>([]);
+  const [loadedNoteIds, setLoadedNoteIds] = useState<Set<string>>(() => new Set());
   const [activeId, setActiveId] = useState<string>("");
   const [title, setTitle] = useState("");
   const [titleEditing, setTitleEditing] = useState(false);
@@ -196,6 +206,8 @@ export default function App() {
     kind?: "save-error";
   } | null>(null);
   const [blockRefPicker, setBlockRefPicker] = useState<{ pos: number } | null>(null);
+  const [backlinks, setBacklinks] = useState<Array<{ id: string; title: string; kind: "linked" | "unlinked" }>>([]);
+  const [openTasks, setOpenTasks] = useState<OpenTask[]>([]);
   const [imageUrlDialog, setImageUrlDialog] = useState<{ draft: string } | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [listSort, setListSort] = useState<"default" | "updated" | "created" | "title">(
@@ -715,13 +727,16 @@ export default function App() {
       return;
     }
 
-    const loadedNotes = await window.suiji.listNotes();
-    let nextNotes = loadedNotes;
+    const summaries = await window.suiji.listNoteSummaries();
+    let nextNotes = summaries.map(noteRecordFromSummary);
+    let nextLoadedIds = new Set<string>();
     if (nextNotes.length === 0) {
       const created = await window.suiji.createNote();
       nextNotes = [created];
+      nextLoadedIds = new Set([created.id]);
     }
     setNotes(nextNotes);
+    setLoadedNoteIds(nextLoadedIds);
     setActiveId((current) => current || nextNotes[0]?.id || "");
     setPrivacyLocked(false);
   }, []);
@@ -756,6 +771,30 @@ export default function App() {
   useEffect(() => {
     notesRef.current = notes;
   }, [notes]);
+
+  useEffect(() => {
+    if (!activeId || loadedNoteIds.has(activeId)) return;
+    let canceled = false;
+    void window.suiji.readNote(activeId).then(
+      (note) => {
+        if (canceled) return;
+        setNotes((current) => current.some((item) => item.id === note.id) ? current.map((item) => (item.id === note.id ? note : item)) : current);
+        setLoadedNoteIds((current) => new Set(current).add(note.id));
+      },
+      () => {
+        if (canceled) return;
+        setNotes((current) => current.filter((item) => item.id !== activeId));
+        setLoadedNoteIds((current) => {
+          const next = new Set(current);
+          next.delete(activeId);
+          return next;
+        });
+      }
+    );
+    return () => {
+      canceled = true;
+    };
+  }, [activeId, loadedNoteIds]);
 
   // 离开一条笔记后（切换/新建/恢复会话等任何改变当前笔记的入口）：
   // 若它自始至终没有任何内容（新建未输入，或输入后又被删光），直接物理清除
@@ -793,7 +832,7 @@ export default function App() {
   }, [activeNote?.id, editor]);
 
   useEffect(() => {
-    if (!editor || !activeNote) return;
+    if (!editor || !activeNote || !loadedNoteIds.has(activeNote.id)) return;
     setTitle(activeNote.title);
     setTitleEditing(false);
     setTagsDraft(activeNote.tags.join(", "));
@@ -820,7 +859,7 @@ export default function App() {
     }
     revisionRef.current = 0;
     setSaveState("saved");
-  }, [activeNote?.id, editor, editorReloadNonce]);
+  }, [activeNote?.id, editor, editorReloadNonce, loadedNoteIds]);
 
   useEffect(() => {
     if (!editor) return;
@@ -1319,7 +1358,43 @@ export default function App() {
     );
   }, [notes]);
 
-  const openTasks = useMemo(() => (viewMode === "tasks" ? collectOpenTasks(notes) : []), [notes, viewMode]);
+  useEffect(() => {
+    if (viewMode !== "tasks") return;
+    let canceled = false;
+    void window.suiji.listTaskNotes().then((taskNotes) => {
+      if (!canceled) setOpenTasks(collectOpenTasks(taskNotes));
+    });
+    return () => {
+      canceled = true;
+    };
+  }, [viewMode]);
+
+  useEffect(() => {
+    if (!infoPanelOpen || !activeNote) {
+      setBacklinks([]);
+      return;
+    }
+    let canceled = false;
+    void window.suiji.listBacklinks(activeNote.id).then((items) => {
+      if (!canceled) setBacklinks(items);
+    });
+    return () => {
+      canceled = true;
+    };
+  }, [activeNote?.id, activeNote?.updatedAt, infoPanelOpen]);
+
+  useEffect(() => {
+    if (!blockRefPicker) return;
+    let canceled = false;
+    void window.suiji.listNotes().then((loaded) => {
+      if (canceled) return;
+      setNotes(sortNotes(loaded));
+      setLoadedNoteIds(new Set(loaded.map((note) => note.id)));
+    });
+    return () => {
+      canceled = true;
+    };
+  }, [blockRefPicker]);
 
   function focusEditorSoon() {
     window.setTimeout(() => editor?.commands.focus("end"), 0);
@@ -1618,17 +1693,27 @@ export default function App() {
     toastTimerRef.current = window.setTimeout(() => setToast(null), 5000);
   }
 
+  async function hydrateNoteForEdit(note: NoteRecord) {
+    if (loadedNoteIds.has(note.id)) return note;
+    const full = await window.suiji.readNote(note.id);
+    setNotes((current) => current.map((item) => (item.id === full.id ? full : item)));
+    setLoadedNoteIds((current) => new Set(current).add(full.id));
+    return full;
+  }
+
   async function handleAssignFolder(noteId: string, folder: string) {
     const note = notesRef.current.find((item) => item.id === noteId);
     if (!note) return;
-    const updated = await window.suiji.saveNote({ ...note, folder });
+    const source = await hydrateNoteForEdit(note);
+    const updated = await window.suiji.saveNote({ ...source, folder });
     setNotes((current) => sortNotes([updated, ...current.filter((item) => item.id !== updated.id)]));
   }
 
   async function handleAssignTag(noteId: string, tag: string) {
     const note = notesRef.current.find((item) => item.id === noteId);
     if (!note || note.tags.includes(tag)) return;
-    const updated = await window.suiji.saveNote({ ...note, tags: [...note.tags, tag] });
+    const source = await hydrateNoteForEdit(note);
+    const updated = await window.suiji.saveNote({ ...source, tags: [...source.tags, tag] });
     setNotes((current) => sortNotes([updated, ...current.filter((item) => item.id !== updated.id)]));
   }
 
@@ -1858,8 +1943,9 @@ export default function App() {
   async function handleToggleTask(task: OpenTask) {
     const note = notesRef.current.find((item) => item.id === task.noteId);
     if (!note) return;
-    const content = toggleTaskAtIndex(note.content, task.taskIndex);
-    const saved = await window.suiji.saveNote({ ...note, content, plainText: getContentPlainText(content) });
+    const source = await hydrateNoteForEdit(note);
+    const content = toggleTaskAtIndex(source.content, task.taskIndex);
+    const saved = await window.suiji.saveNote({ ...source, content, plainText: getContentPlainText(content) });
     setNotes((current) => current.map((item) => (item.id === saved.id ? saved : item)));
     if (activeIdRef.current === saved.id && editor) {
       loadEditorDoc(editor, saved.content);
@@ -1967,33 +2053,11 @@ export default function App() {
         id: `tpl-${note.id}`,
         kind: "command",
         label: `插入模板：${note.title || "未命名记录"}`,
-        run: () => insertTemplate(note)
+        run: () => void window.suiji.readNote(note.id).then(insertTemplate)
       }));
     return [...commands, ...views, ...templateItems, ...noteItems];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paletteOpen, notes, settings?.theme, focusMode, noteItems]);
-
-  const backlinks = useMemo(() => {
-    if (!infoPanelOpen || !activeNote) return [];
-    const target = `suiji-note://${activeNote.id}`;
-    const titleKey = (activeNote.title || "").trim();
-    const items: Array<{ id: string; title: string; kind: "linked" | "unlinked" }> = [];
-    for (const note of notes) {
-      if (note.trashedAt || note.id === activeNote.id) continue;
-      let linked = false;
-      const walk = (node: JSONContent) => {
-        if ((node.marks ?? []).some((mark) => mark.type === "link" && mark.attrs?.href === target)) linked = true;
-        if (node.type === "blockRef" && node.attrs?.refNoteId === activeNote.id) linked = true;
-        if (node.type === "pageLink" && node.attrs?.noteId === activeNote.id) linked = true;
-        (node.content ?? []).forEach(walk);
-      };
-      (note.content?.content ?? []).forEach(walk);
-      const unlinked = !linked && titleKey.length > 0 && (note.plainText || "").includes(titleKey);
-      if (linked) items.push({ id: note.id, title: note.title || "未命名记录", kind: "linked" });
-      else if (unlinked) items.push({ id: note.id, title: note.title || "未命名记录", kind: "unlinked" });
-    }
-    return items;
-  }, [notes, activeNote, infoPanelOpen]);
 
   async function handleExport(format: ExportFormat) {
     await saveActive({ skipClean: true });

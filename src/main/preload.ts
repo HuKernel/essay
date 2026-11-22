@@ -10,12 +10,18 @@ import type {
   EncryptedExportImportResult,
   ExportPayload,
   NoteRecord,
+  NoteSummary,
   RestoreResult,
   SettingsUpdatePayload
 } from "../shared/types.js";
 
 const api = {
   listNotes: () => ipcRenderer.invoke("notes:list") as Promise<NoteRecord[]>,
+  listNoteSummaries: () => ipcRenderer.invoke("notes:list-summaries") as Promise<NoteSummary[]>,
+  readNote: (id: string) => ipcRenderer.invoke("notes:read", id) as Promise<NoteRecord>,
+  listTaskNotes: () => ipcRenderer.invoke("notes:list-tasks") as Promise<NoteRecord[]>,
+  listBacklinks: (id: string) =>
+    ipcRenderer.invoke("notes:backlinks", id) as Promise<Array<{ id: string; title: string; kind: "linked" | "unlinked" }>>,
   searchNotes: (query: string) => ipcRenderer.invoke("notes:search", query) as Promise<string[]>,
   createNote: () => ipcRenderer.invoke("notes:create") as Promise<NoteRecord>,
   saveNote: (note: NoteRecord) => ipcRenderer.invoke("notes:save", note) as Promise<NoteRecord>,

@@ -75,6 +75,7 @@ import type {
   ExportPayload,
   NoteRecord,
   NotesBackup,
+  NoteSummary,
   RestoreFailure,
   RestoreResult,
   SettingsUpdatePayload
@@ -700,6 +701,43 @@ function normalizeNote(raw: Partial<NoteRecord>): NoteRecord {
   };
 }
 
+type NoteSummaryDbRow = {
+  id: string;
+  title: string;
+  excerpt: string;
+  tags_json: string;
+  folder: string;
+  favorite_at: string | null;
+  archived_at: string | null;
+  trashed_at: string | null;
+  pinned_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+function noteSummaryFromDbRow(row: NoteSummaryDbRow): NoteSummary {
+  return applyNoteMeta(
+    {
+      id: row.id,
+      title: row.title,
+      excerpt: row.excerpt,
+      tags: normalizeTags(JSON.parse(row.tags_json || "[]")),
+      folder: normalizeFolder(row.folder),
+      favoriteAt: row.favorite_at,
+      archivedAt: row.archived_at,
+      trashedAt: row.trashed_at,
+      pinnedAt: row.pinned_at,
+      parentId: null,
+      bodyFont: null,
+      coverAsset: null,
+      pageBg: null,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    },
+    loadNoteMeta(row.id)
+  );
+}
+
 type NoteDbRow = {
   id: string;
   title: string;
@@ -766,7 +804,7 @@ function loadNoteMeta(id: string): NoteMetaRow | undefined {
   return dbRows<NoteMetaRow>("SELECT id, parent_id, body_font, cover_asset, page_bg FROM note_meta WHERE id = ?", [id])[0];
 }
 
-function applyNoteMeta(note: NoteRecord, meta?: NoteMetaRow): NoteRecord {
+function applyNoteMeta<T extends NoteSummary>(note: T, meta?: NoteMetaRow): T {
   if (!meta) return note;
   return {
     ...note,
@@ -1322,6 +1360,18 @@ async function purgeBlankNotes() {
   await persistNotesDatabase();
 }
 
+async function listNoteSummaries(): Promise<NoteSummary[]> {
+  await ensureNotesDatabaseReady();
+  return sortNotes(
+    dbRows<NoteSummaryDbRow>(
+      `SELECT
+        id, title, excerpt, tags_json, folder, favorite_at, archived_at, trashed_at,
+        pinned_at, created_at, updated_at
+      FROM notes`
+    ).map(noteSummaryFromDbRow)
+  ) as NoteSummary[];
+}
+
 async function listNotes(): Promise<NoteRecord[]> {
   await ensureNotesDatabaseReady();
   const metaMap = loadAllNoteMeta();
@@ -1447,6 +1497,32 @@ function buildFtsQuery(query: string) {
     .filter(Boolean)
     .map((token) => `"${token.replace(/"/g, '""')}"`)
     .join(" AND ");
+}
+
+type BacklinkItem = { id: string; title: string; kind: "linked" | "unlinked" };
+
+async function listBacklinks(id: string): Promise<BacklinkItem[]> {
+  await ensureNotesDatabaseReady();
+  assertNoteId(id);
+  const active = await readNote(id);
+  const target = `suiji-note://${active.id}`;
+  const titleKey = active.title.trim();
+  const items: BacklinkItem[] = [];
+  for (const note of await listNotes()) {
+    if (note.trashedAt || note.id === active.id) continue;
+    let linked = false;
+    const walk = (node: NoteRecord["content"]) => {
+      if ((node.marks ?? []).some((mark) => mark.type === "link" && mark.attrs?.href === target)) linked = true;
+      if (node.type === "blockRef" && node.attrs?.refNoteId === active.id) linked = true;
+      if (node.type === "pageLink" && node.attrs?.noteId === active.id) linked = true;
+      (node.content ?? []).forEach(walk);
+    };
+    (note.content.content ?? []).forEach(walk);
+    const unlinked = !linked && titleKey.length > 0 && note.plainText.includes(titleKey);
+    if (linked) items.push({ id: note.id, title: note.title || "未命名记录", kind: "linked" });
+    else if (unlinked) items.push({ id: note.id, title: note.title || "未命名记录", kind: "unlinked" });
+  }
+  return items;
 }
 
 async function searchNoteIds(query: string): Promise<string[]> {
@@ -1675,7 +1751,7 @@ async function importSanitizedNotes(rawNotes: unknown[], backupPrefix: string): 
   };
 }
 
-function sortNotes(notes: NoteRecord[]) {
+function sortNotes<T extends NoteSummary>(notes: T[]): T[] {
   return [...notes].sort((a, b) => {
     if (a.pinnedAt && !b.pinnedAt) return -1;
     if (!a.pinnedAt && b.pinnedAt) return 1;
@@ -2576,6 +2652,10 @@ function createTray(settings: AppSettings) {
 
 function registerIpc() {
   ipcMain.handle("notes:list", listNotes);
+  ipcMain.handle("notes:list-summaries", listNoteSummaries);
+  ipcMain.handle("notes:read", (_event, id: string) => readNote(id));
+  ipcMain.handle("notes:list-tasks", listTaskCandidateNotes);
+  ipcMain.handle("notes:backlinks", (_event, id: string) => listBacklinks(id));
   ipcMain.handle("notes:search", (_event, query: string) => searchNoteIds(query));
   ipcMain.handle("notes:create", createNote);
   ipcMain.handle("app:consume-open-files", async () => {
