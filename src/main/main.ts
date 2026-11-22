@@ -93,10 +93,15 @@ const ALLOWED_EXTERNAL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
 const DB_FLUSH_DELAY_MS = 900;
 const DB_FLUSH_MAX_DELAY_MS = 5 * 1000;
 const IDLE_LOCK_CHECK_INTERVAL_MS = 15_000;
-// 打包版也默认写调试日志到数据目录（可用 SUIJI_DEBUG_LOG="" 关闭），超过 1MB 轮转一份
-const DEBUG_LOG_PATH =
-  process.env.SUIJI_DEBUG_LOG ||
-  (app.isPackaged ? path.join(app.getPath("userData"), "suiji-debug.log") : "d:\\zhuomian\\essay\\runtime_cache\\suiji-debug.log");
+// 打包版默认不写日志；SUIJI_DEBUG_LOG=1 使用数据目录，也可直接指定文件路径。
+const requestedDebugLog = process.env.SUIJI_DEBUG_LOG || "";
+const DEBUG_LOG_PATH = requestedDebugLog
+  ? requestedDebugLog === "1"
+    ? path.join(app.getPath("userData"), "suiji-debug.log")
+    : requestedDebugLog
+  : app.isPackaged
+    ? ""
+    : path.join(app.getAppPath(), "runtime_cache", "suiji-debug.log");
 const DEBUG_PORT = process.env.SUIJI_DEBUG_PORT || "";
 
 let mainWindow: BrowserWindow | null = null;
@@ -2453,10 +2458,6 @@ function createWindow() {
   if (restored?.maximized) mainWindow.maximize();
 
   setupWebContentsGuards(mainWindow);
-  // 渲染进程 console 转发到调试日志（dev 下 DEBUG_LOG_PATH 默认开启）
-  mainWindow.webContents.on("console-message", (_event, _level, message) => {
-    writeDebugLog(`renderer: ${message}`);
-  });
 
   mainWindow.on("close", (event) => {
     if (!isQuitting) {
