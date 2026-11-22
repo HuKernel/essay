@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useEditor, type Editor } from "@tiptap/react";
+import { useEditor } from "@tiptap/react";
 import type { JSONContent } from "@tiptap/react";
-import { EditorState, TextSelection } from "@tiptap/pm/state";
+import { TextSelection } from "@tiptap/pm/state";
 import { Fragment, Slice } from "@tiptap/pm/model";
 import StarterKit from "@tiptap/starter-kit";
 import { HrVariantExtension } from "./editor/hr-variant";
@@ -99,20 +99,6 @@ function noteRecordFromSummary(summary: NoteSummary): NoteRecord {
     html: "",
     plainText: ""
   };
-}
-
-function loadEditorDoc(editor: Editor, content: JSONContent) {
-  const doc = editor.state.schema.nodeFromJSON(content);
-  // Chrome 会在文档替换时读取旧 DOM 选区；先失焦并清空，避免长文档选区位置进入短文档。
-  editor.view.dom.blur();
-  window.getSelection()?.removeAllRanges();
-  editor.view.updateState(
-    EditorState.create({
-      doc,
-      selection: TextSelection.near(doc.resolve(doc.content.size)),
-      plugins: editor.state.plugins
-    })
-  );
 }
 
 const docDateFormat = new Intl.DateTimeFormat("zh-CN", {
@@ -354,6 +340,7 @@ export default function App() {
   const pendingBlockScrollRef = useRef<{ text: string } | null>(null);
 
   const activeNote = useMemo(() => notes.find((note) => note.id === activeId) ?? null, [activeId, notes]);
+  const activeContentLoaded = Boolean(activeNote && loadedNoteIds.has(activeNote.id));
 
   // 空占位记录（新建未输入，或正文被删光）：离开后直接物理清除，
   // 不进回收站、不留在列表。当前编辑中的不动，避免打字中途记录消失
@@ -562,6 +549,7 @@ export default function App() {
       setTableToolbarVisible(editor.isActive("table") && !activeNote?.trashedAt);
       if (outlineTimerRef.current) window.clearTimeout(outlineTimerRef.current);
       outlineTimerRef.current = window.setTimeout(() => {
+        if (editor.isDestroyed) return;
         const content = editor.getJSON();
         setEditorText(getContentPlainText(content));
         setOutlineItems(extractOutline(editor));
@@ -569,7 +557,7 @@ export default function App() {
       }, 500);
       window.requestAnimationFrame(syncCurrentEditorBlock);
     }
-  });
+  }, [activeContentLoaded, activeNote?.id, editorReloadNonce]);
 
   const currentBlockFormat = getCurrentBlockFormat(editor);
   const currentFontPresetId = getCurrentFontPresetId(settings?.fontFamily);
@@ -579,7 +567,7 @@ export default function App() {
     "#316ee8";
 
   function syncCurrentEditorBlock() {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return;
     const next = interactiveBlockPosAt(editor.state, editor.state.selection.from);
     if (anchorPosRef.current === next) return;
     anchorPosRef.current = next;
@@ -839,7 +827,6 @@ export default function App() {
     setFindIndex(0);
     setLinkDialog(null);
     clearFindHighlights(editor);
-    loadEditorDoc(editor, activeNote.content);
     setEditorText(getContentPlainText(activeNote.content));
     setOutlineItems(extractOutline(editor));
     setTableToolbarVisible(editor.isActive("table") && !activeNote.trashedAt);
@@ -856,11 +843,14 @@ export default function App() {
     }
     // 定位成功时不能再 focus 到文末，否则会把视口又滚回底部
     if (!located) {
-      window.setTimeout(() => editor.commands.focus("end"), 0);
+      const instance = editor;
+      window.setTimeout(() => {
+        if (!instance.isDestroyed) instance.commands.focus("end");
+      }, 0);
     }
     revisionRef.current = 0;
     setSaveState("saved");
-  }, [activeNote?.id, editor, editorReloadNonce, loadedNoteIds]);
+  }, [activeContentLoaded, activeNote, editor, editorReloadNonce, loadedNoteIds]);
 
   useEffect(() => {
     if (!editor) return;
@@ -1398,7 +1388,10 @@ export default function App() {
   }, [blockRefPicker]);
 
   function focusEditorSoon() {
-    window.setTimeout(() => editor?.commands.focus("end"), 0);
+    const instance = editor;
+    window.setTimeout(() => {
+      if (!instance?.isDestroyed) instance?.commands.focus("end");
+    }, 0);
   }
 
   function focusEditorSelectionSoon(selection: number | { from: number; to: number }) {
@@ -1944,7 +1937,7 @@ export default function App() {
     const saved = await window.suiji.saveNote({ ...source, content, plainText: getContentPlainText(content) });
     setNotes((current) => current.map((item) => (item.id === saved.id ? saved : item)));
     if (activeIdRef.current === saved.id && editor) {
-      loadEditorDoc(editor, saved.content);
+      setEditorReloadNonce((nonce) => nonce + 1);
       setEditorText(getContentPlainText(saved.content));
       setOutlineItems(extractOutline(editor));
     }
@@ -2237,7 +2230,7 @@ export default function App() {
       setTitle(nextActive.title);
       setTagsDraft(nextActive.tags.join(", "));
       setFolderDraft(nextActive.folder);
-      loadEditorDoc(editor, nextActive.content);
+      setEditorReloadNonce((nonce) => nonce + 1);
       setEditorText(getContentPlainText(nextActive.content));
       setOutlineItems(extractOutline(editor));
       revisionRef.current = 0;
@@ -2360,7 +2353,7 @@ export default function App() {
         setTagsDraft(restored.tags.join(", "));
         setFolderDraft(restored.folder);
       if (editor) {
-        loadEditorDoc(editor, restored.content);
+        setEditorReloadNonce((nonce) => nonce + 1);
         setEditorText(getContentPlainText(restored.content));
         setOutlineItems(extractOutline(editor));
       }
