@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { BubbleMenu, EditorContent } from "@tiptap/react";
+import { EditorContent } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
 import type { Editor } from "@tiptap/react";
 import { TextSelection, type Selection } from "@tiptap/pm/state";
 import { CellSelection } from "@tiptap/pm/tables";
@@ -485,14 +486,11 @@ export function EditorArea(props: EditorAreaProps) {
       {editor ? (
         <BubbleMenu
           editor={editor}
-          tippyOptions={{
-            duration: 120,
+          options={{
             placement: "top",
-            maxWidth: "none",
-            offset: [0, 10],
-            zIndex: 40000
+            offset: 10
           }}
-          shouldShow={({ editor }) => {
+          shouldShow={({ editor }: { editor: Editor }) => {
             if (trashed || !editor.isEditable || editor.isActive("codeBlock")) return false;
             const { selection } = editor.state;
             return !selection.empty && selection instanceof TextSelection;

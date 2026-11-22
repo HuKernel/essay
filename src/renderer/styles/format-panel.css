@@ -83,6 +83,8 @@
 /* ---------- 选中文字时的浮动工具栏 ---------- */
 
 .selection-toolbar {
+  position: relative;
+  z-index: 40000;
   display: flex;
   align-items: center;
   gap: 2px;

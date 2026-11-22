@@ -194,7 +194,7 @@ function CollapsibleBodyView({ editor, getPos, node }: NodeViewProps) {
 const collapsibleSelectionGuardKey = new PluginKey("collapsibleSelectionGuard");
 
 // priority 高于 StarterKit：块内按键语义先于默认处理，块外返回 false 交还默认
-const COLLAPSIBLE_PRIORITY = 1000;
+const COLLAPSIBLE_PRIORITY = 2000;
 
 export const CollapsibleBlockExtension = TiptapNode.create({
   name: "collapsibleBlock",

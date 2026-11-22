@@ -7,7 +7,7 @@ import { EditorPlaceholder } from "../src/renderer/editor/placeholder";
 import type { JSONContent } from "@tiptap/react";
 
 function createEditor(content: JSONContent) {
-  return new Editor({ extensions: [StarterKit, ...CollapsibleBlockExtensions, EditorPlaceholder], content });
+  return new Editor({ extensions: [StarterKit.configure({ trailingNode: false }), ...CollapsibleBlockExtensions, EditorPlaceholder], content });
 }
 
 function pressKey(editor: Editor, key: string, options: KeyboardEventInit = {}) {
@@ -71,7 +71,11 @@ describe("折叠块大纲式键盘交互", () => {
       type: "doc",
       content: [para("前文"), block("", false)]
     });
-    editor.commands.setTextSelection(6);
+    let target = 0;
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type.name === "collapsibleTitle") target = pos + 1;
+    });
+    editor.commands.setTextSelection(target);
     expect(pressKey(editor, "Backspace")).toBe(true);
 
     const content = editor.getJSON().content!;

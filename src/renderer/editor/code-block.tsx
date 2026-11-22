@@ -1,6 +1,8 @@
 import { useEffect, useId, useState } from "react";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
+
+const PreViewContent = NodeViewContent<"pre">;
 import type { NodeViewProps } from "@tiptap/react";
 import { Check, ChevronDown, Copy } from "lucide-react";
 
@@ -162,7 +164,7 @@ function CodeBlockView({ node, updateAttributes }: NodeViewProps) {
         </button>
       </div>
       {language === "mermaid" ? <MermaidPreview source={node.textContent} /> : null}
-      <NodeViewContent as="pre" />
+      <PreViewContent />
     </NodeViewWrapper>
   );
 }

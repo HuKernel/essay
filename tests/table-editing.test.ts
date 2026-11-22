@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Table from "@tiptap/extension-table";
+import { Table } from "@tiptap/extension-table";
 import { ResizableTableRow } from "../src/renderer/editor/table-row-resize";
 import { StyledTableCell, StyledTableHeader } from "../src/renderer/editor/table-cell-styles";
 import { CellSelection } from "@tiptap/pm/tables";

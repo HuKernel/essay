@@ -13,7 +13,7 @@ import { ResizableImageExtension } from "./editor/image-resize";
 import { ResizableTableRow } from "./editor/table-row-resize";
 import { StyledTableCell, StyledTableHeader } from "./editor/table-cell-styles";
 import { EditorPlaceholder } from "./editor/placeholder";
-import Table from "@tiptap/extension-table";
+import { Table } from "@tiptap/extension-table";
 import TaskList from "@tiptap/extension-task-list";
 import { TaskItemDue } from "./editor/task-item-due";
 import Highlight from "@tiptap/extension-highlight";
@@ -393,7 +393,8 @@ export default function App() {
         // 代码块交给 CodeBlockLowlight 以获得语法高亮
         codeBlock: false,
         // 分隔线换成带样式变体的扩展
-        horizontalRule: false
+        horizontalRule: false,
+        trailingNode: false
       }),
       HrVariantExtension,
       PageBreakExtension,
