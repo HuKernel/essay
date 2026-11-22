@@ -81,6 +81,18 @@ const api = {
       ipcRenderer.removeListener("menu:replace", listener);
     };
   },
+  onFlushRequest: (callback: () => Promise<void> | void) => {
+    const listener = (_event: Electron.IpcRendererEvent, sequence: number) => {
+      Promise.resolve(callback()).then(
+        () => ipcRenderer.send("app:flushed", sequence, true),
+        () => ipcRenderer.send("app:flushed", sequence, false)
+      );
+    };
+    ipcRenderer.on("app:flush", listener);
+    return () => {
+      ipcRenderer.removeListener("app:flush", listener);
+    };
+  },
   onSaveRequest: (callback: () => void) => {
     const listener = () => callback();
     ipcRenderer.on("menu:save", listener);

@@ -18,6 +18,7 @@ type ShellCallbacks = {
   hideWindow: () => void;
   onAbout: () => void;
   onClipboardNote: () => Promise<NoteRecord | null>;
+  reloadWindow: () => Promise<void>;
   sendMenu: (channel: MenuChannel, payload?: ExportPayload["format"] | BatchExportFormat | string) => void;
   showWindow: () => void;
 };
@@ -107,7 +108,10 @@ export function buildApplicationMenuTemplate(callbacks: ShellCallbacks): MenuIte
     {
       label: "视图",
       submenu: [
-        { label: "重新加载", role: "reload" },
+        {
+          label: "重新加载",
+          click: () => void callbacks.reloadWindow()
+        },
         { label: "开发者工具", role: "toggleDevTools" },
         { type: "separator" },
         { label: "实际大小", role: "resetZoom" },

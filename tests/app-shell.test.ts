@@ -8,6 +8,7 @@ function callbacks() {
     hideWindow: vi.fn(),
     onAbout: vi.fn(),
     onClipboardNote: vi.fn(async () => ({ id: "note-1" })),
+    reloadWindow: vi.fn(async () => undefined),
     sendMenu: vi.fn(),
     showWindow: vi.fn()
   };
@@ -52,6 +53,18 @@ describe("app shell templates", () => {
     expect(settingsItem).toBeTruthy();
     // Ctrl+, 由渲染层 keydown 处理（openSettings 幂等早退），菜单不重复登记 accelerator
     expect(settingsItem?.accelerator).toBeUndefined();
+  });
+
+  it("重新加载通过回调先走保存链路", () => {
+    const callbacksObject = callbacks();
+    const template = buildApplicationMenuTemplate(callbacksObject);
+    const viewMenu = template.find((menu) => menu.label === "视图");
+    const reloadItem = (viewMenu?.submenu as Array<{ label?: string; role?: string; click?: () => void }>).find(
+      (item) => item.label === "重新加载"
+    );
+    expect(reloadItem?.role).toBeUndefined();
+    reloadItem?.click?.();
+    expect(callbacksObject.reloadWindow).toHaveBeenCalledOnce();
   });
 
   it("托盘菜单包含快捷键展示和剪贴板入口", () => {

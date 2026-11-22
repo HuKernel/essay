@@ -1193,6 +1193,13 @@ export default function App() {
   }, [saveActive, saveState]);
 
   useEffect(() => {
+    return window.suiji.onFlushRequest(async () => {
+      const saved = await saveActive({ skipClean: true });
+      if (saved === null) throw new Error("save failed");
+    });
+  }, [saveActive]);
+
+  useEffect(() => {
     const disposeSave =
       typeof window.suiji.onSaveRequest === "function"
         ? window.suiji.onSaveRequest(() => {

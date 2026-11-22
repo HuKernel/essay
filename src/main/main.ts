@@ -2344,7 +2344,7 @@ function createWindow() {
   mainWindow.on("close", (event) => {
     if (!isQuitting) {
       event.preventDefault();
-      hideWindow();
+      void hideWindow();
     }
   });
 
@@ -2420,9 +2420,39 @@ function showAboutDialog() {
   }
 }
 
-function quitApp() {
+let rendererFlushSequence = 0;
+
+function flushRendererNotes(timeoutMs = 2000): Promise<boolean> {
+  const window = mainWindow;
+  if (!window || window.isDestroyed()) return Promise.resolve(true);
+  const sequence = ++rendererFlushSequence;
+  return new Promise((resolve) => {
+    let finished = false;
+    const finish = (ok: boolean) => {
+      if (finished) return;
+      finished = true;
+      ipcMain.removeListener("app:flushed", onFlushed);
+      clearTimeout(timeout);
+      resolve(ok);
+    };
+    const onFlushed = (_event: unknown, completedSequence: number, ok: boolean) => {
+      if (completedSequence === sequence) finish(Boolean(ok));
+    };
+    const timeout = setTimeout(() => finish(false), timeoutMs);
+    ipcMain.on("app:flushed", onFlushed);
+    window.webContents.send("app:flush", sequence);
+  });
+}
+
+async function quitApp() {
+  if (!(await flushRendererNotes())) return;
   isQuitting = true;
   app.quit();
+}
+
+async function reloadWindow() {
+  if (!(await flushRendererNotes())) return;
+  if (!mainWindow?.isDestroyed()) mainWindow?.webContents.reload();
 }
 
 function createApplicationMenu() {
@@ -2433,6 +2463,7 @@ function createApplicationMenu() {
         hideWindow,
         onAbout: showAboutDialog,
         onClipboardNote: createClipboardNote,
+        reloadWindow,
         sendMenu: (channel, payload) => mainWindow?.webContents.send(channel, payload),
         showWindow
       })
@@ -2447,10 +2478,11 @@ function showWindow() {
   mainWindow.focus();
 }
 
-function hideWindow() {
+async function hideWindow() {
   saveWindowState();
-  void persistNotesDatabase();
-  void lockContentForPrivacy();
+  if (!(await flushRendererNotes())) return;
+  await persistNotesDatabase().catch(() => undefined);
+  await lockContentForPrivacy();
   mainWindow?.hide();
 }
 
@@ -2494,6 +2526,7 @@ function createTray(settings: AppSettings) {
         hideWindow,
         onAbout: () => undefined,
         onClipboardNote: createClipboardNote,
+        reloadWindow,
         sendMenu: (channel, payload) => mainWindow?.webContents.send(channel, payload),
         showWindow
       })
@@ -2807,13 +2840,18 @@ if (gotTheLock) {
 
   app.on("before-quit", (event) => {
     saveWindowState();
-    if (!notesDbDirty || isFlushingBeforeQuit) return;
+    if (isFlushingBeforeQuit) return;
     event.preventDefault();
     isFlushingBeforeQuit = true;
-    void persistNotesDatabase().finally(() => {
+    void (async () => {
+      if (!(await flushRendererNotes())) {
+        isFlushingBeforeQuit = false;
+        return;
+      }
+      await persistNotesDatabase().catch((error) => writeDebugLog(`quit database flush failed: ${String(error)}`));
       isQuitting = true;
       app.quit();
-    });
+    })();
   });
 
   app.on("will-quit", () => {
