@@ -124,9 +124,8 @@
   padding: 24px clamp(18px, 2.5vw, 28px) 160px;
 }
 
-/* 阅读宽度：文本块收敛到正文宽度并居中；代码/表格/图片不收，占满宽容器 */
-.editor-surface.ProseMirror
-  > *:not(pre):not(.tableWrapper):not(.image-block):not(.math-block) {
+/* 阅读宽度：文本与表格共用同一条正文宽度线，避免表格比正文突出 */
+.editor-surface.ProseMirror > *:not(pre):not(.image-block):not(.math-block) {
   max-width: min(100%, var(--editor-width, 900px));
   margin-left: auto;
   margin-right: auto;
