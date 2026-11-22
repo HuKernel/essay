@@ -2814,7 +2814,7 @@ function registerIpc() {
           : null;
     if (!buffer?.byteLength || !ext) throw new Error("Invalid asset payload");
     if (buffer.byteLength > MAX_ASSET_BYTES) throw new Error("图片超过 20MB 上限");
-    await ensureStorage();
+    await ensureNotesDatabaseReady();
     await fs.mkdir(attachmentsDir, { recursive: true });
     const fileName = `${randomUUID()}.${ext}`;
     await fs.writeFile(path.join(attachmentsDir, fileName), buffer);
