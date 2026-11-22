@@ -24,6 +24,12 @@ import { pathToFileURL } from "node:url";
 import { buildApplicationMenuTemplate, buildTrayMenuTemplate } from "./app-shell.js";
 import { buildHtmlExport, inlineAssetImages } from "./html-export.js";
 import {
+  beginStorageReconfigurationBackup,
+  recoverInterruptedStorageReconfiguration,
+  restoreStorageReconfigurationBackup,
+  cleanupStorageReconfigurationBackup
+} from "./storage-reconfiguration.js";
+import {
   DEFAULT_HOTKEY,
   DEFAULT_SETTINGS,
   DEFAULT_BACKUP_HISTORY_LIMIT,
@@ -237,6 +243,7 @@ async function ensureStorage() {
   await fs.mkdir(notesDir, { recursive: true });
   await fs.mkdir(backupsDir, { recursive: true });
   await fs.mkdir(attachmentsDir, { recursive: true });
+  await recoverInterruptedStorageReconfiguration(dataRoot);
   settingsCache = null;
   const settings = await readStoredSettings();
   if (isStorageEncryptionEnabled(settings) && !activePrivacyPin) {
@@ -1243,11 +1250,37 @@ async function updateStoredSettings(payload: SettingsUpdatePayload): Promise<App
     current.privacyPinSalt !== next.privacyPinSalt ||
     JSON.stringify(current.privacyPinKdf) !== JSON.stringify(next.privacyPinKdf);
   if (storageChanged) {
-    await reconfigureLocalStorage(current, next, nextPin);
+    const currentPin = activePrivacyPin;
+    let backup: Awaited<ReturnType<typeof beginStorageReconfigurationBackup>> | null = null;
+    try {
+      if (notesDb) await persistNotesDatabase();
+      backup = await beginStorageReconfigurationBackup(dataRootDir);
+      await reconfigureLocalStorage(current, next, nextPin);
+      await writeStoredSettings(next);
+    } catch (error) {
+      if (backup) {
+        if (notesDb) {
+          try {
+            notesDb.close();
+          } catch {
+            // The database is replaced from the backup below.
+          }
+          notesDb = null;
+        }
+        activePrivacyPin = currentPin;
+        try {
+          await restoreStorageReconfigurationBackup(backup);
+          await ensureStorage();
+        } catch (restoreError) {
+          throw new Error(`本地存储切换失败，自动恢复也失败：${String(restoreError)}`, { cause: restoreError });
+        }
+      }
+      throw error;
+    }
+    if (backup) await cleanupStorageReconfigurationBackup(backup).catch(() => undefined);
   }
   activePrivacyPin = next.storageEncrypted || next.privacyPinHash ? nextPin : null;
-
-  await writeStoredSettings(next);
+  if (!storageChanged) await writeStoredSettings(next);
   if (!next.backupHistoryEnabled) {
     await pruneBackups();
   }
