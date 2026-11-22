@@ -13,7 +13,7 @@ import { ResizableImageExtension } from "./editor/image-resize";
 import { ResizableTableRow } from "./editor/table-row-resize";
 import { StyledTableCell, StyledTableHeader } from "./editor/table-cell-styles";
 import { EditorPlaceholder } from "./editor/placeholder";
-import { Table } from "@tiptap/extension-table";
+import { TableGuardExtension } from "./editor/table-guard";
 import TaskList from "@tiptap/extension-task-list";
 import { TaskItemDue } from "./editor/task-item-due";
 import Highlight from "@tiptap/extension-highlight";
@@ -427,7 +427,7 @@ export default function App() {
         inline: false,
         allowBase64: true
       }),
-      Table.configure({
+      TableGuardExtension.configure({
         resizable: true
       }),
       ResizableTableRow,

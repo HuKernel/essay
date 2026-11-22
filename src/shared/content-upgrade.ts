@@ -36,9 +36,38 @@ function normalizeTableCellContent(children: JSONContent[]) {
   return blocks.length ? blocks : [{ type: "paragraph" }];
 }
 
-function upgradeNode(node: JSONContent): JSONContent {
-  const children = (node.content ?? []).map(upgradeNode);
+function collectTableCells(nodes: JSONContent[], cells: JSONContent[] = []) {
+  for (const node of nodes) {
+    if (node.type === "tableCell" || node.type === "tableHeader") cells.push(node);
+    collectTableCells(node.content ?? [], cells);
+  }
+  return cells;
+}
 
+function flattenEmptyGeneratedCollapsibleTables(children: JSONContent[]) {
+  const cells = collectTableCells(children);
+  if (
+    cells.length === 0 ||
+    !cells.every((cell) => {
+      const only = cell.content?.length === 1 ? cell.content[0] : null;
+      return only?.type === "collapsibleBlock" && (only.content?.[1]?.content?.length ?? 0) === 0;
+    })
+  ) {
+    return children;
+  }
+
+  for (const cell of cells) {
+    const generated = cell.content?.[0];
+    const title = generated?.content?.[0];
+    cell.content = title?.content?.length ? [{ type: "paragraph", content: title.content }] : [{ type: "paragraph" }];
+  }
+  return children;
+}
+
+function upgradeNode(node: JSONContent): JSONContent {
+  let children = (node.content ?? []).map(upgradeNode);
+
+  if (node.type === "table") children = flattenEmptyGeneratedCollapsibleTables(children);
   if (node.type === "tableCell" || node.type === "tableHeader") {
     return { ...node, content: normalizeTableCellContent(children) };
   }

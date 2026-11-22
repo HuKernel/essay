@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Table } from "@tiptap/extension-table";
+import { TableGuardExtension, redirectClickOutsideTable } from "../src/renderer/editor/table-guard";
 import { ResizableTableRow } from "../src/renderer/editor/table-row-resize";
 import { StyledTableCell, StyledTableHeader } from "../src/renderer/editor/table-cell-styles";
 import { CollapsibleBlockExtensions } from "../src/renderer/editor/collapsible-block";
@@ -44,7 +44,7 @@ function createEditor(content = tableDoc()) {
   return new Editor({
     extensions: [
       StarterKit.configure({ trailingNode: false }),
-      Table.configure({ resizable: true }),
+      TableGuardExtension.configure({ resizable: true }),
       ResizableTableRow,
       StyledTableHeader,
       StyledTableCell,
@@ -125,8 +125,67 @@ describe("table editing", () => {
     editor.destroy();
   });
 
-  it("fills inserted cells with paragraphs instead of the highest-priority block", () => {
+  it("keeps an editable paragraph after a table at the document end", () => {
+    const editor = createEditor({ type: "doc", content: [{ type: "paragraph" }] });
+    editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: true });
+    const content = editor.getJSON().content!;
+    expect(content.at(-1)?.type).toBe("paragraph");
+    editor.destroy();
+  });
+
+  it("deletes a sole table without leaving its first child block", () => {
+    const editor = createEditor({ type: "doc", content: [{ type: "paragraph" }] });
+    editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: true });
+    editor.commands.deleteTable();
+    const content = editor.getJSON().content!;
+    expect(content).toHaveLength(1);
+    expect(content[0].type).toBe("paragraph");
+    expect(editor.state.selection.$from.parent.type.name).toBe("paragraph");
+    editor.destroy();
+  });
+
+  it("deletes a table between paragraphs without leaving cell content", () => {
     const editor = createEditor();
+    let cellPos = 0;
+    editor.state.doc.descendants((node, pos) => {
+      if (!cellPos && node.type.name === "tableCell") cellPos = pos + 2;
+    });
+    editor.commands.setTextSelection(cellPos);
+    editor.commands.deleteTable();
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["paragraph", "paragraph"]);
+    editor.destroy();
+  });
+
+  it("keeps typed text in the paragraph after a table", () => {
+    const editor = createEditor({ type: "doc", content: [{ type: "paragraph" }] });
+    editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: true });
+    const end = editor.state.doc.content.size;
+    editor.commands.setTextSelection(end);
+    editor.commands.insertContent("后文");
+    const content = editor.getJSON().content!;
+    expect(content.at(-1)).toMatchObject({ type: "paragraph", content: [{ type: "text", text: "后文" }] });
+    editor.destroy();
+  });
+
+  it("redirects a click outside the table rectangle to the trailing paragraph", () => {
+    const editor = createEditor({ type: "doc", content: [{ type: "paragraph" }] });
+    editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: true });
+    let cellPos = 0;
+    editor.state.doc.descendants((node, pos) => {
+      if (!cellPos && node.type.name === "tableCell") cellPos = pos + 2;
+    });
+    const tableElement = editor.view.dom.querySelector("table")!;
+    const rect = tableElement.getBoundingClientRect();
+    const click = new MouseEvent("click", { clientX: rect.right + 20, clientY: rect.top + 2 });
+    expect(
+      redirectClickOutsideTable(editor.view as never, cellPos, click)
+    ).toBe(true);
+    expect(editor.state.selection.$from.parent.type.name).toBe("paragraph");
+    editor.destroy();
+  });
+
+  it("fills inserted cells with paragraphs instead of the highest-priority block", () => {
+    const editor = createEditor({ type: "doc", content: [{ type: "paragraph" }] });
     editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: true });
     const cellContents = editor.state.doc.nodesBetween(0, editor.state.doc.content.size, (node) => {
       if (node.type.name !== "tableCell" && node.type.name !== "tableHeader") return;

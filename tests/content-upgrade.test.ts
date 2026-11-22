@@ -153,6 +153,27 @@ describe("旧表格单元格结构升级", () => {
     });
   });
 
+  it("修复 Tiptap 3 升级期间生成的空折叠块表格单元格", () => {
+    const badCell = {
+      type: "tableCell",
+      content: [
+        {
+          type: "collapsibleBlock",
+          attrs: { open: true },
+          content: [{ type: "collapsibleTitle" }, { type: "collapsibleBody" }]
+        }
+      ]
+    };
+    const upgraded = upgradeCollapsibleContent({
+      type: "table",
+      content: [{ type: "tableRow", content: [badCell] }]
+    });
+    expect(upgraded.content?.[0]?.content?.[0]).toEqual({
+      type: "tableCell",
+      content: [{ type: "paragraph" }]
+    });
+  });
+
   it("升级幂等，不重复包裹合法单元格", () => {
     const once = upgradeCollapsibleContent({
       type: "tableCell",
