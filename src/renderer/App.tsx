@@ -2220,6 +2220,11 @@ export default function App() {
   }
 
   async function handleChangeDataFolder() {
+    const savedActive = await saveActive({ skipClean: true });
+    if (savedActive === null) {
+      setDataActionStatus("当前记录保存失败，已取消修改数据目录");
+      return;
+    }
     setDataActionStatus("正在选择数据目录...");
     const dataPath = await window.suiji.changeDataFolder();
     if (!dataPath) {
