@@ -159,6 +159,18 @@ describe("export title and page background", () => {
     expect(buildMarkdownExport(distinct)).toContain("# 项目方案\n\n# 另一个标题");
   });
 
+  it("HTML export rejects unknown callout attributes", () => {
+    const exported = buildHtmlExport(
+      note({
+        type: "callout",
+        attrs: { calloutType: `x"><script>alert(1)</script>` },
+        content: [paragraph]
+      })
+    );
+    expect(exported).toContain("data-callout=\"info\"");
+    expect(exported).not.toContain("<script>alert(1)</script>");
+  });
+
   it("HTML export carries the note page background", () => {
     const solid = buildHtmlExport(note(paragraph, "color:#fdf6e3"));
     expect(solid).toContain("background: #fdf6e3");

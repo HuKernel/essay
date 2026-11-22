@@ -7,6 +7,7 @@ import { contentWithoutDuplicateTitleHeading } from "./export-content.js";
 import { isTableCellBackgroundColor } from "../shared/table-cells.js";
 
 const ALLOWED_EXTERNAL_PROTOCOLS = new Set(["http:", "https:", "mailto:"]);
+const CALLOUT_TYPES = new Set(["info", "tip", "warning", "danger"]);
 
 function escapeHtml(value: string) {
   return value
@@ -136,7 +137,9 @@ function renderBlockHtml(node: JsonNode): string {
     case "blockquote":
       return `<blockquote>${children.map(renderBlockHtml).join("")}</blockquote>`;
     case "callout":
-      return `<blockquote data-callout="${String(node.attrs?.calloutType ?? "info")}">${children.map(renderBlockHtml).join("")}</blockquote>`;
+      const calloutType = String(node.attrs?.calloutType ?? "info");
+      const safeCalloutType = CALLOUT_TYPES.has(calloutType) ? calloutType : "info";
+      return `<blockquote data-callout="${safeCalloutType}">${children.map(renderBlockHtml).join("")}</blockquote>`;
     case "codeBlock":
       return `<pre><code>${escapeHtml(node.textContent || children.map(renderInlineHtml).join(""))}</code></pre>`;
     case "horizontalRule":
