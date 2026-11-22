@@ -47,7 +47,6 @@ import {
   collectOpenTasks,
   collectPlainImageSrcsFromHtml,
   describeRestoreFailures,
-  extractNoteBlocks,
   extractOutline,
   findScrollParent,
   formatHotkeyEvent,
@@ -1934,11 +1933,6 @@ export default function App() {
     setSettings(next);
   }
 
-  function handleOpenTaskNote(id: string) {
-    setViewMode("active");
-    void handleSelectNote(id);
-  }
-
   // 待办汇总视图里直接勾掉任务：改 JSON 后走正常保存通道，当前打开的笔记同步编辑器
   async function handleToggleTask(task: OpenTask) {
     const note = notesRef.current.find((item) => item.id === task.noteId);
@@ -2829,10 +2823,6 @@ export default function App() {
                 listSort={listSort}
                 onListSortChange={changeListSort}
                 onOpenNote={openNoteInReader}
-                onOpenTaskNote={(id) => {
-                  handleOpenTaskNote(id);
-                  setCenterView("reader");
-                }}
                 onToggleTask={(task) => void handleToggleTask(task)}
                 onTogglePin={(id) => void handleTogglePin(id)}
                 onToggleFavorite={(id) => void handleToggleFavorite(id)}

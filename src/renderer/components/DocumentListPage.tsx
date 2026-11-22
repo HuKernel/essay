@@ -31,7 +31,6 @@ type DocumentListPageProps = {
   listSort: "default" | "updated" | "created" | "title";
   onListSortChange: (sort: "default" | "updated" | "created" | "title") => void;
   onOpenNote: (id: string) => void;
-  onOpenTaskNote: (id: string) => void;
   onToggleTask: (task: OpenTask) => void;
   onTogglePin: (id: string) => void;
   onToggleFavorite: (id: string) => void;
@@ -76,7 +75,6 @@ export function DocumentListPage(props: DocumentListPageProps) {
     listSort,
     onListSortChange,
     onOpenNote,
-    onOpenTaskNote,
     onToggleTask,
     onTogglePin,
     onToggleFavorite,
