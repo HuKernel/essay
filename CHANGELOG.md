@@ -1,3 +1,10 @@
+## 0.9.115 - 2026-11-22
+
+- Security and dependency pass: patched vulnerable runtime dependencies, upgraded the editor stack to Tiptap 3.35 and KaTeX 0.19, rendered Mermaid diagrams in strict mode, and sanitized callout attributes in HTML exports.
+- Data-safety pass: data-folder migration now includes attachments, storage encryption reconfiguration is backup/recovery protected, encrypted note and batch exports carry referenced attachments, saves retry transient Windows file locks, and close/quit waits for the renderer to flush unsaved edits.
+- Table and editor fixes: inserted cells default to paragraphs, legacy generated collapsible-cell data is repaired, table deletion keeps an editable boundary, clicks outside a table land after it, tables share the body-text width, each note rebuilds its editor state to avoid stale-selection crashes, and autosave no longer moves the caret to the document end.
+- Performance and maintenance improvements: note lists lazy-load content, task and backlink queries avoid full-note scans, image insertion no longer restarts the in-memory database, version-history retention is per note, purge operations clean metadata rows, debug logging is opt-in in packaged builds, and Vitest runs single-worker for reliable local Windows checks.
+
 ## 0.9.114 - 2026-11-19
 
 - Fixed table context-menu row and column operations to act on the cell that was right-clicked instead of always resetting to the table's first cell. The custom table builder entry is now labeled more clearly and explains that a new table can only be inserted when the cursor is outside an existing table.
