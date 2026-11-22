@@ -30,6 +30,8 @@ const CODE_LANGUAGES: Array<[string, string]> = [
   ["markdown", "Markdown"]
 ];
 
+export const MERMAID_SECURITY_LEVEL = "strict" as const;
+
 let mermaidRenderSeq = 0;
 
 /** 复制来的图源码常带统一缩进，mermaid 解析对行首空格敏感，先去掉公共缩进 */
@@ -63,7 +65,7 @@ function MermaidPreview({ source }: { source: string }) {
         const mermaid = (await import("mermaid")).default;
         const dark = document.querySelector(".app-shell")?.classList.contains("theme-dark") ?? false;
         // loose 允许 htmlLabels 等特性，避免部分图型在 strict 下误报语法错误
-        mermaid.initialize({ startOnLoad: false, securityLevel: "loose", theme: dark ? "dark" : "default" });
+        mermaid.initialize({ startOnLoad: false, securityLevel: MERMAID_SECURITY_LEVEL, theme: dark ? "dark" : "default" });
         mermaidRenderSeq += 1;
         const { svg: rendered } = await mermaid.render(`suiji-mmd-${reactId.replace(/[^a-zA-Z0-9]/g, "")}-${mermaidRenderSeq}`, trimmed);
         if (!cancelled) {
