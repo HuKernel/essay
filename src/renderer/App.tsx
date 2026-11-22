@@ -103,6 +103,9 @@ function noteRecordFromSummary(summary: NoteSummary): NoteRecord {
 
 function loadEditorDoc(editor: Editor, content: JSONContent) {
   const doc = editor.state.schema.nodeFromJSON(content);
+  // Chrome 会在文档替换时读取旧 DOM 选区；先失焦并清空，避免长文档选区位置进入短文档。
+  editor.view.dom.blur();
+  window.getSelection()?.removeAllRanges();
   editor.view.updateState(
     EditorState.create({
       doc,
