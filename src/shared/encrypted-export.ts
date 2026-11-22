@@ -1,4 +1,4 @@
-import type { NoteRecord } from "./types.js";
+import type { BackupAttachment, NoteRecord } from "./types.js";
 
 export type EncryptedExportBundle =
   | {
@@ -8,6 +8,7 @@ export type EncryptedExportBundle =
       exportedAt: string;
       format: string;
       note: NoteRecord;
+      attachments?: BackupAttachment[];
     }
   | {
       app: "suiji";
@@ -16,11 +17,13 @@ export type EncryptedExportBundle =
       exportedAt: string;
       format: string;
       notes: NoteRecord[];
+      attachments?: BackupAttachment[];
     };
 
 export type ParsedEncryptedExport = {
   kind: "note-export" | "batch-export";
   notes: unknown[];
+  attachments: BackupAttachment[];
 };
 
 export function parseEncryptedExportBundle(raw: unknown): ParsedEncryptedExport {
@@ -29,6 +32,7 @@ export function parseEncryptedExportBundle(raw: unknown): ParsedEncryptedExport 
   }
 
   const payload = raw as Partial<EncryptedExportBundle>;
+  const attachments = Array.isArray(payload.attachments) ? payload.attachments : [];
   if (payload.app !== "suiji" || payload.version !== 1) {
     throw new Error("无效的加密导出文件");
   }
@@ -39,7 +43,8 @@ export function parseEncryptedExportBundle(raw: unknown): ParsedEncryptedExport 
     }
     return {
       kind: "note-export",
-      notes: [payload.note]
+      notes: [payload.note],
+      attachments
     };
   }
 
@@ -49,7 +54,8 @@ export function parseEncryptedExportBundle(raw: unknown): ParsedEncryptedExport 
     }
     return {
       kind: "batch-export",
-      notes: payload.notes
+      notes: payload.notes,
+      attachments
     };
   }
 

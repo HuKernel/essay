@@ -9,11 +9,13 @@ describe("parseEncryptedExportBundle", () => {
       version: 1,
       exportedAt: "2026-06-22T00:00:00.000Z",
       format: "md",
-      note: { id: "1" }
+      note: { id: "1" },
+      attachments: [{ name: "a.png", data: "YWJj" }]
     });
 
     expect(result.kind).toBe("note-export");
     expect(result.notes).toHaveLength(1);
+    expect(result.attachments).toEqual([{ name: "a.png", data: "YWJj" }]);
   });
 
   it("解析批量加密导出", () => {
@@ -23,11 +25,13 @@ describe("parseEncryptedExportBundle", () => {
       version: 1,
       exportedAt: "2026-06-22T00:00:00.000Z",
       format: "json",
-      notes: [{ id: "1" }, { id: "2" }]
+      notes: [{ id: "1" }, { id: "2" }],
+      attachments: []
     });
 
     expect(result.kind).toBe("batch-export");
     expect(result.notes).toHaveLength(2);
+    expect(result.attachments).toEqual([]);
   });
 
   it("拒绝无效导出文件", () => {

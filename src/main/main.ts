@@ -1467,6 +1467,25 @@ async function searchNoteIds(query: string): Promise<string[]> {
   }
 }
 
+async function collectBackupAttachments(notes: NoteRecord[]): Promise<BackupAttachment[] | undefined> {
+  const assetNames = new Set<string>();
+  for (const note of notes) {
+    for (const name of collectAssetFileNames(note.content)) assetNames.add(name);
+  }
+  if (assetNames.size === 0) return undefined;
+
+  const attachments: BackupAttachment[] = [];
+  for (const name of assetNames) {
+    try {
+      const data = await fs.readFile(path.join(attachmentsDir, name));
+      attachments.push({ name, data: data.toString("base64") });
+    } catch {
+      // 附件文件已丢失时不阻塞导出。
+    }
+  }
+  return attachments.length > 0 ? attachments : undefined;
+}
+
 async function exportAllNotesBackup(options?: BackupExportOptions) {
   const notes = await listNotes();
   const settings = await readStoredSettings();
@@ -1479,22 +1498,8 @@ async function exportAllNotesBackup(options?: BackupExportOptions) {
     notes
   };
   // 把记录引用的图片附件一并打进备份，恢复后图片才能跟随迁移
-  const assetNames = new Set<string>();
-  for (const note of notes) {
-    for (const name of collectAssetFileNames(note.content)) assetNames.add(name);
-  }
-  if (assetNames.size > 0) {
-    const attachments: BackupAttachment[] = [];
-    for (const name of assetNames) {
-      try {
-        const data = await fs.readFile(path.join(attachmentsDir, name));
-        attachments.push({ name, data: data.toString("base64") });
-      } catch {
-        // 附件文件已丢失时不阻塞备份
-      }
-    }
-    if (attachments.length > 0) backup.attachments = attachments;
-  }
+  const attachments = await collectBackupAttachments(notes);
+  if (attachments) backup.attachments = attachments;
   const result = mainWindow
     ? await dialog.showSaveDialog(mainWindow, {
         title: encrypted ? "导出加密备份" : "备份全部记录",
@@ -1626,6 +1631,7 @@ async function importEncryptedExport(
 
   const raw = await readImportedBackupText(result.filePaths[0], options?.currentPrivacyPin);
   const parsed = parseEncryptedExportBundle(JSON.parse(raw));
+  await restoreBackupAttachments(parsed.attachments);
   const imported = await importSanitizedNotes(
     parsed.notes,
     parsed.kind === "note-export" ? "import-note" : "import-batch"
@@ -1957,7 +1963,8 @@ async function batchExportNotes(
         version: 1,
         exportedAt: new Date().toISOString(),
         format: payload.format,
-        notes
+        notes,
+        attachments: await collectBackupAttachments(notes)
       },
       verifiedPin
     );
@@ -2698,7 +2705,8 @@ function registerIpc() {
           version: 1,
           exportedAt: new Date().toISOString(),
           format: payload.format,
-          note: payload.note
+          note: payload.note,
+          attachments: await collectBackupAttachments([payload.note])
         },
         verifiedPin
       );
