@@ -5,6 +5,37 @@ import type { BackupEntry, ExportPayload, NoteRecord, NotesBackup } from "../sha
 
 export const DATA_MIGRATION_ENTRIES = ["suiji.db", "notes", "backups", "attachments", "settings.json"] as const;
 
+export type BackupPruneFile = {
+  fileName: string;
+  filePath: string;
+  mtime: number;
+  tmp: boolean;
+};
+
+export function backupFilesToDelete(
+  files: BackupPruneFile[],
+  limit: number,
+  now: number,
+  backupMaxAgeMs: number,
+  tmpMaxAgeMs: number
+) {
+  const expired = files.filter(
+    (file) => file.mtime < now - backupMaxAgeMs || (file.tmp && file.mtime < now - tmpMaxAgeMs)
+  );
+  const kept = files
+    .filter((file) => !expired.includes(file))
+    .sort((a, b) => b.mtime - a.mtime);
+  const retainedByNote = new Map<string, number>();
+  const stale = kept.filter((file) => {
+    if (file.tmp) return false;
+    const noteId = file.fileName.replace(/\.json$/, "").match(/[a-f0-9-]{36}$/i)?.[0] ?? "unknown";
+    const retained = retainedByNote.get(noteId) ?? 0;
+    retainedByNote.set(noteId, retained + 1);
+    return retained >= limit;
+  });
+  return [...expired, ...stale];
+}
+
 export function safeExportName(name: string, ext: string) {
   const base = (name || "未命名记录")
     // eslint-disable-next-line no-control-regex

@@ -46,6 +46,7 @@ import {
   verifyPin
 } from "./security.js";
 import {
+  backupFilesToDelete,
   buildExportText,
   DATA_MIGRATION_ENTRIES,
   defaultBackupName,
@@ -420,14 +421,12 @@ async function pruneBackups() {
         .map(async (entry) => {
           const filePath = path.join(backupsDir, entry.name);
           const stat = await fs.stat(filePath);
-          return { filePath, mtime: stat.mtimeMs, tmp: entry.name.endsWith(".tmp") };
+          return { fileName: entry.name, filePath, mtime: stat.mtimeMs, tmp: entry.name.endsWith(".tmp") };
         })
     );
-    // 先按时间清（超期备份、超过一天的写入中断残留），再对剩余的按份数封顶
-    const expired = files.filter((file) => file.mtime < now - BACKUP_MAX_AGE_MS || (file.tmp && file.mtime < now - TMP_MAX_AGE_MS));
-    const kept = files.filter((file) => !expired.includes(file));
-    const stale = kept.sort((a, b) => b.mtime - a.mtime).slice(limit);
-    await Promise.all([...expired, ...stale].map((file) => fs.rm(file.filePath, { force: true })));
+    // 先按时间清（超期备份、超过一天的写入中断残留），再对每篇笔记分别按份数封顶
+    const deletions = backupFilesToDelete(files, limit, now, BACKUP_MAX_AGE_MS, TMP_MAX_AGE_MS);
+    await Promise.all(deletions.map((file) => fs.rm(file.filePath, { force: true })));
   } catch {
     // Backup pruning should never block note saving.
   }

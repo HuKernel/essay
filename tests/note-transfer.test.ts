@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  backupFilesToDelete,
   buildMarkdownExport,
   buildTextExport,
   DATA_MIGRATION_ENTRIES,
@@ -186,5 +187,37 @@ describe("export title and page background", () => {
 describe("data migration entries", () => {
   it("includes note attachments", () => {
     expect(DATA_MIGRATION_ENTRIES).toContain("attachments");
+  });
+});
+
+describe("backup pruning", () => {
+  it("keeps the per-note history limit independently", () => {
+    const now = 1_000_000;
+    const idA = "00000000-0000-4000-8000-00000000000a";
+    const idB = "00000000-0000-4000-8000-00000000000b";
+    const file = (name: string, age: number) => ({
+      fileName: name,
+      filePath: `backups/${name}`,
+      mtime: now - age,
+      tmp: false
+    });
+
+    const deletions = backupFilesToDelete(
+      [
+        file(`note-old-${idA}.json`, 20),
+        file(`note-new-${idA}.json`, 10),
+        file(`note-old-${idB}.json`, 15),
+        file(`note-new-${idB}.json`, 5)
+      ],
+      1,
+      now,
+      100,
+      50
+    );
+
+    expect(deletions).toHaveLength(2);
+    expect(deletions.map((item) => item.fileName)).toEqual(
+      expect.arrayContaining([`note-old-${idA}.json`, `note-old-${idB}.json`])
+    );
   });
 });
