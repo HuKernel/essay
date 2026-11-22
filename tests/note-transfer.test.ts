@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { buildMarkdownExport, buildTextExport, parseBackupNotes, safeExportName } from "../src/main/note-transfer";
+import {
+  buildMarkdownExport,
+  buildTextExport,
+  DATA_MIGRATION_ENTRIES,
+  parseBackupNotes,
+  safeExportName
+} from "../src/main/note-transfer";
 import { buildHtmlExport } from "../src/main/html-export";
 import { markdownToDoc } from "../src/shared/markdown-doc";
 import { isStandaloneLatex } from "../src/shared/math-patterns";
@@ -162,5 +168,11 @@ describe("export title and page background", () => {
 
     const dots = buildHtmlExport(note(paragraph, "pattern:dots"));
     expect(dots).toContain("radial-gradient(circle at 1px 1px");
+  });
+});
+
+describe("data migration entries", () => {
+  it("includes note attachments", () => {
+    expect(DATA_MIGRATION_ENTRIES).toContain("attachments");
   });
 });

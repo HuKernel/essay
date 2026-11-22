@@ -41,6 +41,7 @@ import {
 } from "./security.js";
 import {
   buildExportText,
+  DATA_MIGRATION_ENTRIES,
   defaultBackupName,
   defaultEncryptedBatchExportName,
   parseBackupEntryName,
@@ -2131,7 +2132,7 @@ async function migrateDataRoot(targetRoot: string) {
   const staging = path.join(resolvedTarget, ".suiji-migrating-tmp");
   await fs.rm(staging, { recursive: true, force: true });
   await fs.mkdir(staging, { recursive: true });
-  const entries = ["suiji.db", "notes", "backups", "settings.json"];
+  const entries = DATA_MIGRATION_ENTRIES;
   try {
     for (const entry of entries) {
       await copyPathIfExists(path.join(sourceRoot, entry), path.join(staging, entry));

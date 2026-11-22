@@ -3,6 +3,8 @@ import { toMarkdown } from "../shared/markdown.js";
 import { contentWithoutDuplicateTitleHeading, plainTextWithoutDuplicateTitleLine } from "./export-content.js";
 import type { BackupEntry, ExportPayload, NoteRecord, NotesBackup } from "../shared/types.js";
 
+export const DATA_MIGRATION_ENTRIES = ["suiji.db", "notes", "backups", "attachments", "settings.json"] as const;
+
 export function safeExportName(name: string, ext: string) {
   const base = (name || "未命名记录")
     // eslint-disable-next-line no-control-regex
