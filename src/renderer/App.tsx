@@ -266,8 +266,9 @@ export default function App() {
     setCenterView("reader");
   }
 
-  function closeTab(index: number) {
+  async function closeTab(index: number) {
     if (tabs.length <= 1) return;
+    if (index === activeTabIndex && (await saveActive({ skipClean: true })) === null) return;
     const closing = notes.find((note) => note.id === tabs[index]);
     if (closing) discardBlankNote(closing);
     const next = tabs.filter((_, i) => i !== index);
@@ -283,7 +284,7 @@ export default function App() {
   }
 
   async function openNewTab() {
-    await saveActive({ skipClean: true });
+    if ((await saveActive({ skipClean: true })) === null) return;
     const created = await window.suiji.createNote();
     setNotes((current) => sortNotes([created, ...current]));
     openInNewTab(created.id);
@@ -1498,7 +1499,7 @@ export default function App() {
   }
 
   async function handleCreate() {
-    await saveActive({ skipClean: true });
+    if ((await saveActive({ skipClean: true })) === null) return;
     const created = await window.suiji.createNote();
     const note = selectedFolder ? await window.suiji.saveNote({ ...created, folder: selectedFolder }) : created;
     setNotes((current) => sortNotes([note, ...current]));
@@ -1507,16 +1508,17 @@ export default function App() {
     focusEditorSoon();
   }
 
-  async function handleSelectNote(id: string) {
+  async function handleSelectNote(id: string): Promise<boolean> {
     if (id === activeId) {
       if (isCompactViewport) setSidebarCollapsed(true);
       focusEditorSoon();
-      return;
+      return true;
     }
-    await saveActive({ skipClean: true });
+    if ((await saveActive({ skipClean: true })) === null) return false;
     setActiveId(id);
     if (isCompactViewport) setSidebarCollapsed(true);
     focusEditorSoon();
+    return true;
   }
 
   function openNoteInReader(id: string) {
@@ -1877,6 +1879,7 @@ export default function App() {
       void handleSelectNote(existing.id);
       return;
     }
+    if ((await saveActive({ skipClean: true })) === null) return;
     const created = await window.suiji.createNote();
     const note = await window.suiji.saveNote({ ...created, title: today });
     setNotes((current) => sortNotes([note, ...current]));
