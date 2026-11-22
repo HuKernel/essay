@@ -850,7 +850,7 @@ export default function App() {
     }
     revisionRef.current = 0;
     setSaveState("saved");
-  }, [activeContentLoaded, activeNote, editor, editorReloadNonce, loadedNoteIds]);
+  }, [activeContentLoaded, activeNote?.id, editor, editorReloadNonce]);
 
   useEffect(() => {
     if (!editor) return;
