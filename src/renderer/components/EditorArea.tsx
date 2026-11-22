@@ -38,6 +38,7 @@ type EditorAreaProps = {
   editorWrapRef: React.Ref<HTMLDivElement>;
   imageInputRef: React.Ref<HTMLInputElement>;
   trashed: boolean;
+  noteId: string;
   onHoverBlock: (target: EventTarget | null) => void;
   onLeave: () => void;
   onFocusEnd: () => void;
@@ -55,6 +56,7 @@ type CtxMenuState = {
   node: ProseMirrorNode;
   start: number;
   cellPos: number;
+  noteId: string;
 };
 
 /** 支持块类型互转的块（容器类如 callout/表格不做转换） */
@@ -90,6 +92,7 @@ export function EditorArea(props: EditorAreaProps) {
     editorWrapRef,
     imageInputRef,
     trashed,
+    noteId,
     onHoverBlock,
     onLeave,
     onFocusEnd,
@@ -238,7 +241,8 @@ export function EditorArea(props: EditorAreaProps) {
       y: Math.min(event.clientY, window.innerHeight - 560),
       node: targetNode,
       start: targetStart,
-      cellPos
+      cellPos,
+      noteId
     });
   }
 
@@ -484,7 +488,10 @@ export function EditorArea(props: EditorAreaProps) {
         }}
       />
       {editor ? (
+        <EditorErrorBoundary>
         <BubbleMenu
+          key={noteId}
+          updateDelay={0}
           editor={editor}
           options={{
             placement: "top",
@@ -604,6 +611,7 @@ export function EditorArea(props: EditorAreaProps) {
             </button>
           </div>
         </BubbleMenu>
+        </EditorErrorBoundary>
       ) : null}
       {editor ? (
         <EditorErrorBoundary>
@@ -629,7 +637,7 @@ export function EditorArea(props: EditorAreaProps) {
           </div>
         </section>
       ) : null}
-      {ctxMenu ? (
+      {ctxMenu && ctxMenu.noteId === noteId ? (
         <div className="block-ctx-backdrop" onMouseDown={() => setCtxMenu(null)} role="presentation">
           <div
             className="block-ctx-menu"

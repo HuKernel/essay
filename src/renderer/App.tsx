@@ -7,8 +7,6 @@ import StarterKit from "@tiptap/starter-kit";
 import { HrVariantExtension } from "./editor/hr-variant";
 import { PageBreakExtension } from "./editor/page-break";
 import { BlockGroupExtension } from "./editor/block-group";
-import Underline from "@tiptap/extension-underline";
-import Link from "@tiptap/extension-link";
 import { ResizableImageExtension } from "./editor/image-resize";
 import { ResizableTableRow } from "./editor/table-row-resize";
 import { StyledTableCell, StyledTableHeader } from "./editor/table-cell-styles";
@@ -400,6 +398,8 @@ export default function App() {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
+        link: { autolink: true, openOnClick: false },
+        underline: {},
         heading: { levels: [1, 2, 3] },
         // 代码块交给 CodeBlockLowlight 以获得语法高亮
         codeBlock: false,
@@ -417,11 +417,6 @@ export default function App() {
       ...CollapsibleBlockExtensions,
       CalloutExtension,
       ...MathExtensions,
-      Underline,
-      Link.configure({
-        autolink: true,
-        openOnClick: false
-      }),
       SafeAutolink,
       ResizableImageExtension.configure({
         inline: false,
@@ -837,6 +832,10 @@ export default function App() {
     setTagsDraft(activeNote.tags.join(", "));
     setFolderDraft(activeNote.folder);
     setMetaEditorOpen(false);
+    setFindMatches([]);
+    setFindIndex(0);
+    setLinkDialog(null);
+    clearFindHighlights(editor);
     loadEditorDoc(editor, activeNote.content);
     setEditorText(getContentPlainText(activeNote.content));
     setOutlineItems(extractOutline(editor));
@@ -2905,6 +2904,7 @@ export default function App() {
               editorWrapRef={editorWrapRef}
               imageInputRef={imageInputRef}
               trashed={Boolean(activeNote?.trashedAt)}
+              noteId={activeId}
               onHoverBlock={updateHoveredEditorBlock}
               onLeave={() => updateHoveredEditorBlock(null)}
               onFocusEnd={() => editor?.commands.focus("end")}
