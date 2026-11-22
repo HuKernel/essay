@@ -23,6 +23,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { buildApplicationMenuTemplate, buildTrayMenuTemplate } from "./app-shell.js";
 import { buildHtmlExport, inlineAssetImages } from "./html-export.js";
+import { renameWithBusyRetry } from "./file-retry.js";
 import {
   beginStorageReconfigurationBackup,
   recoverInterruptedStorageReconfiguration,
@@ -295,7 +296,7 @@ async function atomicWriteFile(filePath: string, content: string) {
   const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
   try {
     await fs.writeFile(tmpPath, content, "utf8");
-    await fs.rename(tmpPath, filePath);
+    await renameWithBusyRetry(() => fs.rename(tmpPath, filePath));
   } catch (error) {
     await fs.rm(tmpPath, { force: true }).catch(() => undefined);
     throw error;
@@ -306,7 +307,7 @@ async function atomicWriteBytes(filePath: string, content: Uint8Array) {
   const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
   try {
     await fs.writeFile(tmpPath, content);
-    await fs.rename(tmpPath, filePath);
+    await renameWithBusyRetry(() => fs.rename(tmpPath, filePath));
   } catch (error) {
     await fs.rm(tmpPath, { force: true }).catch(() => undefined);
     throw error;
